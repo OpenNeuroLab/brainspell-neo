@@ -1,0 +1,370 @@
+.print-only {
+  display: none; }
+
+@media print {
+  print-only {
+    display: block; } }
+* {
+  padding: 0; }
+
+.paper-stuff h3 {
+  margin: 0; }
+
+/* START RT */
+html {
+  height: 100%; }
+
+body {
+  margin: 0;
+  height: 100%;
+  text-align: left;
+  color: #444444;
+  font-family: Georgia, "New Century Schoolbook", "Nimbus Roman No9 L", serif;
+  font-size: 0.8rem;
+  line-height: 1.5; }
+
+h2 {
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 5px 0px; }
+
+h2.paper-title {
+  text-transform: uppercase; }
+
+h2.blog {
+  margin: 0;
+  padding: 0; }
+
+.blog a {
+  color: #444444; }
+
+h2 strong {
+  color: #444444; }
+
+h3 {
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  color: #444444; }
+
+h3 span {
+  text-transform: none; }
+
+h3 strong {
+  color: #444444;
+  font-weight: 400; }
+
+h4 {
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  font-weight: bold;
+  display: inline;
+  position: relative; }
+
+table {
+  font-size: 0.8rem; }
+
+/* Reference list */
+.paper-list li {
+  list-style-type: none;
+  position: relative;
+  padding-bottom: 10px; }
+
+.paper-list h3 {
+  margin: 0; }
+
+.info {
+  font-size: 0.9rem;
+  color: #888888;
+  margin: 0; }
+
+/* New article warning */
+#new-article-warning {
+  display: none; }
+
+/* Article */
+.abstract {
+  padding: 0 0px;
+  text-align: justify;
+  -moz-hyphens: auto;
+  hyphens: auto;
+  -moz-column-count: 2;
+  -webkit-column-count: 2;
+  column-count: 2;
+  -moz-column-gap: 30px;
+  -webkit-column-gap: 30px;
+  column-gap: 30px; }
+
+.experiment {
+  padding: 10px; }
+
+[contenteditable]:active,
+[contenteditable]:focus {
+  border: none;
+  outline: none; }
+
+div[contenteditable] {
+  background-color: #f7f7f7; }
+
+div.stored {
+  border: thin solid lightGrey;
+  margin: 1px; }
+
+.experiment-locations {
+  background-color: #fafafa;
+  padding: 0px; }
+
+.experiment-locations table {
+  width: 150px;
+  color: #444444;
+  text-align: center; }
+
+.experiment-locations table thead th {
+  background-color: #ebe1d3; }
+
+.experiment-locations th, td input[type=image] {
+  width: 10px;
+  outline: none; }
+
+.experiment-locations th.coordinate, td.coordinate {
+  width: 30px; }
+
+.experiment-locations th.input, td.input {
+  width: 14px; }
+
+.xyztable {
+  overflow-y: auto;
+  border-bottom: thin solid #dddddd; }
+
+.tableActions {
+  display: none;
+  padding: 8px 3px; }
+
+.button {
+  background-color: white;
+  border: thin solid #dddddd;
+  padding: 2px;
+  font-family: sans-serif;
+  text-align: center;
+  cursor: pointer; }
+
+/* Ontology modal */
+.light_overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: .2;
+  z-index: 1001; }
+
+.light_content {
+  display: none;
+  position: fixed;
+  top: 3rem;
+  left: 3rem;
+  bottom: 3rem;
+  right: 3rem;
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.7);
+  z-index: 1002; }
+
+/* Concept modal */
+.box_overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 0.2;
+  z-index: 1003; }
+
+.box_content {
+  display: none;
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  bottom: 30px;
+  right: 30px;
+  margin: auto auto;
+  background-color: white;
+  box-shadow: 2px 2px 20px rgba(0, 0, 0, 0.7);
+  z-index: 1004; }
+
+/* Tags */
+.tag {
+  font-family: sans-serif;
+  font-size: 0.7rem;
+  position: relative;
+  display: inline-block;
+  min-height: 14px;
+  margin: 2px 1px;
+  padding: 0px 4px;
+  border: 1px solid lightGrey;
+  border-radius: 2px;
+  background-color: white;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  -webkit-transition: all 0.2s ease-out;
+  -moz-transition: all 0.2s ease-out;
+  -ms-transition: all 0.2s ease-out;
+  -o-transition: all 0.2s ease-out;
+  transition: all 0.2s ease-out;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px; }
+
+.tag:hover {
+  background-color: #dddddd;
+  border-color: #888888; }
+
+.tag a {
+  color: #444444; }
+
+.tag a:hover, .tag a:focus {
+  color: #ed8000;
+  text-decoration: none; }
+
+.green {
+  border-left: 7px solid #88cc88; }
+
+.orange {
+  border-left: 7px solid #ffbb88; }
+
+.red {
+  border-left: 7px solid #ee7777; }
+
+textarea {
+  border: 1px solid #dddddd; }
+
+/* Start general */
+button {
+  background-color: white;
+  border: 1px solid lightGrey;
+  padding: 5px; }
+
+button:hover {
+  background-color: lightGrey;
+  cursor: pointer; }
+
+/* End general */
+/* END RT */
+fieldset {
+  border: 0; }
+
+html {
+  -webkit-font-smoothing: antialiased; }
+
+a {
+  cursor: pointer;
+  color: #444444;
+  text-decoration: none; }
+
+a:hover, a:focus {
+  text-decoration: underline;
+  color: #ed8000; }
+
+/* Style of navigation tab links */
+a.nav {
+  color: #444444; }
+
+a.nav:hover {
+  color: #ed8000; }
+
+/* Core and Footer */
+.wrap {
+  min-height: 100%; }
+
+.content {
+  overflow: auto;
+  padding-bottom: 100px;
+  /* must be same height as the footer */
+  max-width: 800px;
+  margin: 0 auto; }
+
+.footer {
+  position: relative;
+  margin-top: -100px;
+  /* negative value of footer height */
+  height: 100px;
+  clear: both;
+  background-color: black; }
+
+/* content section, subsection */
+.section {
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 50px;
+  margin-bottom: 50px; }
+
+.subsection {
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 20px;
+  margin-bottom: 20px; }
+
+.subsection.home {
+  padding-left: 3rem;
+  padding-right: 3rem; }
+
+/* Header */
+.header {
+  position: relative;
+  width: 800px;
+  margin: 0 auto;
+  font-family: Tahoma, Geneva, Verdana, sans-serif; }
+
+.fl {
+  float: left !important; }
+
+.fr {
+  float: right !important; }
+
+.header .content {
+  padding: 3rem 0; }
+
+.header .fl.ninja:hover, .header .fl.ninja:focus {
+  text-decoration: none; }
+
+.header .fr li {
+  display: inline;
+  padding-left: 20px; }
+
+.header .fr li a {
+  display: inline-block;
+  padding-bottom: 1rem;
+  margin-bottom: 1px;
+  text-decoration: none; }
+
+.header .fr li a:hover, .header .fr li a:focus {
+  margin-bottom: 0;
+  border-bottom: 1px solid #dddddd; }
+
+.header .fr li.on a {
+  margin-bottom: 0;
+  border-bottom: 2px solid #dddddd;
+  color: black; }
+
+.header .fr li.on a:hover, .header .fr li.on a:focus {
+  border-color: #ed8000; }
+
+#search {
+  width: 100%;
+  padding: 10px 80px 10px 20px;
+  border: 1px solid #dddddd;
+  font-family: Georgia, "New Century Schoolbook", "Nimbus Roman No9 L", serif;
+  font-size: 1rem; }
+
+#home-search {
+  position: relative; }
+
+#home-search button {
+  position: absolute;
+  right: 20px;
+  bottom: 10px;
+  padding: 0px; }

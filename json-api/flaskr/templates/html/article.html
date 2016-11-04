@@ -1,0 +1,103 @@
+<!-- New article warning -->
+<div id="new-article-warning">
+	<div style="border:1px solid lightGrey;padding:1rem">
+		<p><b>This article is not yet in the database, but you can add it manually: Log in,
+		enter below the number of stereotaxic tables the article contains, and click "Add
+		new article".</b></p>
+		Number of stereotaxic tables: <input type="text" id="numNewExperiments"/>
+		<button onclick="addEmptyExperiments()">Add new article</button>
+	</div>
+</div>
+
+<!-- Title, authors and abstract -->
+<div class="subsection">
+	<h2 class="paper-title"><!--Title--></h2>
+	<strong id="reference"><!--Reference--></strong>
+	<br/>
+	<span class="button" id="pmid" href="http://www.ncbi.nlm.nih.gov/pubmed/<!--PMID-->" target="_blank">PubMed</span>
+	<span class="button" id="doi" href="http://dx.doi.org/<!--DOI-->" target="_blank">Full Text</span>
+	<span class="button" id="neurosynth" href="http://neurosynth.org/studies/<!--NeuroSynthID-->" target="_blank">Neurosynth</span>
+	<span class="button" id="download">Download</span>
+
+	<div class="abstract subsection">
+	<!--Abstract-->
+	</div>
+</div>
+
+<!-- Metadata: MeSH descriptors, stereotaxic space and number of subjects -->
+<div class="subsection">
+<b style="font-family:sans-serif">Metadata</b>
+<div style="padding:10px;border:1px solid lightGrey">
+	<table style="width:100%">
+	<tr>
+	<td style="width:67%;vertical-align:top">
+	<div>
+		<b style="font-family:sans-serif">MeSH descriptors</b>
+		<ul class="tag-list">
+		</ul>
+	</div>
+	</td>
+	<td>
+	<div>
+		<b style="font-family:sans-serif">Stereotaxic space</b>
+		<br />
+		<input onclick="logStereoSpace(this)" type="radio" name="stereoSpace" value="MNI" /> MNI <span id="MNI"></span>
+		&nbsp;
+		<input onclick="logStereoSpace(this)" type="radio" name="stereoSpace" value="Talairach" /> Talairach <span id="Talairach"></span>&nbsp;&nbsp;
+	</div>
+
+	<div class="subsection">
+		<b style="font-family:sans-serif">Number of subjects</b>
+		<br />
+		<input onchange="logNSubjects(this)" type="text" id="nSubjects" style="width:3rem;text-align:right" />&nbsp;&nbsp;<span id="nSubjects"></span>
+	</div>
+	</td>
+	</tr>
+	</table>
+</div>
+</div>
+
+<!-- Experiments: Locations tables, tags -->
+<div class="subsection">
+<b style="font-family:sans-serif">Experiments</b>
+<div style="padding:5px;border:1px solid lightGrey">
+	<div class="experiments">
+	</div>
+</div>
+</div>
+
+<!-- Discussion -->
+<div class="subsection">
+	<b style="font-family:sans-serif">Discussion</b>
+	<div class="comments">
+	</div>
+	<textarea id="comment" cols=50 rows=5></textarea>
+	<br />
+	<button id="comment" onclick="logComment()">Post your comment</button>
+	<span id="commentWarning"> <a onclick="login()">Log in</a> to comment</span>
+</div>
+<br />
+<br />
+
+<!-- HTML sanitizer -->
+<script src="<!--ROOTDIR-->js/html-sanitizer-minified.js"></script>
+
+<!-- Translucent Viewer -->
+<script src="/js/three.min.js"></script>
+<script src="/js/Detector.js"></script>
+<script src="/js/threex/THREEx.screenshot.js"></script>
+<script src="/js/threex/THREEx.FullScreen.js"></script>
+<script src="/js/threex/THREEx.WindowResize.js"></script>
+<script src='/js/SubdivisionModifier.js'></script>
+<script src="/js/PLYLoader.js"></script>
+<script src="/js/TrackballControls.js"></script>
+<script src="/js/jquery-1.10.2.min.js"></script>
+
+<!-- BrainSpell article -->
+<script src="/js/brainspell-article.js"></script>
+<script>
+	var	meta_string='<!--Metadata-->';
+	var	exp_string='<!--Experiments-->';
+	initBrainSpellArticle();
+</script>
+

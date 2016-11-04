@@ -1,0 +1,100 @@
+<div class="box">
+
+	<div id="box" class="box_content" style="width:400px;height:400px">
+		
+		<div style="float:right"><a onclick="closeTagModal(0);">Close</a></div>
+		
+		<div class="allThing" style="height:360px;padding:20px">
+
+			<div class="titleThing">
+				<h3 class="ontology-name"></h3>
+				<h2 class="name"></h2>
+				<img class="thumbs_up" style="display:inline;height:0.8rem"/>
+				<span class="agree"></span>
+				<img class="thumbs_down" style="display:inline;height:0.8rem;position:relative;top:0.2rem;margin-left:1rem"/>
+				<span class="disagree"></span>
+				<br/>
+				<br/>
+				<div id="eid" style="display:none"></div>
+				<div id="ontology" style="display:none"></div>
+			</div>
+			
+			<div class="myThing" style="overflow-y:auto;border-style:solid;border-width:1px;background-color:#f5f5f5;border-color:#ddd">
+				<div class="definition" style="padding:20px;">
+				</div>
+			</div>
+			
+			<div style="height:10px">
+			</div>
+			
+			<div class="buttonsThing" align=center>
+				<button id="agree" onclick="closeTagModal(+1);" style="height:2rem"><img class="thumbs_up" style="height:0.8rem;display:inline;position:relative;top:-0.1rem;padding-right:0.5rem;vertical-align:middle"/>Agree</button>
+				<button id="disagree" onclick="closeTagModal(-1);" style="height:2rem"><img class="thumbs_down" style="height:0.8rem;display:inline;position:relative;top:0.1rem;padding-right:0.5rem;vertical-align:middle"/>Disagree</button>
+				<button id="retract" onclick="closeTagModal(-2);" style="height:2rem">Retract</button>
+				<div id="login-message">
+					<a onclick="login()">Log in</a> to give your advice
+				</div>
+			</div>
+
+		</div>
+	</div>
+	
+	<div id="boxfade" class="box_overlay" onclick="closeTagModal(0);">
+	</div>
+
+	<script>
+	function configureTagModal(rtag)
+	{
+		var cts={"tasks":"Cognitive Atlas Tasks","cognitive":"Cognitive Atlas Cognitive Domains","behavioural":"BrainMap Behavioural Domains","mesh":"MeSH Medical Headings"};
+		$("h2.name").html(rtag.name);
+		$("h3.ontology-title").html(cts[rtag.ontology]);
+		$("img.thumbs_up").attr("src",rootdir+"img/thumbs_up.svg");
+		$("img.thumbs_down").attr("src",rootdir+"img/thumbs_down.svg");
+		
+		// find if user has already voted
+		var	eid=parseInt($('#box #eid').text());
+		var	prevVote=findPreviousVoteByUser(eid/*iExp*/,rtag);
+		
+		$("span.agree").html(rtag.agree+(prevVote==1?" (including you)":""));
+		$("span.disagree").html(rtag.disagree+(prevVote==-1?" (including you)":""));
+		
+		if(loggedin)
+		{
+			$('button#agree').removeAttr('disabled');
+			$('button#disagree').removeAttr('disabled');
+			if(prevVote)
+				$('button#retract').show();
+			else
+				$('button#retract').hide();
+			$('div#login-message').hide();
+		}						
+		else
+		{
+			$('button#agree').attr('disabled','disabled');
+			$('button#disagree').attr('disabled','disabled');
+			$('button#retract').hide();
+			$('div#login-message').show();
+		}						
+
+		$.ajax({
+			type: "GET",
+			url: rootdir+"php/brainspell.php",
+			data: {
+				action:"get_concept",
+				command:"concept",
+				argument:rtag.name,
+			},
+			async: false
+		}).done(function( msg )
+		{
+			var xml=$.parseXML(msg);
+			var	def=$(xml).find("Definition").text();
+			if(def)
+				$("div.definition").html("<i>\""+def+"\"</i>");
+			else
+				$("div.definition").html("No definition available");
+		});
+	}
+	</script>
+
+</div>

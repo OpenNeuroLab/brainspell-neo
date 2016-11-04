@@ -1,0 +1,179 @@
+<style media="screen" type="text/css">
+a {
+	cursor:pointer;
+	color:#d70;
+	text-decoration:none
+}
+a:hover,a:focus {
+	text-decoration:underline
+}
+div.login-content {
+	width:400px;
+	height:300px;
+	border:1px solid white;
+	font-family:sans-serif;
+	position:fixed;
+	left:50%;
+	top:50%;
+	margin-left:-200px;
+	margin-top:-150px;
+	box-shadow:2px 2px 20px rgba(0,0,0,0.7);
+	background-color:white;
+	z-index:2001;
+}
+div.login-overlay {
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	height:100%;
+	background-color:black;
+	opacity:0.2;
+	z-index:2000;
+}
+</style>
+
+<div class="login-overlay">
+</div>
+
+<div class="login-content">
+	<div style="float:right"><a onclick="closeLogin(0);">Close</a></div>
+
+	<!--
+		Sign-in modal
+	-->
+	<div id="sign-in" style="padding:40px">
+		<h1>Sign In</h1>
+		<br>
+		<table style="width:100%;">
+			<tr><td><label for="username">User Name</label></td><td><input type="text" name="username" id="username" style="width:100%"/></td></tr>
+			<tr><td><label for="password">Password</label></td><td><input type="password" name="password" id="password" style="width:100%"/></td></tr>
+			<tr><td></td><td><div id="warning" style="color:red"></div></td></tr>
+			<tr><td></td><td><button id="login" onclick="checkLogin()">Login</button></td></tr>
+		</table>
+		<br>
+		<a onclick="registerBox()">Register</a><br/>
+		<a onclick="remindBox()">E-Mail me a new password</a><br/>
+	</div>
+
+	<!--
+		Register modal
+	-->
+	<div id="register" style="padding:40px;display:none">
+		<h1>Register</h1>
+		<br>
+		<table style="width:100%;">
+			<tr><td><label for="username">User Name</label></td><td><input type="text" name="username" id="username" style="width:100%"/></td></tr>
+			<tr><td><label for="password">E-Mail</label></td><td><input type="text" name="email" id="email" style="width:100%"/></td></tr>
+			<tr><td><label for="password">Password</label></td><td><input type="password" name="password" id="password" style="width:100%"/></td></tr>
+			<tr><td><label for="password">Confirm Password</label></td><td><input type="password" name="repassword" id="repassword" style="width:100%"/></td></tr>
+			<tr><td></td><td><div id="warning" style="color:red"></div></td></tr>
+			<tr><td></td><td><input type="button" name="register" id="register" value="Register" onclick="register()"/></td></tr>
+		</table>
+	</div>
+
+	<!--
+		E-mail new password modal
+	-->
+	<div id="remind" style="padding:40px;display:none">
+		<h1>Check your e-Mail!</h1>
+		<br>
+		A new password was sent to the e-Mail address you used to register.
+	</div>
+
+</div>
+
+<script>
+
+function checkLogin()
+{
+	$.get(rootdir+"php/brainspell.php",{"action":"login","username":$("#username").val(),"password":$("#password").val()},function(data){
+		if(data=="Yes")
+		{
+			username=$("#username").val();
+			loggedin=1;
+			console.log("[checkLogin] calling update_login");
+			update_login();
+			$("div.login").remove();
+		}
+		else
+		{
+			loggedin=0;
+			$("div#sign-in div#warning").html("Incorrect user name or password");
+			setTimeout(function(){$("div#sign-in div#warning").html("")},1000);
+		}
+
+	});
+}
+function registerBox()
+{
+	$("div.login div#sign-in").hide();
+	$("div.login div#register").show();
+}
+function register()
+{
+	var	reg_username=$("div#register #username").val();
+	var	reg_email=$("div#register #email").val();
+	var	reg_password=$("div#register #password").val();
+	var	reg_repassword=$("div#register #repassword").val();
+	
+	if(reg_username=="" || reg_email=="" || reg_password=="" || reg_repassword=="")
+	{
+		$("div#register div#warning").html("All fields are required");
+		return;
+	}
+	
+	if(reg_password!=reg_repassword)
+	{
+		$("div#register div#warning").html("Passwords are not the same");
+		return;
+	}
+	
+	$.get(rootdir+"php/brainspell.php",{"action":"register","username":reg_username,"email":reg_email,"password":reg_password},function(data){
+		if(data=="Yes")
+		{
+			username=reg_username;
+			loggedin=1;
+			$("div.login").remove();
+			console.log("[register] calling update_login");
+			update_login();
+		}
+		else
+		if(data=="Exists")
+		{
+			$("div#register div#warning").html("That username is already in use");
+		}
+		else
+		{
+			$("div#register div#warning").html("Sorry, your registration failed. Please try again later");
+		}
+	});
+}
+function remindBox()
+{
+	$("div.login div#sign-in").hide();
+	$("div.login div#remind").show();
+}
+function remind()
+{
+	$.get(rootdir+"php/brainspell.php",{"action":"remind","username":username},function(data){
+		if(data=="Yes")
+		{
+			username=reg_username;
+			loggedin=1;
+			console.log("[remind] calling update_login");
+			update_login();
+			$("div.login").remove();
+		}
+		else
+		{
+			$("div#register div#warning").html("Sorry, unable to send a new password. Please try again later");
+		}
+
+	});
+}
+function closeLogin()
+{
+	$("div.login").remove();
+}
+</script>

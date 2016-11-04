@@ -15,9 +15,12 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 import certifi
 import json
-
-
-
+import tornado
+from tornado.wsgi import WSGIContainer
+from tornado.ioloop import IOLoop
+from tornado.web import FallbackHandler,RequestHandler,Application
+from tornado.httpserver import HTTPServer
+import peewee
 
 
 app = Flask(__name__)
@@ -130,7 +133,11 @@ def post():
     return json.dumps(database_dict,  sort_keys = True, indent = 4, separators = (',', ': '))
 
 
-
 if __name__ == "__main__":
     app.debug = True
     app.run()
+    """Running using Tornado """
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000)
+    IOLoop.instance().start()
+

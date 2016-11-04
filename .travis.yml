@@ -1,0 +1,5 @@
+language: python
+install:
+    - pip install flask
+    - pip install -U pytest
+script: pytest

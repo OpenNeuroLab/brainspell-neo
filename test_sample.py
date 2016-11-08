@@ -1,12 +1,6 @@
 import tornado.web
 import pytest
 
-def func(x):
-    return x + 1
-
-def test_answer():
-    assert func(3) == 4
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write("Hello, world")

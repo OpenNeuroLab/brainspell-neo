@@ -1,3 +1,4 @@
 Flask==0.11.1
 tornado==4.4.1
 pytest==3.0.3
+pytest-tornado==0.4.5

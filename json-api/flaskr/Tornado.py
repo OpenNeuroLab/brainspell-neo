@@ -30,7 +30,7 @@ myConnection = pymysql.connect(host = hostname, user = username, passwd = passwo
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("Hello, world")
+	    self.write("Brainspell JSON API. Code is available at https://github.com/neelsomani/brainspell-neo")
 
 def make_app():
     return tornado.web.Application([

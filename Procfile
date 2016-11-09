@@ -1,1 +1,1 @@
-web: python3 json-api/flaskr/Tornado.py
+web: python3 json-api/Tornado.py

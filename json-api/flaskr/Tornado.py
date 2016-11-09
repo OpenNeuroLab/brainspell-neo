@@ -1,3 +1,4 @@
+import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import os
@@ -83,6 +84,8 @@ class StoryHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(5000) # hosts on localhost:5000
+    http_server = tornado.httpserver.HTTPServer(app)
+    port = int(os.environ.get("PORT", 5000))
+    http_server.listen(port) # hosts on localhost:5000
     tornado.ioloop.IOLoop.current().start()
 

@@ -94,6 +94,6 @@ class StoryHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(5000) #hosts on http://127.0.0.1:5000/
+    app.listen(80) #hosts on localhost:80
     tornado.ioloop.IOLoop.current().start()
 

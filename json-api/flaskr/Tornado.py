@@ -14,14 +14,17 @@ import peewee
 import tornado
 
 ### Relies on the MySQL Database
+"""
+Commenting out for now, just to get Heroku working (there's no database online at the moment)
 hostname = '192.168.99.100'
 username = 'root'
 password = 'beo8hkii'
 database = 'brainspell'
 myConnection = pymysql.connect(host = hostname, user = username, passwd = password, db = database)
+"""
 ### End of MYSQL Setup
 
-###POSTGRESS SETUP
+### POSTGRES SETUP
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -31,7 +34,7 @@ class MainHandler(tornado.web.RequestHandler):
 def make_app():
     return tornado.web.Application([
         (r"/", MainHandler),
-        (r"/go",StoryHandler),
+        (r"/go", StoryHandler),
         (r"/about", AllExtras)
     ])
 
@@ -78,22 +81,8 @@ class StoryHandler(tornado.web.RequestHandler):
         self.write(json.dumps(database_dict,  sort_keys = True, indent = 4, separators = (',', ': ')))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     app = make_app()
-    app.listen(5000) #hosts on localhost:5000
+    app.listen(5000) # hosts on localhost:5000
     tornado.ioloop.IOLoop.current().start()
 

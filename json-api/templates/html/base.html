@@ -1,0 +1,141 @@
+<html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Open, collaborative platform for a human-curated classification of the neuroimaging literature">
+    <meta name="keywords" content="Open science, Collaboration, Neuroimaging, Cognitive science, Neuroscience, Annotation, Meta-analysis">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame. -->
+    <title>brainspell</title>
+    <link rel="shortcut icon" type="image/x-icon" href="<!--ROOTDIR-->img/favicon.ico">
+    <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+    <link rel="stylesheet" type="text/css" href="<!--ROOTDIR-->css/style.css">
+	<script>var	rootdir="<!--ROOTDIR-->";</script>
+    <script src="<!--ROOTDIR-->js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript">
+        // Is JS enabled? Is it a touch device?
+        var init = function(){
+            var htmlTag = document.getElementsByTagName('html')[0];
+            htmlTag.className = (htmlTag.className + ' ' || '') + 'hasJS';
+            if ('ontouchstart' in document.documentElement)
+                htmlTag.className = (htmlTag.className + ' ' || '') + 'isTouch';
+        }();
+    </script>
+</head>
+
+<body>
+
+<div class="wrap">
+	<div class="content">
+
+	<!-- Logo and navigation bar -->
+    <div class="header">
+		<div class="section">
+		<table style="width:100%">
+		<tr>
+			<td>
+				<a href="<!--ROOTDIR-->">
+					<h1><img src="<!--ROOTDIR-->img/brainspell.svg" alt="brainSpell"/></h1>
+				</a>
+			</td>
+			<td>
+				<ul class="fr">
+					<li class="login"></li>
+					<li><a href="<!--ROOTDIR-->blog" class="nav">BLOG</a></li>
+					<li><a href="<!--ROOTDIR-->about" class="nav">ABOUT</a></li>
+					<li><a href="<!--ROOTDIR-->download" class="nav">DOWNLOAD</a></li>
+					<li><a href="http://siphonophore.org/blog/?cat=2&feed=rss2" class="nav"><img src="<!--ROOTDIR-->img/feed-icon.svg" width="14px" height="14px" style="margin-left:4px;vertical-align:middle"/></a></li>
+				</ul>
+			</td>
+		</tr>
+		</table>
+		</div>
+
+		<script>
+		var username="<!--Username-->";
+		var loggedin=<!--LoggedIn-->;
+		var	loginUpdateSubscribers=new Array();
+
+		console.log("[ROOT] calling update_login");
+		update_login();
+
+		function subscribeToLoginUpdates(f)
+		{
+			loginUpdateSubscribers.push(f);
+			//console.log("[subscribeToLoginUpdates] subscribe",loginUpdateSubscribers);
+		}
+		function unsubscribeToLoginUpdates(f)
+		{
+			loginUpdateSubscribers.splice(loginUpdateSubscribers.indexOf(f),1);
+			//console.log("[unsubscribeToLoginUpdates] unsubscribe",loginUpdateSubscribers);
+		}
+		function update_login()
+		{
+			if(loggedin)
+				$('.login').html('<a href="<!--ROOTDIR-->user/'+username+'" style="display:inline">'+username+'</a> (<a onclick="logout()" style="display:inline">LOG OUT</a>)');
+			else
+				$('.login').html('<a onclick="login()">LOG IN</a>');
+
+			// call login update subscribers
+			console.log("[update_login] informing login update subscribers");
+			for(i=0;i<loginUpdateSubscribers.length;i++)
+				loginUpdateSubscribers[i]();
+		}
+		function login()
+		{
+			$('body').append($('<div class="login">'));
+			$('div.login').load("<!--ROOTDIR-->templates/login.html");
+		}
+		function logout()
+		{
+			$.get(rootdir+"php/brainspell.php",{"action":"logout"},function(data){console.log("[logout] Logout:",data)});
+			username="";
+			loggedin=0;
+			console.log("[logout] calling update_login");
+			update_login();
+		}
+		</script>
+	</div><!-- /header -->
+
+	<!-- Main content  -->
+	<!--Core-->
+
+	</div><!-- /content -->
+</div><!-- /wrap -->
+
+<div class="footer">
+	<div style="padding:10px 10px">
+		<table>
+			<tr>
+			<td>
+			<a  style="display:inline" rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
+			<!-- Original image location http://i.creativecommons.org/l/by-sa/3.0/88x31.png" -->
+			<img align="left" alt="Creative Commons License" style="border:1px solid white" src="<!--ROOTDIR-->img/cc-by-sa-88x31.png">
+			</a>
+			</td>
+			<td style="vertical-align:top;font-size:0.8rem;color:#fff;font-family:sans-serif">
+			<span  style="display:inline" xmlns:dct="http://purl.org/dc/terms/" property="dct:title">brainspell</span> by
+			<a style="display:inline" xmlns:cc="http://creativecommons.org/ns#" href="brainspell.org" property="cc:attributionName" rel="cc:attributionURL">Roberto Toro</a>
+			is licensed under a <a style="display:inline" rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.
+			</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-47722508-1']);
+  _gaq.push(['_setDomainName', 'brainspell.org']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+</body>
+
+</html>

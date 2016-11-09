@@ -1,0 +1,59 @@
+<table style="width:800px;margin-left:auto;margin-right:auto;margin-top:2rem">
+
+<tr><td colspan=2>
+<h2>Brainspell developers</h2>
+<tr>
+<td><a href="http://www.ura2182.cnrs-bellevue.fr/rtoro">Roberto Toro</a></td>
+<td><large>Project, development, design and mark-up</large></td>
+</tr>
+
+<tr>
+<td><a href="#">Yves Burnod</a></td>
+<td><large>Beta testing</large></td>
+</tr>
+
+<tr>
+<td><a href="http://www.stpo.fr">STPo</a></td>
+<td><large>Prototype design and mark-up</large></td>
+</tr>
+
+<tr>
+<td><a href="http://www.linkedin.com/in/mathieurichardoz">Mathieu Richardoz</a></td>
+<td><large>Prototype development</large></td>
+</tr>
+
+<tr><td colspan=2>
+<h2 style="margin-top:1rem">Acknowledgments</h2>
+	<a href="http://www.neurosynth.org">Neurosynth</a><br/>
+	<a href="http://www.cognitiveatlas.org">Cognitive Atlas</a><br/>
+	<a href="http://www.pasteur.fr">Institut Pasteur</a><br/>
+	<a href="http://neurobureau.projects.nitrc.org">The Neurobureau</a><br/>
+	Sympactif<br/>
+</td></tr>
+
+<tr>
+<td colspan=2>
+<style>
+	p {margin-bottom:1rem;text-align:justify}
+</style>
+<h2 style="margin-top:1rem">Advanced search in brainspell</h2>
+<p>Brainspell allows for complex search queries, by using the implementation of <a href="http://en.wikipedia.org/wiki/Lucene">Lucene</a> included in the <a href="http://framework.zend.com/">Zend Framework</a> (a detailed description of the query language syntax is available <a href="http://framework.zend.com/manual/1.12/en/zend.search.lucene.query-language.html">here</a>).</p>
+<p>Documents can be searched using a single word, such as <b>amygdala</b> or <b>intelligence</b>, or a group of words surrounded by double quotes, such as <b>"intelligence quotient"</b>.</p>
+<p>A search can be restricted to a specific field, such as <b>Title:"Temporal lobe"</b>. The available fields are <b>Title</b>, <b>Authors</b>, <b>Year</b>, <b>Journal</b> and <b>Abstract</b>.</p>
+<p>A single character can be replaced by a wildcard using the "?" symbol. For example, <b>te?s</b> will match "text" or "test". For multiple characters, use the "*" symbol. For example, <b style="white-space:nowrap">*wr?t*</b> will match "write", "wrote", "written", "rewrote", etc.</p>
+<p>A search can be restricted to a specific range, such as <b>Year:[2000 TO 2005]</b>. Square brackets "[ ]" will include the boundaries of the range, whereas curly brackets "{ }" will exclude them.</p>
+<p>Fuzzy searches, based on the <a href="http://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a>, are also available using the "~" modifier. For example, the search <b>roam~</b> will match "foam" and "roams". An optional parameter can be used to specify the level of required similarity, from 0 (low similarity) to 1 (high similarity), for example, <b>roam~0.8</b> (by default this value is 0.5). To prevent performance downgrades, the number of terms matched by a fuzzy search is limited to 1024.</p>
+<p>It is possible to specify the maximum distance between terms in a search by adding a tilde, "~", symbol at the end of the phrase. For example, <b>"attention autism"~10</b> will return documents where "attention" and "autism" are present within 10 words of each other.</p>
+<p>The relevance of a term can be boosted using the caret, "^", symbol followed by a boost factor (a positive number, 1 by default) at the end of the search term. The higher the boost factor, the more relevant the term will be. For example, <b>attention^3 autism</b> will make documents with the term "attention" appear more relevant. You can also boost phrases like <b>"Superior temporal sulcus"^3 "Inferior temporal sulcus"</b>.</p>
+<p>The boolean operators "AND", "OR", and "NOT" are supported. It is possible to use the operators "+" and "-" instead, but both styles of operator cannot be mixed. By default, all terms in a search are joined using the "OR" operator.</p>
+<p>It is possible to use parentheses to group clauses to form sub queries. This can be used to control the precedence of boolean logic operators for a query or mix different boolean query styles, such as <b>+("short term" OR "long term") +memory</b>.</p>
+<p>Parentheses can also be used to group multiple clauses to a single field. For example,</p>
+<p><b>Title:(+connectivity +"attention deficit")</b></p>
+<p>Will search for a title containing both the word "connectivity" and the phrase "attention deficit".</p>
+<p>The following set of special characters is reserved:</p>
+<p>+ - && || ! ( ) { } [ ] ^ " ~ * ? : \</p>
+<p>To include them in a search term, use the "\" character before. For example to search for (1+1):2 use the query <b>\(1\+1\)\:2</b></p>
+</td>
+</tr>
+
+</table>

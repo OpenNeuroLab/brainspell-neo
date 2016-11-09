@@ -1,0 +1,58 @@
+<div class="subsection home">
+		<h3 style="padding-bottom:3rem;line-height:150%"><b>Welcome to brainspell!</b> Help us create the first open, human-curated, classification of the neuroimaging literature. You can search for articles to classify or just pick among the randomly selected ones bellow.</h3>
+</div>
+
+<div class="subsection home">
+	<form method="get" action="search">
+		<fieldset id="home-search">
+			<input type="text" id="search" name="query" placeholder="Search articles by title, author, keyword…"/>
+			<button style="border:0;top:5px;width:25px;height:25px"><img src="<!--ROOTDIR-->img/search.svg" alt="Search" class="rollMe" width=25px height=25px/></button>
+		</fieldset>
+	</form>
+	<form method="get" action="search">
+		<fieldset id="home-search">
+			<input type="text" id="search" name="query" placeholder="Search articles by Coordinate Set"/>
+			<button style="border:0;top:5px;width:25px;height:25px"><img src="<!--ROOTDIR-->img/search.svg" alt="Search2" class="rollMe" width=25px height=25px/></button>
+		</fieldset>
+	</form>
+	<div style="text-align:right"><!--NumberOfArticlesIndexed--> articles indexed</div>
+</div>
+
+<div class="subsection home">
+	<ul class="paper-list">
+	</ul>
+</div>
+
+<script type="text/javascript">
+init();
+function init(){
+	console.log("[init] init()");
+	// Is JS enabled? Is it a touch device?
+	var htmlTag = document.getElementsByTagName('html')[0];
+	htmlTag.className = (htmlTag.className + ' ' || '') + 'hasJS';
+	if ('ontouchstart' in document.documentElement)
+		htmlTag.className = (htmlTag.className + ' ' || '') + 'isTouch';
+	
+	getarticle();
+}
+function getarticle()
+{
+	console.log("[getarticle] Get random article");
+	$.get("<!--ROOTDIR-->php/brainspell.php",
+		  {	action:"get_article",
+			command:"random",
+			argument:"5"},
+		  function( msg ) {
+			var xml=$.parseXML(msg);
+			$(xml).find("record").each(function(){
+				var newArticle="";
+				newArticle+="<li><div class=\"paper-stuff\">\n";
+				newArticle+="<h3><a href=\"article/"+$(this).find("PMID").text()+"\">";
+				newArticle+=$(this).find("Title").text()+"</a></h3>\n";
+				newArticle+="<p class=\"info\">"+$(this).find("Reference").text()+"</p>\n";
+				newArticle+="</div></li>\n";
+				$(".paper-list").append(newArticle);
+			});
+		  });
+}
+</script>

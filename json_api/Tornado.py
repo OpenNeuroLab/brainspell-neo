@@ -28,7 +28,7 @@ myConnection = pymysql.connect(host = hostname, user = username, passwd = passwo
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("templates/text.html")
+        self.render("templates/front/index.html")
 
 class AllExtras(tornado.web.RequestHandler):
     def get(self):

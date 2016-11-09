@@ -41,7 +41,7 @@ class AllExtras(tornado.web.RequestHandler):
 
 class StoryHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("static/text.html")
+        self.render("static/html/text.html")
 
     def post(self):
         self.set_header("Content-Type", "text/plain")
@@ -69,7 +69,7 @@ class StoryHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
-        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(PATH, 'static')}),
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')}),
         (r"/", MainHandler),
         (r"/go", StoryHandler),
         (r"/about", AllExtras)

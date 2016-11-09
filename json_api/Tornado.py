@@ -28,11 +28,11 @@ myConnection = pymysql.connect(host = hostname, user = username, passwd = passwo
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("templates/front/index.html")
+        self.render("static/front/index.html")
 
 class AllExtras(tornado.web.RequestHandler):
     def get(self):
-        self.render("templates/html/login.html", title = "ShowAll")
+        self.render("static/html/login.html", title = "ShowAll")
         
     def post(self):
         Name = self.get_argument("text")
@@ -41,7 +41,7 @@ class AllExtras(tornado.web.RequestHandler):
 
 class StoryHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("templates/text.html")
+        self.render("static/text.html")
 
     def post(self):
         self.set_header("Content-Type", "text/plain")
@@ -69,6 +69,7 @@ class StoryHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(PATH, 'static')}),
         (r"/", MainHandler),
         (r"/go", StoryHandler),
         (r"/about", AllExtras)

@@ -7,7 +7,7 @@ import sqlalchemy as sql
 
 from elasticsearch import Elasticsearch
 from elasticsearch import Elasticsearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
+#from requests_aws4auth import AWS4Auth
 import certifi
 import json
 import peewee
@@ -94,6 +94,6 @@ class StoryHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(80) #hosts on localhost:80
+    app.listen(5000) #hosts on localhost:5000
     tornado.ioloop.IOLoop.current().start()
 

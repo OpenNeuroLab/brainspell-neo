@@ -22,24 +22,8 @@ import psycopg2
 from urllib.parse import urlparse
 
 
-conn = psycopg2.connect(
-    database= 'd520svb6jevb35',
-    user= 'yaddqlhbmweddi',
-    password= 'SxBfLvKcO9Vj2b3tcFLYvLcv9m',
-    host= 'ec2-54-243-47-46.compute-1.amazonaws.com',
-    port= '5432',
-)
-print(conn)
 
 
-# hostname = 'ec2-54-243-47-46.compute-1.amazonaws.com'
-# username = 'yaddqlhbmweddi'
-# password = 'SxBfLvKcO9Vj2b3tcFLYvLcv9m'
-# database = 'd520svb6jevb35'
-#
-# myConnection = psycopg2.connect(host = hostname, user = username, password = password, database = database)
-
-print(conn)
 ### End of MYSQL Setup
 
 ### POSTGRES SETUP

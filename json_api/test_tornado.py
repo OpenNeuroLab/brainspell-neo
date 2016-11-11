@@ -5,6 +5,13 @@ import main
 
 application = main.make_app()
 
+def test_procfile():
+    import os
+    f = open("../Procfile", "r")
+    contents = f.read()
+    filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
+    assert filename in os.listdir()
+
 @pytest.fixture
 def app():
     return application

@@ -1,3 +1,5 @@
+import urllib
+
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -11,16 +13,33 @@ import certifi
 import json
 import peewee
 import tornado
+import psycopg2
 
 ### Relies on the MySQL Database
-"""
-Commenting out for now, just to get Heroku working (there's no database online at the moment)
-hostname = '192.168.99.100'
-username = 'root'
-password = 'beo8hkii'
-database = 'brainspell'
-myConnection = pymysql.connect(host = hostname, user = username, passwd = password, db = database)
-"""
+
+import os
+import psycopg2
+from urllib.parse import urlparse
+
+
+conn = psycopg2.connect(
+    database= 'd520svb6jevb35',
+    user= 'yaddqlhbmweddi',
+    password= 'SxBfLvKcO9Vj2b3tcFLYvLcv9m',
+    host= 'ec2-54-243-47-46.compute-1.amazonaws.com',
+    port= '5432',
+)
+print(conn)
+
+
+# hostname = 'ec2-54-243-47-46.compute-1.amazonaws.com'
+# username = 'yaddqlhbmweddi'
+# password = 'SxBfLvKcO9Vj2b3tcFLYvLcv9m'
+# database = 'd520svb6jevb35'
+#
+# myConnection = psycopg2.connect(host = hostname, user = username, password = password, database = database)
+
+print(conn)
 ### End of MYSQL Setup
 
 ### POSTGRES SETUP
@@ -69,7 +88,9 @@ class StoryHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
-        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')}),
+        (r"/static/(.*)", tornado.web.StaticFileHandler,
+         {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'static')}),
         (r"/", MainHandler),
         (r"/go", StoryHandler),
         (r"/about", AllExtras)

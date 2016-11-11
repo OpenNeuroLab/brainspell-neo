@@ -1,0 +1,10 @@
+export DATABASE_URL = ‘postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35' —> This has to exist in path environment 
+
+
+python3 -m pwiz --engine=postgresql brainspell_2016-11-01.pgsql > trial.py
+
+\d articles —> Describes the 
+
+
+Creating local database 
+pg_restore 

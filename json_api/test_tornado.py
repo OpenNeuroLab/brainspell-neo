@@ -1,9 +1,9 @@
 import tornado.web
 import os
 import pytest
-import Tornado
+import main
 
-application = Tornado.make_app()
+application = main.make_app()
 
 @pytest.fixture
 def app():

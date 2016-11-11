@@ -1,1 +1,1 @@
-web: python3 json_api/Tornado.py
+web: python3 json_api/main.py

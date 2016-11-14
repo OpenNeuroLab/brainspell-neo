@@ -5,6 +5,8 @@ import time
 import peewee
 import os
 from urllib.parse import urlparse
+import playhouse
+from playhouse.postgres_ext import *
 
 from peewee import DateTimeField, CharField, IntegerField
 """The following command executed in database_dumps will generate an ORM
@@ -22,8 +24,8 @@ config = dict(
     sslmode = 'require'
 )
 print(config)
-
-conn = peewee.PostgresqlDatabase(autocommit= True, autorollback = True, **config)
+#Now using extDatabase for PostGres full text search
+conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config) #used to be peewee.PostgresqlDatabase
 print(conn)
 
 
@@ -109,6 +111,10 @@ def create_tables(retry=5):
                 print('Could not connect to database...sleeping 5')
                 time.sleep(5)
 
-
+#Searches using Postgress full-text search
+def article_search(query):
+    search =  Articles.select().where(
+        Match(Articles.title, query))
+    return search.execute()
 
 

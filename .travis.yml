@@ -3,6 +3,6 @@ python:
   - "3.4"
   - "3.5"
 # command to install dependencies
-install: "pip install -r requirements.txt"
+install: "./setup.sh"
 # command to run tests
 script: cd json_api && pytest

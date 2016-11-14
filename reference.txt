@@ -1,0 +1,12 @@
+For reference:
+
+- Generate PeeWee models:
+python3 -m pwiz --engine=postgresql database_dumps/brainspell_2016-11-01.pgsql > trial.py
+
+- Restore the local database:
+pg_restore database_dumps/brainspell_2016-11-10.database
+
+- Installing Postgres
+brew uninstall postgres
+brew update
+brew install postgres --with-openssl

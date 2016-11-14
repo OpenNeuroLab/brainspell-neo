@@ -15,4 +15,8 @@ Now you can run Brainspell with `python3 json_api/main.py`. Brainspell should be
 
 ================================================
 
+Potential stack in the future:
+
 ![potential-configuration](https://cloud.githubusercontent.com/assets/7029855/19992170/d2a514dc-a1f8-11e6-94bc-f26eb1c4840d.png)
+
+Currently, we're using Tornado as our HTTP server.

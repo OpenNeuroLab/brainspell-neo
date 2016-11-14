@@ -111,7 +111,7 @@ def create_tables(retry=5):
                 print('Could not connect to database...sleeping 5')
                 time.sleep(5)
 
-#Searches using Postgress full-text search
+#Searches using Postgress full text search over article titles
 def article_search(query):
     search =  Articles.select().where(
         Match(Articles.title, query))

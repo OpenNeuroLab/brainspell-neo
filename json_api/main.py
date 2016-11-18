@@ -55,20 +55,14 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
         except:
             pass # start wasn't passed; default to zero
         results = article_search(q, start)
+        output_list = []
         for article in results:
-            database_dict = {}
-            database_dict["UniqueID"] = article.uniqueid
-            database_dict["TIMESTAMP"] = article.timestamp
-            database_dict["Title"] = article.title
-            database_dict["Authors"] = article.authors
-            database_dict["Abstract"] = article.abstract
-            database_dict["Reference"] = article.reference
-            database_dict["PMID"] = article.pmid
-            database_dict["DOI"] = article.doi
-            database_dict["NeuroSynthID"] = article.neurosynthid
-            database_dict["Experiments"] = article.experiments
-            database_dict["Metadata"] = article.metadata
-            self.write(json.dumps(database_dict))
+            article_dict = {}
+            article_dict["UniqueID"] = article.uniqueid
+            article_dict["Title"] = article.title
+            article_dict["Authors"] = article.authors
+            output_list.append(article_dict)
+        self.write(json.dumps(output_list))
 
 def make_app():
     return tornado.web.Application([

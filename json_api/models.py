@@ -110,8 +110,8 @@ def create_tables(retry=5):
                 print('Could not connect to database...sleeping 5')
                 time.sleep(5)
 
-def article_search(query, start):
-    search = Articles.select().where(
+def article_search(query, start): # TODO: search endpoint should only select the relevant information for *search*
+    search = Articles.select(Articles.uniqueid, Articles.title, Articles.authors).where(
         Match(Articles.title, query) | Match(Articles.title, query) | Match(Articles.abstract, query)
     ).limit(10).offset(start) # output ten results, offset by "start"
     return search.execute()

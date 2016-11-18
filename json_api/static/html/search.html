@@ -98,7 +98,14 @@
     <script>
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
         $resultClone.append($("<a>", {"href": "#!"}).text("Loading..."));
-        
+        $(
+            $.ajax({
+                type: "GET", 
+                url: "/query?q={{query}}"
+            }).complete(function(o) {
+                json = o.responseText;
+            })
+        );
         var $result = $resultClone.clone();
         $("#searchResults").append($result);
     </script>

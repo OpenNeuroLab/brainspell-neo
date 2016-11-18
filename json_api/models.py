@@ -22,11 +22,11 @@ config = dict(
     port= url.port,
     sslmode = 'require'
 )
+
 #print(config)
 #Now using extDatabase for PostGres full text search
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config) #used to be peewee.PostgresqlDatabase
 #print(conn)
-
 
 #You can enter information here something like User.create(___)
 
@@ -110,10 +110,13 @@ def create_tables(retry=5):
                 print('Could not connect to database...sleeping 5')
                 time.sleep(5)
 
-#Searches using Postgress full text search over article titles
-def article_search(query):
-    search =  Articles.select().where(
-        Match(Articles.title, query))
+def article_search(query, start):
+    search = Articles.select().where(
+        Match(Articles.title, query) | Match(Articles.title, query) | Match(Articles.abstract, query)
+    ).limit(10).offset(start) # output ten results, offset by "start"
     return search.execute()
 
 
+def insert_user(user, pw, email):
+    q = User.create(username = user, password = pw, emailaddress = email)
+    q.execute()

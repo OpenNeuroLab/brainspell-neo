@@ -22,9 +22,6 @@ import psycopg2
 from urllib.parse import urlparse
 from models import *
 
-
-
-
 ### End of MYSQL Setup
 
 ### POSTGRES SETUP
@@ -51,7 +48,7 @@ class SearchHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "text/plain")
         database_dict = {}
         text = self.get_body_argument("text")
-        results = article_search(text) #A list of all matches
+        results = article_search(text) # A list of all matches
         for article in results:
             database_dict = {}
             database_dict["UniqueID"] = article.uniqueid
@@ -65,7 +62,7 @@ class SearchHandler(tornado.web.RequestHandler):
             database_dict["NeuroSynthID"] = article.neurosynthid
             database_dict["Experiments"] = article.experiments
             database_dict["Metadata"] = article.metadata
-            break #Done for now to limit computation time and mass dumping onto page
+            break # Done for now to limit computation time and mass dumping onto page
         self.write(json.dumps(database_dict, sort_keys = True, indent = 4, separators = (',', ': ')))
 
 def make_app():

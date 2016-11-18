@@ -13,6 +13,7 @@ from peewee import DateTimeField, CharField, IntegerField
 python3 -m pwiz --engine=postgresql brainspell_2016-11-01.pgsql > trial.py
 """
 # urlparse.uses_netloc.append("postgres")
+assert "DATABASE_URL" in os.environ, "The DATABASE_URL environment variable hasn't been set. Please read README.md for more information."
 url = urlparse(os.environ["DATABASE_URL"])
 
 config = dict(
@@ -23,10 +24,10 @@ config = dict(
     port= url.port,
     sslmode = 'require'
 )
-print(config)
+#print(config)
 #Now using extDatabase for PostGres full text search
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config) #used to be peewee.PostgresqlDatabase
-print(conn)
+#print(conn)
 
 
 #You can enter information here something like User.create(___)

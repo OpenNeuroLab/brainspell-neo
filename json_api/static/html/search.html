@@ -74,7 +74,7 @@
                 <p class="lead">The first open, human-curated classification of neuroimaging literature.</p>
                 <form method="get" action="search">
                 <div class="input-group">
-                   <input type="text" name="q" placeholder="Search articles by title, author, keyword..." class="form-control">
+                   <input type="text" name="q" value="{{ query }}" placeholder="Search articles by title, author, keyword..." class="form-control">
                    <span class="input-group-btn">
                         <input type="submit" class="btn btn-default" value="Search" />
                    </span>
@@ -83,15 +83,25 @@
             </div>
         </div>
         <!-- /.row -->
-
     </div>
     <!-- /.container -->
+
+    <div class="container" id="searchResults" style="padding-top:30px;">
+    </div>
 
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
+
+    <script>
+        var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
+        $resultClone.append($("<a>", {"href": "#!"}).text("Loading..."));
+        
+        var $result = $resultClone.clone();
+        $("#searchResults").append($result);
+    </script>
 
 </body>
 

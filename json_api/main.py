@@ -13,11 +13,6 @@ import psycopg2
 from urllib.parse import urlparse
 from models import *
 
-### End of MYSQL Setup
-
-### POSTGRES SETUP
-
-
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("static/html/index.html")
@@ -42,7 +37,11 @@ class LoginHandler(tornado.web.RequestHandler):
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
-        q = self.get_query_argument("q")
+        q = ""
+        try:
+            q = self.get_query_argument("q")
+        except:
+            pass # q wasn't passed; default to an empty string
         self.render("static/html/search.html", query=q)
 
 class SearchEndpointHandler(tornado.web.RequestHandler):

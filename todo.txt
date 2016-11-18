@@ -1,5 +1,15 @@
 To do:
 
-- remove duplicates from PostgreSQL database 
-- set up search UI
-- set up view article endpoint and UI
+Main functionality:
+- set up "search" UI
+- set up "view article" endpoint and UI
+- add widgets to "view article" UI
+- make "add article" UI
+- clean/comment code thoroughly
+- write a thorough JSON endpoint documentation (and put on Github)
+- remove duplicates from PostgreSQL database
+
+If users are really necessary:
+- set up login system
+- set up registration with hashing/salting
+- add feature for users to save articles

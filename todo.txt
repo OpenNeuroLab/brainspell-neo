@@ -1,0 +1,5 @@
+To do:
+
+- remove duplicates from PostgreSQL database 
+- set up search UI
+- set up view article endpoint and UI

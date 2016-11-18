@@ -109,7 +109,7 @@ html{
 }
 
 .form-register-with-email:after{
-    content: 'OR';
+    content: none;
     position: absolute;
     bottom: 330px;
     right: -100px;

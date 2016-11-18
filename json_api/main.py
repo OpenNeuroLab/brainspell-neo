@@ -31,9 +31,9 @@ class LoginHandler(tornado.web.RequestHandler):
         else:
             self.write("Logging you in")
 
-class AddUser(tornado.web.RequestHandler):
+class RegisterHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("static/html/user_entry.html")
+        self.render("static/html/register.html")
     def post(self):
         username = self.get_body_argument("name")
         email = self.get_body_argument("email")
@@ -87,7 +87,7 @@ def make_app():
         (r"/query", SearchEndpointHandler),
         (r"/search", SearchHandler),
         (r"/login", LoginHandler),
-        (r"/add-user", AddUser)
+        (r"/register", RegisterHandler)
     ])
 
 if __name__ == "__main__":

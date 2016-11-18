@@ -9,12 +9,10 @@ import playhouse
 from playhouse.postgres_ext import *
 
 from peewee import DateTimeField, CharField, IntegerField
-"""The following command executed in database_dumps will generate an ORM
-python3 -m pwiz --engine=postgresql brainspell_2016-11-01.pgsql > trial.py
-"""
 # urlparse.uses_netloc.append("postgres")
-assert "DATABASE_URL" in os.environ, "The DATABASE_URL environment variable hasn't been set. Please read README.md for more information."
-url = urlparse(os.environ["DATABASE_URL"])
+url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
+if "DATABASE_URL" in os.environ:
+    url = urlparse(os.environ["DATABASE_URL"])
 
 config = dict(
     database = url.path[1:],

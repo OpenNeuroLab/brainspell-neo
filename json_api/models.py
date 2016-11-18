@@ -9,12 +9,10 @@ import playhouse
 from playhouse.postgres_ext import *
 
 from peewee import DateTimeField, CharField, IntegerField
-"""The following command executed in database_dumps will generate an ORM
-python3 -m pwiz --engine=postgresql brainspell_2016-11-01.pgsql > trial.py
-"""
 # urlparse.uses_netloc.append("postgres")
-assert "DATABASE_URL" in os.environ, "The DATABASE_URL environment variable hasn't been set. Please read README.md for more information."
-url = urlparse(os.environ["DATABASE_URL"])
+url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
+if "DATABASE_URL" in os.environ:
+    url = urlparse(os.environ["DATABASE_URL"])
 
 config = dict(
     database = url.path[1:],
@@ -24,11 +22,11 @@ config = dict(
     port= url.port,
     sslmode = 'require'
 )
+
 #print(config)
 #Now using extDatabase for PostGres full text search
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config) #used to be peewee.PostgresqlDatabase
 #print(conn)
-
 
 #You can enter information here something like User.create(___)
 
@@ -112,10 +110,13 @@ def create_tables(retry=5):
                 print('Could not connect to database...sleeping 5')
                 time.sleep(5)
 
-#Searches using Postgress full text search over article titles
-def article_search(query):
-    search =  Articles.select().where(
-        Match(Articles.title, query))
+def article_search(query, start):
+    search = Articles.select().where(
+        Match(Articles.title, query) | Match(Articles.title, query) | Match(Articles.abstract, query)
+    ).limit(10).offset(start) # output ten results, offset by "start"
     return search.execute()
 
 
+def insert_user(user, pw, email):
+    q = User.create(username = user, password = pw, emailaddress = email)
+    q.execute()

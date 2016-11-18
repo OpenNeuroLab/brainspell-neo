@@ -4,32 +4,28 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import os
-import sqlite3
-import pymysql # will be using this as a search engine for the time being
-import sqlalchemy as sql
-from elasticsearch import Elasticsearch
-from elasticsearch import Elasticsearch, RequestsHttpConnection
 import certifi
 import json
 import peewee
 import tornado
 import psycopg2
 
-### Relies on the MySQL Database
-
-import os
-import psycopg2
 from urllib.parse import urlparse
 from models import *
-
-### End of MYSQL Setup
-
-### POSTGRES SETUP
-
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("static/html/index.html")
+
+class AddUser(tornado.web.RequestHandler):
+    def get(self):
+        self.render("static/html/user_entry.html")
+    def post(self):
+        username = self.get_body_argument("name")
+        email = self.get_body_argument("email")
+        password = self.get_body_argument("password")
+        self.write("User Created")
+        User.create(username = username, emailaddress = email, password = password)
 
 class LoginHandler(tornado.web.RequestHandler):
     def get(self):
@@ -39,16 +35,26 @@ class LoginHandler(tornado.web.RequestHandler):
         Name = self.get_argument("text")
         self.write(Name)
 
-
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("static/html/request.html")
+        q = ""
+        try:
+            q = self.get_query_argument("q")
+        except:
+            pass # q wasn't passed; default to an empty string
+        self.render("static/html/search.html", query=q)
 
-    def post(self):
-        self.set_header("Content-Type", "text/plain")
+class SearchEndpointHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json")
         database_dict = {}
-        text = self.get_body_argument("text")
-        results = article_search(text) # A list of all matches
+        q = self.get_query_argument("q")
+        start = 0
+        try:
+            start = self.get_query_argument("start")
+        except:
+            pass # start wasn't passed; default to zero
+        results = article_search(q, start)
         for article in results:
             database_dict = {}
             database_dict["UniqueID"] = article.uniqueid
@@ -62,8 +68,7 @@ class SearchHandler(tornado.web.RequestHandler):
             database_dict["NeuroSynthID"] = article.neurosynthid
             database_dict["Experiments"] = article.experiments
             database_dict["Metadata"] = article.metadata
-            break # Done for now to limit computation time and mass dumping onto page
-        self.write(json.dumps(database_dict, sort_keys = True, indent = 4, separators = (',', ': ')))
+            self.write(json.dumps(database_dict))
 
 def make_app():
     return tornado.web.Application([
@@ -71,8 +76,10 @@ def make_app():
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'static')}),
         (r"/", MainHandler),
+        (r"/query", SearchEndpointHandler),
         (r"/search", SearchHandler),
-        (r"/login", LoginHandler)
+        (r"/login", LoginHandler),
+        (r"/add-user", AddUser)
     ])
 
 if __name__ == "__main__":

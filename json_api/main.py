@@ -17,6 +17,20 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("static/html/index.html")
 
+class LoginHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render("static/html/login.html")
+        
+    def post(self):
+        email = self.get_argument("email")
+        password = self.get_argument("password")
+        user = User.select().where(User.emailaddress == email and User.password == password)
+        user = user.execute()
+        if user == None:
+            self.write("No such user")
+        else:
+            self.write("Logging you in")
+
 class AddUser(tornado.web.RequestHandler):
     def get(self):
         self.render("static/html/user_entry.html")

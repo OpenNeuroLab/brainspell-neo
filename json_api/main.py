@@ -27,9 +27,9 @@ class LoginHandler(tornado.web.RequestHandler):
         user = User.select().where(User.emailaddress == email and User.password == password)
         user = user.execute()
         if user == None:
-            self.write("No such user")
+            self.write("No such user.")
         else:
-            self.write("Logging you in")
+            self.write("Logging you in...")
 
 class RegisterHandler(tornado.web.RequestHandler):
     def get(self):
@@ -38,7 +38,7 @@ class RegisterHandler(tornado.web.RequestHandler):
         username = self.get_body_argument("name")
         email = self.get_body_argument("email")
         password = self.get_body_argument("password")
-        self.write("User Created")
+        self.write("User created.")
         User.create(username = username, emailaddress = email, password = password)
 
 class LoginHandler(tornado.web.RequestHandler):
@@ -56,7 +56,12 @@ class SearchHandler(tornado.web.RequestHandler):
             q = self.get_query_argument("q")
         except:
             pass # q wasn't passed; default to an empty string
-        self.render("static/html/search.html", query=q)
+        start = 0
+        try:
+            start = self.get_query_argument("start")
+        except:
+            pass
+        self.render("static/html/search.html", query=q, start=start)
 
 class SearchEndpointHandler(tornado.web.RequestHandler):
     def get(self):
@@ -69,14 +74,20 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
         except:
             pass # start wasn't passed; default to zero
         results = article_search(q, start)
+        response = {}
         output_list = []
         for article in results:
             article_dict = {}
-            article_dict["UniqueID"] = article.uniqueid
-            article_dict["Title"] = article.title
-            article_dict["Authors"] = article.authors
+            article_dict["id"] = article.uniqueid
+            article_dict["title"] = article.title
+            article_dict["authors"] = article.authors
             output_list.append(article_dict)
-        self.write(json.dumps(output_list))
+        response["articles"] = output_list
+        if len(results) == 0:
+            response["start_index"] = -1
+        else:
+            response["start_index"] = start
+        self.write(json.dumps(response))
 
 def make_app():
     return tornado.web.Application([

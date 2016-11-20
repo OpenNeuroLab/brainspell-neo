@@ -89,6 +89,27 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
+class ArticleFetchEndpoint(tornado.web.RequestHandler):
+    def get(self):
+        id = self.get_query_argument("id")
+        article = next(get_article(id))
+        response = {}
+        response["timestamp"] = article.timestamp
+        response["abstract"] = article.abstract
+        response["authors"] = article.authors
+        response["doi"] = article.doi
+        response["experiments"] = article.experiments
+        response["metadata"] = article.metadata
+        response["neurosynthid"] = article.neurosynthid
+        response["pmid"] = article.pmid
+        response["reference"] = article.reference
+        response["title"] = article.title
+        response["uniqueid"] = article.uniqueid
+        self.write(json.dumps(response))
+
+
+
+
 def make_app():
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
@@ -98,7 +119,8 @@ def make_app():
         (r"/query", SearchEndpointHandler),
         (r"/search", SearchHandler),
         (r"/login", LoginHandler),
-        (r"/register", RegisterHandler)
+        (r"/register", RegisterHandler),
+        (r"/article",ArticleFetchEndpoint)
     ])
 
 if __name__ == "__main__":

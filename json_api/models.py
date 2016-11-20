@@ -117,6 +117,9 @@ def article_search(query, start):
     # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
     return search.execute() # search.count() makes the above line slow; TODO: find a better way of doing this
 
+def get_article(query):
+    search = Articles.select().where(Articles.uniqueid == query)
+    return search.execute()
 
 def insert_user(user, pw, email):
     q = User.create(username = user, password = pw, emailaddress = email)

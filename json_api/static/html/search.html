@@ -53,7 +53,7 @@
                         <a href="https://brainspell.herokuapp.com/login">Login</a>
                     </li>
                     <li>
-                        <a href="https://brainspell.herokuapp.com/add-user">Register</a>
+                        <a href="https://brainspell.herokuapp.com/register">Register</a>
                     </li>
                     <li>
                         <a href="https://github.com/neelsomani/brainspell-neo">Github</a>
@@ -88,6 +88,12 @@
 
     <div class="container" id="searchResults" style="padding-top:30px;">
     </div>
+    <div class="container" style="padding-bottom:30px;" id="navButtons">
+        <div class="btn-group" role="group">
+          <a id="backBtn" style="display:none;" href="?q={{query}}&start={{int(start)-10}}"><button type="button" class="btn btn-default">Back</button></a>
+          <a id="nextBtn" style="display:none;" href="?q={{query}}&start={{int(start)+10}}"><button type="button" class="btn btn-default">Next</button></a>
+        </div>
+    </div>
 
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
@@ -97,17 +103,37 @@
 
     <script>
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
-        $resultClone.append($("<a>", {"href": "#!"}).text("Loading..."));
+        $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $(
             $.ajax({
                 type: "GET", 
-                url: "/query?q={{query}}"
+                url: "/query?q={{query}}&start={{start}}"
             }).complete(function(o) {
-                json = o.responseText;
+                j = o.responseText;
+                console.log(j);
+                obj = JSON.parse(j);
+                $("#searchResults").html("");
+                if ({{start}} != 0) {
+                    $("#backBtn").css("display", "inline");
+                }
+                if (obj["articles"].length == 10) {
+                    $("#nextBtn").css("display", "inline");
+                }
+                if (obj["articles"].length > 0) {
+                    $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results " + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"]) + obj["articles"].length) + "."));
+                } else {
+                    $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("No more results."));
+                }
+                obj = obj["articles"]
+                for (var i = 0; i < obj.length; i++) {
+                    var article = obj[i];
+                    var $result = $resultClone.clone();
+                    $result.append($("<a>", {"href": "#!"}).text(article["title"]));
+                    $result.append($("<p>").text(article["authors"].split(",").join(", ")));
+                    $("#searchResults").append($result);
+                }
             })
         );
-        var $result = $resultClone.clone();
-        $("#searchResults").append($result);
     </script>
 
 </body>

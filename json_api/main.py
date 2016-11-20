@@ -63,6 +63,15 @@ class SearchHandler(tornado.web.RequestHandler):
             pass
         self.render("static/html/search.html", query=q, start=start)
 
+class ArticleHandler(tornado.web.RequestHandler):
+    def get(self):
+        idNum = -1
+        try:
+            idNum = self.get_query_argument("id")
+        except:
+            self.redirect("/") # id wasn't passed; redirect to home page
+        self.render("static/html/view-article.html", id=idNum)
+
 class SearchEndpointHandler(tornado.web.RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
@@ -89,7 +98,7 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
-class ArticleFetchEndpoint(tornado.web.RequestHandler):
+class ArticleEndpointHandler(tornado.web.RequestHandler):
     def get(self):
         id = self.get_query_argument("id")
         article = next(get_article(id))
@@ -104,11 +113,8 @@ class ArticleFetchEndpoint(tornado.web.RequestHandler):
         response["pmid"] = article.pmid
         response["reference"] = article.reference
         response["title"] = article.title
-        response["uniqueid"] = article.uniqueid
+        response["id"] = article.uniqueid
         self.write(json.dumps(response))
-
-
-
 
 def make_app():
     return tornado.web.Application([
@@ -120,7 +126,8 @@ def make_app():
         (r"/search", SearchHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
-        (r"/article",ArticleFetchEndpoint)
+        (r"/article", ArticleEndpointHandler),
+        (r"/view-article", ArticleHandler)
     ])
 
 if __name__ == "__main__":

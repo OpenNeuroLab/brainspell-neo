@@ -1,8 +1,6 @@
 To do:
 
 Main functionality:
-- set up "search" UI
-- set up "view article" endpoint and UI
 - add widgets to "view article" UI
 - make "add article" UI
 - clean/comment code thoroughly

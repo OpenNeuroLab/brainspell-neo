@@ -98,6 +98,22 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
+class RandomEndpointHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json")
+        database_dict = {}
+        results = random_search()
+        response = {}
+        output_list = []
+        for article in results:
+            article_dict = {}
+            article_dict["id"] = article.uniqueid
+            article_dict["title"] = article.title
+            article_dict["authors"] = article.authors
+            output_list.append(article_dict)
+        response["articles"] = output_list
+        self.write(json.dumps(response))
+
 class ArticleEndpointHandler(tornado.web.RequestHandler):
     def get(self):
         id = self.get_query_argument("id")
@@ -123,6 +139,7 @@ def make_app():
                                'static')}),
         (r"/", MainHandler),
         (r"/query", SearchEndpointHandler),
+        (r"/random-query", RandomEndpointHandler),
         (r"/search", SearchHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
@@ -135,5 +152,6 @@ if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))
     http_server.listen(port) # hosts on localhost:5000
+    print("Running Brainspell at http://localhost:5000...")
     tornado.ioloop.IOLoop.current().start()
 

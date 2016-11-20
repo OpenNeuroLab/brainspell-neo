@@ -117,6 +117,10 @@ def article_search(query, start):
     # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
     return search.execute() # search.count() makes the above line slow; TODO: find a better way of doing this
 
+def random_search():
+    search = Articles.select(Articles.uniqueid, Articles.title, Articles.authors).order_by(fn.Random()).limit(5)
+    return search.execute()
+
 def get_article(query):
     search = Articles.select().where(Articles.uniqueid == query)
     return search.execute()

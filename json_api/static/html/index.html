@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Brainspell v2 - Work in Progress</title>
+    <title>Brainspell v2 - The first open, human-curated classification of neuroimaging literature</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
@@ -87,11 +87,39 @@
     </div>
     <!-- /.container -->
 
+    <div class="container" id="randomResults" style="padding-top:30px;padding-bottom:30px">
+    </div>
+
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
+
+     <script>
+        var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
+        $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
+        $(
+            $.ajax({
+                type: "GET", 
+                url: "/random-query"
+            }).complete(function(o) {
+                j = o.responseText;
+                console.log(j);
+                obj = JSON.parse(j);
+                $("#randomResults").html("");
+                $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Randomly selected articles:"));
+                obj = obj["articles"]
+                for (var i = 0; i < obj.length; i++) {
+                    var article = obj[i];
+                    var $result = $resultClone.clone();
+                    $result.append($("<a>", {"href": "view-article?id=" + article["id"]}).text(article["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
+                    $result.append($("<p>").text(article["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
+                    $("#randomResults").append($result);
+                }
+            })
+        );
+    </script>
 
 </body>
 

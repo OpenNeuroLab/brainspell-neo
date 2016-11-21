@@ -1,13 +1,11 @@
 To do:
 
 Main functionality:
-- add widgets to "view article" UI
-- make "add article" UI
-- clean/comment code thoroughly
-- write a thorough JSON endpoint documentation (and put on Github)
-- remove duplicates from PostgreSQL database
+- Add widgets to "view article" and (potentially) "search" pages
+- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
+- Clean/comment code thoroughly
+- Write API documentation (and put on GitHub)
 
 If users are really necessary:
-- set up login system
-- set up registration with hashing/salting
-- add feature for users to save articles
+- Set up login system, registration with hashing/salting
+- Add features for users to save articles, add/vote on tags, etc.

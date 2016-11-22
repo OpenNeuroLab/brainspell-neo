@@ -51,37 +51,25 @@ class LoginHandler(tornado.web.RequestHandler):
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):
-        q = ""
-        try:
-            q = self.get_query_argument("q")
-        except:
-            pass # q wasn't passed; default to an empty string
-        start = 0
-        try:
-            start = self.get_query_argument("start")
-        except:
-            pass
+        q = self.get_query_argument("q", "")
+        start = self.get_query_argument("start", 0)
         self.render("static/html/search.html", query=q, start=start)
 
 class ArticleHandler(tornado.web.RequestHandler):
     def get(self):
-        idNum = -1
+        articleId = -1
         try:
-            idNum = self.get_query_argument("id")
+            articleId = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
-        self.render("static/html/view-article.html", id=idNum)
+        self.render("static/html/view-article.html", id=articleId)
 
 class SearchEndpointHandler(tornado.web.RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
         database_dict = {}
-        q = self.get_query_argument("q")
-        start = 0
-        try:
-            start = self.get_query_argument("start")
-        except:
-            pass # start wasn't passed; default to zero
+        q = self.get_query_argument("q", "")
+        start = self.get_query_argument("start", 0)
         results = article_search(q, start)
         response = {}
         output_list = []
@@ -94,6 +82,9 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
         response["articles"] = output_list
         if len(results) == 0:
             response["start_index"] = -1
+            # returns -1 if there are no results; 
+            # UI can always calculate (start, end) with (start_index + 1, start_index + 1 + len(articles))
+            # TODO: consider returning the start/end indices for the range of articles returned instead
         else:
             response["start_index"] = start
         self.write(json.dumps(response))

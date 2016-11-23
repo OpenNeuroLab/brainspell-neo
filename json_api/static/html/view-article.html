@@ -96,17 +96,80 @@
 		url: "/article?id={{id}}"
             }).complete(function(o) {
                 j = o.responseText;
-                console.log(j);
+//                console.log(j);
                 obj = JSON.parse(j);
                 $("#articleContents").html("");
 		$("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 		$("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
 		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
-		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
-	})
-        );
+        for (var i = 0; i < eval(obj["experiments"]).length; i++) {
+            $("#articleContents").append(CreateTable(eval(obj["experiments"])[i]["locations"],i+1));
+        }
+		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"]));
+	}));
+    function CreateTable(objArray, position) {
+        var array = objArray;
+        var str = '<table id="gradient-style" class="Experiments">';
+        str += '<tr>' + '<Strong>' + "Experiment " + position + '</Strong>' + '</tr>';
+        str += '<tr>';
+        str += '<tbody>';
+        str += '<td>' + '<Strong>' +  "X-coordinate" + '</Strong>' + '</td>';
+        str += '<td>' + '<Strong>' +  "Y-coordinate" + '</Strong>' + '</td>';
+        str += '<td>' + '<Strong>' +  "Z-coordinate" + '</Strong>' + '</td>';
+        for (var i = 0; i < array.length; i++) {
+            str += (i % 2 == 0) ? '<tr class="alt">' : '<tr>';
+            array[i] = array[i].split(",");
+            for (var index in array[i]) {
+                str += '<td>' + array[i][index] + '</td>';
+            }
+            str += '</tr>';
+        }
+        str += '</tbody>';
+        str += '</table>';
+        return str;
+    }
     </script>
+<style>
 
+#gradient-style
+{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif,serif;
+	font-size: 12px;
+	margin: 45px;
+	width: 480px;
+	text-align: left;
+	border-collapse: collapse;
+}
+#gradient-style th
+{
+	font-size: 13px;
+	font-weight: normal;
+	padding: 8px;
+	background: #b9c9fe url('../img/table-images/gradhead.png') repeat-x;
+	border-top: 2px solid #d3ddff;
+	border-bottom: 1px solid #fff;
+	color: #039;
+}
+#gradient-style td
+{
+	padding: 8px;
+	border-bottom: 1px solid #fff;
+	color: #669;
+	border-top: 1px solid #fff;
+	background: #e8edff url('../img/table-images/gradback.png') repeat-x;
+}
+#gradient-style tfoot tr td
+{
+	background: #e8edff;
+	font-size: 12px;
+	color: #99c;
+}
+#gradient-style tbody tr:hover td
+{
+	background: #d0dafd url('../img/table-images/gradhover.png') repeat-x;
+	color: #339;
+}
+</style>
 </body>
 
 </html>

@@ -102,12 +102,17 @@
 		$("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 		$("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
 		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
+
+        // TODO: switch from eval to a normal JSON library, fix CreateTable()
         for (var i = 0; i < eval(obj["experiments"]).length; i++) {
             $("#articleContents").append(CreateTable(eval(obj["experiments"])[i]["locations"],i+1));
         }
+
 		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"]));
 	}));
+
     function CreateTable(objArray, position) {
+        // TODO: use DOM
         var array = objArray;
         var str = '<table id="gradient-style" class="Experiments">';
         str += '<tr>' + '<Strong>' + "Experiment " + position + '</Strong>' + '</tr>';

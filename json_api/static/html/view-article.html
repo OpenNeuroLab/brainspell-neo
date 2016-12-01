@@ -128,8 +128,12 @@
 
             // generate experiment tables
             var experimentsObj = jQuery.parseJSON(obj["experiments"]);
+            var count = 1;
             for (var i = 0; i < experimentsObj.length; i++) {
-                $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], i+1));
+                if (experimentsObj[i]["locations"].length > 0) {
+                    $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], count));
+                    count++;
+                }
             }
 
     		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"]));

@@ -20,6 +20,9 @@
         padding-top: 70px;
         /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
     }
+    .boxed {
+        border: 1px solid black;
+    }
     .gradient-style
     {
         font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
@@ -135,8 +138,8 @@
                     count++;
                 }
             }
-    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"] + "     "));
-    		$("#articleContents").append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["neurosynthid"]).text("NeuroSynthID: " + obj["pmid"]));
+    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID" +  "     ")).attr("class", "boxed");
+    		$("#articleContents").append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynthID"));
     	}));
 
         function experimentsTable(array, position) {

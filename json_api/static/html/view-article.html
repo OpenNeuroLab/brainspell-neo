@@ -138,7 +138,7 @@
                     count++;
                 }
             }
-    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID" +  "     ")).attr("class", "boxed");
+    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID" +  "     "));
     		$("#articleContents").append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynthID"));
     	}));
 

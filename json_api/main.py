@@ -75,7 +75,7 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
         output_list = []
         for article in results:
             article_dict = {}
-            article_dict["id"] = article.uniqueid
+            article_dict["id"] = article.pmid
             article_dict["title"] = article.title
             article_dict["authors"] = article.authors
             output_list.append(article_dict)
@@ -98,7 +98,7 @@ class RandomEndpointHandler(tornado.web.RequestHandler):
         output_list = []
         for article in results:
             article_dict = {}
-            article_dict["id"] = article.uniqueid
+            article_dict["id"] = article.pmid
             article_dict["title"] = article.title
             article_dict["authors"] = article.authors
             output_list.append(article_dict)

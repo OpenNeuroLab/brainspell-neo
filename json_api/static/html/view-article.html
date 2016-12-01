@@ -135,8 +135,8 @@
                     count++;
                 }
             }
-
-    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"]));
+    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed ID: " + obj["pmid"] + "     "));
+    		$("#articleContents").append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["neurosynthid"]).text("NeuroSynthID: " + obj["neurosynthid"]));
     	}));
 
         function experimentsTable(array, position) {

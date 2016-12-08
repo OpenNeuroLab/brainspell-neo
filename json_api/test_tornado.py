@@ -1,9 +1,9 @@
 import tornado.web
 import os
 import pytest
-import main
+import brainspell
 
-application = main.make_app()
+application = brainspell.make_app()
 
 def test_procfile():
     f = open("../Procfile", "r")

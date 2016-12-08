@@ -9,7 +9,7 @@ To run Brainspell locally:
 1) Clone the Git repo.  
 2) Install the Python dependencies with `pip install -r requirements.txt`.
 
-Now you can run Brainspell with `python3 json_api/main.py`. Brainspell should be running at `http://localhost:5000`.
+Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
 
 ================================================
 

@@ -112,7 +112,7 @@ def create_tables(retry=5):
 
 def article_search(query, start):
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
-        Match(Articles.title, query) | Match(Articles.title, query) | Match(Articles.abstract, query)
+        Match(Articles.title, query) | Match(Articles.authors, query) | Match(Articles.metadata, query)
     ).limit(10).offset(start)
     # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
     return search.execute() # search.count() makes the above line slow; TODO: find a better way of doing this

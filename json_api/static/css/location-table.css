@@ -1,0 +1,27 @@
+.boxed {
+    border: 1px solid black;
+}
+.gradient-style
+{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    font-size: 12px;
+    margin: 45px;
+    text-align: left;
+    border-collapse: collapse;
+}
+.gradient-style td
+{
+    padding: 8px;
+    border-bottom: 1px solid #fff;
+    color: #669;
+    border-top: 1px solid #fff;
+    background-color: #e8edff;
+}
+.gradient-style tbody tr:hover td
+{
+    background-color: #d0dafd;
+    color: #339;
+}
+.experiment-header {
+    font-weight: bold;
+}

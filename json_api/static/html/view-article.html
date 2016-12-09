@@ -102,6 +102,11 @@
     		$("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
     		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 
+            var linkParagraph = $("<p>");
+            linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
+            linkParagraph.append(" | ");
+            linkParagraph.append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynth"));
+            $("#articleContents").append(linkParagraph);
             // generate experiment tables
             var experimentsObj = jQuery.parseJSON(obj["experiments"]);
             var count = 1;
@@ -111,14 +116,12 @@
                     count++;
                 }
             }
-    		$("#articleContents").append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
-        $("#articleContents").append(" | ");
-    		$("#articleContents").append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynth"));
+            $("#articleContents").append($("<div>").css("clear", "both"));
     	}));
 
         function experimentsTable(array, position) {
             var table = $("<table>", {"class": "gradient-style"});
-            table.append($("<tr>", {"class": "experiment-header"}).text("Experiment " + position));
+            table.append($("<tr>", {"class": "experiment-header"}).append($("<th>").text("Experiment " + position)));
             var contents = $('<tbody>');
             contents.append($("<td>", {"class": "experiment-header"}).text("X-coordinate"));
             contents.append($("<td>", {"class": "experiment-header"}).text("Y-coordinate"));

@@ -4,6 +4,7 @@
 .gradient-style
 {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    float: left;
     font-size: 12px;
     margin: 45px;
     text-align: left;

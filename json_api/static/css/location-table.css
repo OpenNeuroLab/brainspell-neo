@@ -6,7 +6,8 @@
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
     float: left;
     font-size: 12px;
-    margin: 45px;
+    margin-right: 20px;
+    margin-top: 20px;
     text-align: left;
     border-collapse: collapse;
 }

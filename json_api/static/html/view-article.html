@@ -121,11 +121,11 @@
 
         function experimentsTable(array, position) {
             var table = $("<table>", {"class": "gradient-style"});
-            table.append($("<tr>", {"class": "experiment-header"}).append($("<th>").text("Experiment " + position)));
+            table.append($("<caption>").text("Experiment " + position));
             var contents = $('<tbody>');
-            contents.append($("<td>", {"class": "experiment-header"}).text("X-coordinate"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Y-coordinate"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Z-coordinate"));
+            contents.append($("<td>", {"class": "experiment-header"}).text("X"));
+            contents.append($("<td>", {"class": "experiment-header"}).text("Y"));
+            contents.append($("<td>", {"class": "experiment-header"}).text("Z"));
             for (var i = 0; i < array.length; i++) {
                 var row = $("<tr>");
                 array[i] = array[i].split(",");

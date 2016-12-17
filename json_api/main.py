@@ -14,6 +14,8 @@ from bs4 import BeautifulSoup
 import urllib.request
 from urllib.parse import urlparse
 import lxml
+import Bio
+from Bio.Entrez import efetch, read
 """Ensure these are added to requirements.txt"""
 from models import *
 
@@ -110,11 +112,13 @@ class RandomEndpointHandler(tornado.web.RequestHandler):
         self.write(json.dumps(response))
 class AddArticleHandler(tornado.web.RequestHandler):
     def get(self):
-        page = urllib.request.urlopen("https://www.ncbi.nlm.nih.gov/pubmed/27641498/")
-        soup = BeautifulSoup(page.read())
-        span = soup.find("div", attrs={'class':'abstr'})
-        parse = [x.contents[0] for x in span.findAllNext("p")]
-        print("%s\n\n%s" % (span.string, "\n\n".join(parse)))
+        Bio.Entrez.email = 'sharabesh@berkeley.edu'
+        pmid = self.get_query_argument("pmid")
+        handle = efetch(db='pubmed', id=pmid, retmode='xml')
+        xml_data = read(handle)[0]
+        article = xml_data['MedlineCitation']['Article']
+        abstract = article['Abstract']['AbstractText'][0]
+        self.write(abstract)
 
 
 
@@ -148,7 +152,8 @@ def make_app():
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/article", ArticleEndpointHandler),
-        (r"/view-article", ArticleHandler)
+        (r"/view-article", ArticleHandler),
+        (r"/add-article", AddArticleHandler)
     ])
 
 if __name__ == "__main__":

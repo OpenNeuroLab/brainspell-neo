@@ -1,0 +1,15 @@
+  16/12 17:13:39: lsrt
+  16/12 17:13:46: git clone git@github.com:jbpoline/brainspell-neo.git
+  16/12 17:14:27: cd brainspell-neo/
+  16/12 17:16:59: sudo apt install postgresql
+  16/12 17:18:14: sudo apt install libpq-dev
+  16/12 17:19:24: sudo apt install libxml2-dev 
+  16/12 17:19:57: sudo apt install libxml-dev 
+  16/12 17:20:23: sudo apt install libxml
+  16/12 17:22:38: sudo apt install libxml2-dev
+  16/12 17:23:24: sudo ln -s /usr/include/libxml2 /usr/local/libxml
+  16/12 17:23:50: sudo rm /usr/local/libxml
+  16/12 17:26:01: sudo apt install libxslt1-dev
+  16/12 17:26:09: pip install lxml
+  16/12 17:27:31: vim requirements.txt 
+  16/12 17:27:42: pip install -r requirements.txt 

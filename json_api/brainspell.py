@@ -9,14 +9,7 @@ import json
 import peewee
 import tornado
 import psycopg2
-"""FOR Web parsing, delete if unused later """
-from bs4 import BeautifulSoup
-import urllib.request
-from urllib.parse import urlparse
-import lxml
-import Bio
-from Bio.Entrez import efetch, read
-"""Ensure these are added to requirements.txt"""
+
 from models import *
 
 class MainHandler(tornado.web.RequestHandler):
@@ -110,15 +103,6 @@ class RandomEndpointHandler(tornado.web.RequestHandler):
             output_list.append(article_dict)
         response["articles"] = output_list
         self.write(json.dumps(response))
-class AddArticleHandler(tornado.web.RequestHandler):
-    def get(self):
-        Bio.Entrez.email = 'sharabesh@berkeley.edu'
-        pmid = self.get_query_argument("pmid")
-        handle = efetch(db='pubmed', id=pmid, retmode='xml')
-        xml_data = read(handle)[0]
-        article = xml_data['MedlineCitation']['Article']
-        abstract = article['Abstract']['AbstractText'][0]
-        self.write(abstract)
 
 
 

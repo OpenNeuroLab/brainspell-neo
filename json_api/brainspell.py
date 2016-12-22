@@ -40,13 +40,6 @@ class RegisterHandler(tornado.web.RequestHandler):
         self.write("User created.")
         User.create(username = username, emailaddress = email, password = password)
 
-class LoginHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render("static/html/login.html")
-        
-    def post(self):
-        Name = self.get_argument("text")
-        self.write(Name)
 
 class SearchHandler(tornado.web.RequestHandler):
     def get(self):

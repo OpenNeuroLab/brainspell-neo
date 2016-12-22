@@ -98,17 +98,6 @@ class User(BaseModel):
     class Meta:
         db_table = 'users'
 
-def create_tables(retry=5):
-    for i in range(1, retry + 1):
-        try:
-            conn.create_tables([Articles,Concepts,Log,User], safe=True)
-            return
-        except Exception as e:
-            if (i == retry):
-                raise e
-            else:
-                print('Could not connect to database...sleeping 5')
-                time.sleep(5)
 
 def article_search(query, start):
     query = query.replace(" ", "%")

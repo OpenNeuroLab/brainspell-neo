@@ -1,6 +1,8 @@
 """Experiment tables are still required before this becomes
 functional"""
 
+
+"""Add these imports back once experiments tables are added"""
 from Bio import Medline
 from Bio.Entrez import efetch, read, esearch, parse
 import re

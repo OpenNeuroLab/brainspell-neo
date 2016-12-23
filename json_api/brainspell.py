@@ -47,6 +47,10 @@ class SearchHandler(tornado.web.RequestHandler):
         start = self.get_query_argument("start", 0)
         self.render("static/html/search.html", query=q, start=start)
 
+class AddArticleHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
+
 class ArticleHandler(tornado.web.RequestHandler):
     def get(self):
         articleId = -1

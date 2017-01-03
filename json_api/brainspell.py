@@ -11,6 +11,7 @@ import tornado
 import psycopg2
 
 from models import *
+import subprocess
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -101,6 +102,10 @@ class RandomEndpointHandler(tornado.web.RequestHandler):
         response["articles"] = output_list
         self.write(json.dumps(response))
 
+class TranslucentViewerHandler(tornado.web.RequestHandler):
+    def get(self):
+        cmd = "python translucent.py"
+        subprocess.call(cmd, shell=True)
 
 
 class ArticleEndpointHandler(tornado.web.RequestHandler):
@@ -134,7 +139,8 @@ def make_app():
         (r"/register", RegisterHandler),
         (r"/article", ArticleEndpointHandler),
         (r"/view-article", ArticleHandler),
-        (r"/add-article", AddArticleHandler)
+        (r"/add-article", AddArticleHandler),
+        (r"/viewer", TranslucentViewerHandler)
     ])
 
 if __name__ == "__main__":

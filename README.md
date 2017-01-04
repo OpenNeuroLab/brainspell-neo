@@ -13,6 +13,13 @@ Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell sho
 
 ================================================
 
+`json_api/brainspell.py` runs the Tornado main event loop.  
+`json_api/models.py` is for our ORM, PeeWee, which lets us treat our database like a Python object.  
+`json_api/test_tornado.py` is our set of continuous integration tests.  
+`json_api/static/` contains the HTML, CSS, and Javascript code for the website.
+
+Our database is hosted on Heroku. The full database is available in the `database_dumps` folder.
+
 Potential stack in the future:
 
 ![potential-configuration](https://cloud.githubusercontent.com/assets/7029855/19992170/d2a514dc-a1f8-11e6-94bc-f26eb1c4840d.png)

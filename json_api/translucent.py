@@ -1,10 +1,14 @@
-# conda install mayavi
-# pip install pysurfer
+# pip2.7 install scipy
+# pip2.7 install matplotlib
+# brew install vtk
+# pip2.7 install mayavi
+# pip2.7 install pysurfer
 # export QT_API=pyqt
+# install freesurfer from https://surfer.nmr.mgh.harvard.edu/fswiki/DownloadAndInstall
+
 from surfer import Brain
 import time
 import os
-
 
 if not os.environ.get("SUBJECTS_DIR"):
 	os.environ["SUBJECTS_DIR"] = '/Applications/freesurfer/subjects'

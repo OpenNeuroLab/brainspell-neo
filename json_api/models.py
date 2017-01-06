@@ -56,7 +56,7 @@ class Articles(BaseModel):
     abstract = CharField(null=True)
     authors = CharField(null=True)
     doi = CharField(null=True)
-    experiments = CharField(null=True)
+    experiments = CharField(null = True)
     metadata = CharField(null=True)
     neurosynthid = CharField(null=True)
     pmid = CharField(null=True)

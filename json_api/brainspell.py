@@ -9,7 +9,7 @@ import json
 import peewee
 import tornado
 import psycopg2
-
+import tornado.escape
 from models import *
 import subprocess
 
@@ -21,24 +21,27 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         if not self.current_user:
-            self.render("static/html/index.html")
+            self.render("static/html/index.html", title="")
+
             "TODO: Render an altered HTML Page"
         else:
-            self.render("static/html/index.html")
+            name = tornado.escape.xhtml_escape(self.current_user)
+            self.render("static/html/index.html", title=name)
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.render("static/html/login.html")
+        self.render("static/html/login.html", message="None")
         
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password")
         user = User.select().where(User.emailaddress == email and User.password == password)
         user = user.execute()
-        if user == None:
-            self.write("No such user.")
+        if user.count == 0:
+            self.render("static/html/login.html", message="Invalid")
         else:
             self.set_secure_cookie("user",email)
+            self.redirect("/")
 
 class RegisterHandler(BaseHandler):
     def get(self):
@@ -155,7 +158,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler)
-    ], **settings)
+    ], **settings, debug=True)
 
 if __name__ == "__main__":
     app = make_app()

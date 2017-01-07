@@ -135,6 +135,11 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+settings = {
+    "cookie_secret": os.environ["COOKIE_SECRET"],
+    "login_url": "/login",
+}
+
 def make_app():
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
@@ -150,7 +155,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler)
-    ], cookie_secret=os.environ["COOKIE_SECRET"])
+    ], **settings)
 
 if __name__ == "__main__":
     app = make_app()

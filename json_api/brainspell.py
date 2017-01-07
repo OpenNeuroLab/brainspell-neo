@@ -13,11 +13,20 @@ import psycopg2
 from models import *
 import subprocess
 
-class MainHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render("static/html/index.html")
+"""Handles User Login Requests"""
+class BaseHandler(tornado.web.RequestHandler):
+    def get_current_user(self):
+        return self.get_secure_cookie("user")
 
-class LoginHandler(tornado.web.RequestHandler):
+class MainHandler(BaseHandler):
+    def get(self):
+        if not self.current_user:
+            self.render("static/html/index.html")
+            "TODO: Render an altered HTML Page"
+        else:
+            self.render("static/html/index.html")
+
+class LoginHandler(BaseHandler):
     def get(self):
         self.render("static/html/login.html")
         
@@ -29,9 +38,9 @@ class LoginHandler(tornado.web.RequestHandler):
         if user == None:
             self.write("No such user.")
         else:
-            self.write("Logging you in...")
+            self.set_secure_cookie("user",email)
 
-class RegisterHandler(tornado.web.RequestHandler):
+class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html")
     def post(self):
@@ -42,17 +51,17 @@ class RegisterHandler(tornado.web.RequestHandler):
         User.create(username = username, emailaddress = email, password = password)
 
 
-class SearchHandler(tornado.web.RequestHandler):
+class SearchHandler(BaseHandler):
     def get(self):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         self.render("static/html/search.html", query=q, start=start)
 
-class AddArticleHandler(tornado.web.RequestHandler):
+class AddArticleHandler(BaseHandler):
     def get(self):
         pass
 
-class ArticleHandler(tornado.web.RequestHandler):
+class ArticleHandler(BaseHandler):
     def get(self):
         articleId = -1
         try:
@@ -61,7 +70,7 @@ class ArticleHandler(tornado.web.RequestHandler):
             self.redirect("/") # id wasn't passed; redirect to home page
         self.render("static/html/view-article.html", id=articleId)
 
-class SearchEndpointHandler(tornado.web.RequestHandler):
+class SearchEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
         database_dict = {}
@@ -86,7 +95,7 @@ class SearchEndpointHandler(tornado.web.RequestHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
-class RandomEndpointHandler(tornado.web.RequestHandler):
+class RandomEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
         database_dict = {}
@@ -102,13 +111,13 @@ class RandomEndpointHandler(tornado.web.RequestHandler):
         response["articles"] = output_list
         self.write(json.dumps(response))
 
-class TranslucentViewerHandler(tornado.web.RequestHandler):
+class TranslucentViewerHandler(BaseHandler):
     def get(self):
         cmd = "python translucent.py"
         subprocess.call(cmd, shell=True)
 
 
-class ArticleEndpointHandler(tornado.web.RequestHandler):
+class ArticleEndpointHandler(BaseHandler):
     def get(self):
         id = self.get_query_argument("id")
         article = next(get_article(id))
@@ -141,7 +150,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler)
-    ])
+    ], cookie_secret=os.environ["COOKIE_SECRET"])
 
 if __name__ == "__main__":
     app = make_app()

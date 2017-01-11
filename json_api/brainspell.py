@@ -22,8 +22,6 @@ class MainHandler(BaseHandler):
     def get(self):
         if not self.current_user:
             self.render("static/html/index.html", title="")
-
-            "TODO: Render an altered HTML Page"
         else:
             name = tornado.escape.xhtml_escape(self.current_user)
             self.render("static/html/index.html", title=name)

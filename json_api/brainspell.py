@@ -20,11 +20,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     def get(self):
-        if not self.current_user:
-            self.render("static/html/index.html", title="")
-        else:
-            name = tornado.escape.xhtml_escape(self.current_user)
-            self.render("static/html/index.html", title=name)
+        self.render("static/html/index.html", 
+            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
 
 class LoginHandler(BaseHandler):
     def get(self):
@@ -57,7 +54,8 @@ class SearchHandler(BaseHandler):
     def get(self):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
-        self.render("static/html/search.html", query=q, start=start)
+        self.render("static/html/search.html", query=q, start=start, 
+            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
 
 class AddArticleHandler(BaseHandler):
     def get(self):
@@ -70,7 +68,8 @@ class ArticleHandler(BaseHandler):
             articleId = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
-        self.render("static/html/view-article.html", id=articleId)
+        self.render("static/html/view-article.html", id=articleId, 
+            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
 
 class SearchEndpointHandler(BaseHandler):
     def get(self):

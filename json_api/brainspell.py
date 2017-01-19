@@ -156,7 +156,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler)
-    ], **settings, debug=True)
+    ],  **settings, debug=True)
 
 if __name__ == "__main__":
     app = make_app()

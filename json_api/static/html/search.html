@@ -69,6 +69,9 @@
                         <a href="https://github.com/neelsomani/brainspell-neo">GitHub</a>
                     </li>
                 </ul>
+                {% if title!="" %}
+                    <a class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
+                {% end %}
             </div>
             <!-- /.navbar-collapse -->
         </div>

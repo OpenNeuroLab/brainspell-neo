@@ -33,6 +33,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password")
+        # change to md5 hash
         user = User.select().where(User.emailaddress == email and User.password == password)
         user = user.execute()
         if user.count == 0:

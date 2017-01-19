@@ -55,9 +55,6 @@
                     <span class="icon-bar"></span>
                 </button>
                 <a class="navbar-brand" href="https://brainspell.herokuapp.com/">Brainspell</a>
-                {% if title!="" %}
-                    <a class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
-                {% end %}
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -72,6 +69,9 @@
                         <a href="https://github.com/neelsomani/brainspell-neo">GitHub</a>
                     </li>
                 </ul>
+                {% if title!="" %}
+                    <a class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
+                {% end %}
             </div>
             <!-- /.navbar-collapse -->
         </div>

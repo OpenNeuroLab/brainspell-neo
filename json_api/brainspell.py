@@ -38,7 +38,7 @@ class LoginHandler(BaseHandler):
         if user.count == 0:
             self.render("static/html/login.html", message="Invalid")
         else:
-            self.set_secure_cookie("user",email)
+            self.set_secure_cookie("user", email)
             self.redirect("/")
 
 class RegisterHandler(BaseHandler):
@@ -139,6 +139,7 @@ class ArticleEndpointHandler(BaseHandler):
 settings = {
     "cookie_secret": os.environ["COOKIE_SECRET"],
     "login_url": "/login",
+    "debug": True
 }
 
 def make_app():
@@ -156,7 +157,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler)
-    ], **settings, debug=True)
+    ], **settings)
 
 if __name__ == "__main__":
     app = make_app()

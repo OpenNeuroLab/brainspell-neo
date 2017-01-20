@@ -20,13 +20,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     def get(self):
-        self.render("static/html/index.html", 
-            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
+        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        self.render("static/html/index.html", title=name)
 
 class LoginHandler(BaseHandler):
     def get(self):
         self.render("static/html/login.html", message="None")
-        
+
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password")
@@ -39,6 +39,13 @@ class LoginHandler(BaseHandler):
             self.set_secure_cookie("user", email)
             self.redirect("/")
 
+
+class LogoutHandler(BaseHandler):
+    def get(self):
+        self.clear_cookie("user")
+        self.redirect("/")
+
+
 class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html")
@@ -48,14 +55,16 @@ class RegisterHandler(BaseHandler):
         password = self.get_body_argument("password")
         self.write("User created.")
         User.create(username = username, emailaddress = email, password = password)
+        self.redirect("/login")
 
 
 class SearchHandler(BaseHandler):
     def get(self):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
-        self.render("static/html/search.html", query=q, start=start, 
-            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
+        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        self.render("static/html/search.html", query=q, start=start,
+            title=name)
 
 class AddArticleHandler(BaseHandler):
     def get(self):
@@ -68,7 +77,7 @@ class ArticleHandler(BaseHandler):
             articleId = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
-        self.render("static/html/view-article.html", id=articleId, 
+        self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
 
 class SearchEndpointHandler(BaseHandler):
@@ -89,7 +98,7 @@ class SearchEndpointHandler(BaseHandler):
         response["articles"] = output_list
         if len(results) == 0:
             response["start_index"] = -1
-            # returns -1 if there are no results; 
+            # returns -1 if there are no results;
             # UI can always calculate (start, end) with (start_index + 1, start_index + 1 + len(articles))
             # TODO: consider returning the start/end indices for the range of articles returned instead
         else:
@@ -139,7 +148,7 @@ class ArticleEndpointHandler(BaseHandler):
 settings = {
     "cookie_secret": os.environ["COOKIE_SECRET"],
     "login_url": "/login",
-    "debug": True
+    #"debug":True
 }
 
 def make_app():
@@ -156,8 +165,9 @@ def make_app():
         (r"/article", ArticleEndpointHandler),
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
-        (r"/viewer", TranslucentViewerHandler)
-    ], **settings)
+        (r"/viewer", TranslucentViewerHandler),
+        (r"/logout", LogoutHandler)
+    ], debug=True, **settings)
 
 if __name__ == "__main__":
     app = make_app()

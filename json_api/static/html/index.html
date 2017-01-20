@@ -59,12 +59,19 @@
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
+                {% if title=="" %}
                     <li>
                         <a href="https://brainspell.herokuapp.com/login">Login</a>
                     </li>
                     <li>
                         <a href="https://brainspell.herokuapp.com/register">Register</a>
                     </li>
+                {% end %}
+                {% if title!="" %}
+                    <li>
+                        <a href="https://brainspell.herokuapp.com/logout">Logout</a>
+                    </li>
+                {% end %}
                     <li>
                         <a href="https://github.com/neelsomani/brainspell-neo">GitHub</a>
                     </li>

@@ -12,6 +12,7 @@ import psycopg2
 import tornado.escape
 from models import *
 import subprocess
+import hashlib
 
 """Handles User Login Requests"""
 class BaseHandler(tornado.web.RequestHandler):
@@ -29,8 +30,10 @@ class LoginHandler(BaseHandler):
 
     def post(self):
         email = self.get_argument("email")
-        password = self.get_argument("password")
-        # change to md5 hash
+        password = self.get_argument("password").encode("utf-8")
+        hasher=hashlib.md5()
+        hasher.update(password)
+        password = hasher.hexdigest()
         user = User.select().where(User.emailaddress == email and User.password == password)
         user = user.execute()
         if user.count == 0:
@@ -53,7 +56,9 @@ class RegisterHandler(BaseHandler):
         username = self.get_body_argument("name")
         email = self.get_body_argument("email")
         password = self.get_body_argument("password")
-        self.write("User created.")
+        hasher=hashlib.md5()
+        hasher.update(password)
+        password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)
         self.redirect("/login")
 

@@ -131,6 +131,56 @@ class TranslucentViewerHandler(BaseHandler):
         cmd = "python translucent.py"
         subprocess.call(cmd, shell=True)
 
+class AccountHandler(BaseHandler):
+    def get(self):
+        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        user = next(get_user(name))
+        username = user.username
+        self.render('static/html/account.html', title=name, username=username, message="")
+
+    def post(self):
+        hasher=hashlib.md5()
+        hasher2 = hashlib.md5()
+        newUsername = self.get_argument("newUserName")
+        currPassword = self.get_argument("currentPassword")
+        newPass = self.get_argument("newPassword")
+        confirmPass = self.get_argument("confirmedPassword")
+        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        user = next(get_user(name))
+        username = user.username
+
+        hasher.update(currPassword)
+        currPassword = hasher.hexdigest()
+
+        """Checks for valid user entries"""
+        if newUsername == None and currPassword==None:
+            self.render('static/html/account.html', title=name, username=username, message="NoInfo")
+        if newPass != confirmPass:
+            self.render('static/html/account.html', title=name, username=username, message="mismatch")
+        if currPassword != user.password:
+            self.render('static/html/account.html', title=name, username=username, message="badPass")
+
+        if newUsername:
+            update = User.update(username = newUsername).where(User.emailaddress == name)
+            update.execute()
+        if newPass:
+            hasher.update(newPass)
+            newPass = hasher2.hexdigest()
+            update = User.update(password = newPass).where(User.emailaddress == name)
+            update.execute()
+        self.redirect("/")
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ArticleEndpointHandler(BaseHandler):
     def get(self):
@@ -171,7 +221,8 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
         (r"/viewer", TranslucentViewerHandler),
-        (r"/logout", LogoutHandler)
+        (r"/logout", LogoutHandler),
+        (r"/account", AccountHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

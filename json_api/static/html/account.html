@@ -42,6 +42,16 @@
 </head>
 
 <body>
+    {% if message == "NoInfo" %}
+        <script>alert("No Information has changed")</script>
+    {% end %}
+
+    {% if message == "mismatch" %}
+        <script>alert("Confirmed Password does not match")</script>
+    {% end %}
+    {% if message == "badPass" %}
+        <script>alert("Password does not match user file")</script>
+    {% end %}
 
     <!-- Navigation -->
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -84,63 +94,78 @@
         </div>
         <!-- /.container -->
     </nav>
-
-    <!-- Page Content -->
     <div class="container">
+<form class="form-horizontal">
+<fieldset>
 
-        <div class="row">
-            <div class="col-lg-12 text-center">
-                <h1>Brainspell</h1>
-                <p class="lead">The first open, human-curated classification of neuroimaging literature.</p>
-                <form method="get" action="search">
-                <div class="input-group">
-                   <input type="text" name="q" placeholder="Search articles by title, author, keyword..." class="form-control">
-                   <span class="input-group-btn">
-                        <input type="submit" class="btn btn-default" value="Search" />
-                   </span>
-                </div>
-               </form>
-            </div>
-        </div>
-        <!-- /.row -->
+<!-- Form Name -->
+<legend style="text-align:center;">My Profile</legend>
+    <h4 style="text-align:center;"><em>User bookmarked articles coming here</em></h4>
+    <p>
+        <br>
+        <br>
+    </p>
 
-    </div>
-    <!-- /.container -->
+<!-- Text input-->
+<legend style="text-align:center;">Change Username</legend>
+<div class="form-group">
+  <label class="col-md-4 control-label" for="textinput">Username: {{ username }}</label>
+    <div class="col-md-4">
+  <input id="textinput" name="newUserName" type="text" placeholder="New Username..." class="form-control input-md">
+    <p>
+        <br>
+        <br>
+    </p>
 
-    <div class="container" id="randomResults" style="padding-top:30px;padding-bottom:30px">
-    </div>
 
+  </div>
+</div>
+
+<!-- Text input-->
+<legend style="text-align:center;">Change Password</legend>
+<div class="form-group">
+  <label class="col-md-4 control-label" for="textinput">Current Password</label>
+  <div class="col-md-4">
+  <input id="textinput" name="currentPassword" type="password" placeholder="Enter Current Password" class="form-control input-md">
+  </div>
+</div>
+
+<!-- Text input-->
+<div class="form-group">
+  <label class="col-md-4 control-label" for="textinput">New Password</label>
+  <div class="col-md-4">
+  <input id="textinput" name="newPassword" type="password" placeholder="Enter New Password" class="form-control input-md">
+
+  </div>
+</div>
+
+<!-- Text input-->
+<div class="form-group">
+  <label class="col-md-4 control-label" for="textinput">Confirm New Password</label>
+  <div class="col-md-4">
+  <input id="textinput" name="confirmedPassword" type="password" placeholder="Reenter New Password" class="form-control input-md">
+  </div>
+</div>
+
+
+
+<!-- Button -->
+<div class="form-group">
+  <label class="col-md-4 control-label" for="singlebutton"></label>
+  <div class="col-md-4">
+    <button formmethod="post" id="singlebutton" name="singlebutton" class="btn btn-primary">Save</button>
+  </div>
+</div>
+
+</fieldset>
+</form>
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
 
-     <script>
-        var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
-        $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
-        $(
-            $.ajax({
-                type: "GET", 
-                url: "/random-query"
-            }).complete(function(o) {
-                j = o.responseText;
-                console.log(j);
-                obj = JSON.parse(j);
-                $("#randomResults").html("");
-                $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Randomly selected articles:"));
-                obj = obj["articles"]
-                for (var i = 0; i < obj.length; i++) {
-                    var article = obj[i];
-                    var $result = $resultClone.clone();
-                    $result.append($("<a>", {"href": "view-article?id=" + article["id"]}).text(article["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
-                    $result.append($("<p>").text(article["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
-                    $("#randomResults").append($result);
-                }
-            })
-        );
-    </script>
+
 
 </body>
-
 </html>

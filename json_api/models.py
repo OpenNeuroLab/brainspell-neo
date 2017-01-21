@@ -118,3 +118,6 @@ def get_article(query):
 def insert_user(user, pw, email):
     q = User.create(username = user, password = pw, emailaddress = email)
     q.execute()
+def get_user(user):
+    q = User.select().where(User.emailaddress==user)
+    return q.execute()

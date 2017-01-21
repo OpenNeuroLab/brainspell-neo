@@ -1,7 +1,7 @@
-certifi==2016.9.26
-tornado==4.4.1
-peewee==2.8.5
-psycopg2==2.6.2
-pytest==3.0.3
-pytest-tornado==0.4.5
-lxml==3.3.6
+certifi>=2016.9.26
+tornado>=4.4.1
+peewee>=2.8.5
+psycopg2>=2.6.2
+pytest>=3.0.3
+pytest-tornado>=0.4.5
+lxml>=3.3.6

@@ -141,6 +141,8 @@
 
         function experimentsTable(array, position) {
             var table = $("<table>", {"class": "gradient-style"});
+            table.addClass("scroller");
+            table.addClass("gradient-style");
             table.append($("<caption>").text("Experiment " + position));
             var contents = $('<tbody>');
             contents.append($("<td>", {"class": "experiment-header"}).text("X"));
@@ -158,5 +160,31 @@
             return table;
         }
     </script>
+    <style>
+        .scroller thead, tbody, tr, th, td {display: block;}
+        .scroller thead tr {
+            /* fallback */
+            width: 97%;
+            /* minus scroll bar width */
+            width: -webkit-calc(100% - 16px);
+            width:    -moz-calc(100% - 16px);
+            width:         calc(100% - 16px);
+        }
+        .scroller tr:after {
+            content: ' ';
+            display: block;
+            visibility: hidden;
+            clear: both;
+        }
+        .scroller tbody {
+            height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .scroller tbody td, thead th {
+            width: 30%;
+            float: left;
+        }
+    </style>
 </body>
 </html>

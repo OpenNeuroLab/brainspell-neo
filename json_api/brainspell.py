@@ -142,8 +142,8 @@ class AccountHandler(BaseHandler):
         hasher=hashlib.md5()
         hasher2 = hashlib.md5()
         newUsername = self.get_argument("newUserName")
-        currPassword = self.get_argument("currentPassword")
-        newPass = self.get_argument("newPassword")
+        currPassword = self.get_argument("currentPassword").encode('utf-8')
+        newPass = self.get_argument("newPassword").encode('utf-8')
         confirmPass = self.get_argument("confirmedPassword")
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
         user = next(get_user(name))

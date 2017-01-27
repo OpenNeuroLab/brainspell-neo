@@ -141,9 +141,18 @@
                     $("#nextBtn").css("display", "inline");
                 }
                 if (obj["articles"].length > 0) {
-                    $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results " + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"]) + obj["articles"].length) + "."));
-                } else {
+                    $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results "
+                            + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"])
+                            + obj["articles"].length) + "."));
+                }
+                if ({{start}} != 0) {
                     $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("No more results."));
+                } else {
+                    $("#searchResults").append($("<a>").css("color", "#c0c0c0").text("No results. Add an article?"));
+                    $("#searchResults").append($("<br>"));
+                    $("#searchResults").append($("<br>"));
+                    $("#searchResults").append('<form class="form-login" method="post" action="/add-article"><input id="newPMID" name="newPMID" placeholder="Enter article PMID"><div class="form-row"><button type="submit">Submit</button> </div>');
+
                 }
                 obj = obj["articles"]
                 for (var i = 0; i < obj.length; i++) {

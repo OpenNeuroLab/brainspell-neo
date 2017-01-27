@@ -72,8 +72,11 @@ class SearchHandler(BaseHandler):
             title=name)
 
 class AddArticleHandler(BaseHandler):
-    def get(self):
-        pass
+    def post(self):
+        pmid = self.get_argument("newPMID")
+        self.write(pmid)
+        self.redirect("/")
+
 
 class ArticleHandler(BaseHandler):
     def get(self):
@@ -169,18 +172,6 @@ class AccountHandler(BaseHandler):
             update = User.update(password = newPass).where(User.emailaddress == name)
             update.execute()
         self.redirect("/")
-
-
-
-
-
-
-
-
-
-
-
-
 
 class ArticleEndpointHandler(BaseHandler):
     def get(self):

@@ -22,7 +22,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
-        self.render("static/html/index.html", title=name)
+        self.render("static/html/index.html", title=name, queries=Articles.select().wrapped_count())
 
 class LoginHandler(BaseHandler):
     def get(self):

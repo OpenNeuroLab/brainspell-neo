@@ -144,14 +144,32 @@
                     $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results "
                             + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"])
                             + obj["articles"].length) + "."));
-                }
-                if ({{start}} != 0) {
-                    $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("No more results."));
+
                 } else {
                     $("#searchResults").append($("<a>").css("color", "#c0c0c0").text("No results. Add an article?"));
                     $("#searchResults").append($("<br>"));
                     $("#searchResults").append($("<br>"));
-                    $("#searchResults").append('<form class="form-login" method="post" action="/add-article"><input id="newPMID" name="newPMID" placeholder="Enter article PMID"><div class="form-row"><button type="submit">Submit</button> </div>');
+                    $("#searchResults").append(
+                            '<form class="form-login" method="post" action="/add-article">' +
+                                '<input ' +
+                                    'id="newPMID" ' +
+                                    'name="newPMID" ' +
+                                    'placeholder="Enter article PMID"' +
+                                '<div class="form-row">' +
+                                    '<button type="submit" id="submitter">Submit</button> ' +
+                                '</div>' +
+                            '</form>');
+                    $('#submitter').click(function() {
+                        var name = $.trim($('#newPMID').val());
+                        var pattern = new RegExp("[0-9]{8}");
+                        if (pattern.test(name)) {
+                            alert("Thank you, this information will be added");
+                            $("#newPMID").submit();
+                        } else {
+                            $(".form-login").before($("<p>PMID Codes are 8 characters</p>"));
+                            return false;
+                        }
+                    })
 
                 }
                 obj = obj["articles"]

@@ -31,11 +31,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password").encode("utf-8")
-        hasher=hashlib.md5()
-        hasher.update(password)
-        password = hasher.hexdigest()
-        user = User.select().where(User.emailaddress == email & User.password == password)
-        user = user.execute()
+        user = user_login(email,password)
         if user.count == 0:
             self.render("static/html/login.html", message="Invalid")
         else:
@@ -56,10 +52,7 @@ class RegisterHandler(BaseHandler):
         username = self.get_body_argument("name")
         email = self.get_body_argument("email")
         password = self.get_body_argument("password")
-        hasher=hashlib.md5()
-        hasher.update(password)
-        password = hasher.hexdigest()
-        User.create(username = username, emailaddress = email, password = password)
+        register_user(username,email,password)
         self.redirect("/login")
 
 
@@ -151,7 +144,6 @@ class AccountHandler(BaseHandler):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
         user = next(get_user(name))
         username = user.username
-
         hasher.update(currPassword)
         currPassword = hasher.hexdigest()
 

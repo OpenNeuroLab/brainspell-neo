@@ -6,6 +6,7 @@ import peewee
 import os
 from urllib.parse import urlparse
 import playhouse
+import hashlib
 from playhouse.postgres_ext import *
 
 from peewee import DateTimeField, CharField, IntegerField
@@ -121,3 +122,15 @@ def insert_user(user, pw, email):
 def get_user(user):
     q = User.select().where(User.emailaddress==user)
     return q.execute()
+def user_login(email,password):
+        hasher=hashlib.md5()
+        hasher.update(password)
+        password = hasher.hexdigest()
+        user = User.select().where(User.emailaddress == email & User.password == password)
+        return user.execute()
+
+def register_user(username,email,password):
+        hasher=hashlib.md5()
+        hasher.update(password)
+        password = hasher.hexdigest()
+        User.create(username = username, emailaddress = email, password = password)

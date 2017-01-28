@@ -126,7 +126,7 @@ def user_login(email,password):
         hasher=hashlib.md5()
         hasher.update(password)
         password = hasher.hexdigest()
-        user = User.select().where(User.emailaddress == email & User.password == password)
+        user = User.select().where((User.emailaddress == email) & (User.password == password))
         return user.execute()
 
 def register_user(username,email,password):

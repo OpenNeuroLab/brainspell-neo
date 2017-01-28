@@ -216,7 +216,6 @@ def make_app():
         (r"/article", ArticleEndpointHandler),
         (r"/view-article", ArticleHandler),
         (r"/add-article", AddArticleHandler),
-        (r"/viewer", TranslucentViewerHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler)
     ], debug=True, **settings)

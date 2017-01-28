@@ -159,7 +159,52 @@
             table.append(contents);
             return table;
         }
+        function genexperimentsTable(array,position) {
+            var table = $("<table class='table table-fixed'>" +
+                    "<caption>Experiment + position</caption>" +
+                    "<thead>" +
+                        "<tr>" +
+                            "<th class='col-xs-2'>X</th>" +
+                            "<th class='col-xs-2'>Y</th>" +
+                            "<th class='col-xs-2'>Z</th>" +
+                            "<th class='col-xs-2'>Z-effective</th>" +
+                        "</tr>" +
+                    "</thead>");
+                var contents = $("<tbody>");
+                for (var i = 0; i < array.length; i++) {
+                    var row = $("<tr>");
+                    array[i] = array[i].split(",");
+                    for (var j in array[i]) {
+                        row.append($("<td>").text(array[i][j]));
+                    }
+                    row.append("-");
+                    contents.append(row);
+                }
+                table.append(contents);
+            return table;
+
+
+
+        }
+
     </script>
+    <style>
+    .table-fixed thead {
+      width: 97%;
+    }
+    .table-fixed tbody {
+      height: 230px;
+      overflow-y: auto;
+      width: 100%;
+    }
+    .table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
+      display: block;
+    }
+    .table-fixed tbody td, .table-fixed thead > tr> th {
+      float: left;
+      border-bottom-width: 0;
+    }
+    </style>
     <style>
         .scroller thead, tbody, tr, th, td {display: block;}
         .scroller thead tr {

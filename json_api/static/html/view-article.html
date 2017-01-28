@@ -155,53 +155,12 @@
                 for (var j in array[i]) {
                     row.append($("<td>").text(array[i][j]));
                 }
-                row.append($("<td>").text("value"));
+                row.append($("<td>").append($("<input>", {"type": "text"})));
                 contents.append(row);
             }
             table.append(contents);
             return table;
         }
     </script>
-    <style>
-    .table-fixed thead {
-      width: 97%;
-    }
-    .table-fixed tbody {
-      height: 230px;
-      overflow-y: auto;
-      width: 100%;
-    }
-    .table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
-      display: block;
-    }
-    .table-fixed tbody td, .table-fixed thead > tr> th {
-      float: left;
-      border-bottom-width: 0;
-    }
-    .scroller thead, tbody, tr, th, td {display: block;}
-    .scroller thead tr {
-        /* fallback */
-        width: 97%;
-        /* minus scroll bar width */
-        width: -webkit-calc(100% - 16px);
-        width:    -moz-calc(100% - 16px);
-        width:         calc(100% - 16px);
-    }
-    .scroller tr:after {
-        content: ' ';
-        display: block;
-        visibility: hidden;
-        clear: both;
-    }
-    .scroller tbody {
-        height: 200px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .scroller tbody td, thead th {
-        width: 25%;
-        float: left;
-    }
-    </style>
 </body>
 </html>

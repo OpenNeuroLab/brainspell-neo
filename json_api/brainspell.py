@@ -34,7 +34,7 @@ class LoginHandler(BaseHandler):
         hasher=hashlib.md5()
         hasher.update(password)
         password = hasher.hexdigest()
-        user = User.select().where(User.emailaddress == email and User.password == password)
+        user = User.select().where(User.emailaddress == email & User.password == password)
         user = user.execute()
         if user.count == 0:
             self.render("static/html/login.html", message="Invalid")

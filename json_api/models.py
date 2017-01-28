@@ -98,7 +98,6 @@ class User(BaseModel):
     class Meta:
         db_table = 'users'
 
-
 def article_search(query, start):
     query = query.replace(" ", "%")
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
@@ -118,6 +117,7 @@ def get_article(query):
 def insert_user(user, pw, email):
     q = User.create(username = user, password = pw, emailaddress = email)
     q.execute()
+    
 def get_user(user):
     q = User.select().where(User.emailaddress==user)
     return q.execute()

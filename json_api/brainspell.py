@@ -14,8 +14,6 @@ from models import *
 import subprocess
 import hashlib
 
-
-
 """Handles User Login Requests"""
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -75,7 +73,7 @@ class SearchHandler(BaseHandler):
 
 class AddArticleHandler(BaseHandler):
     def post(self):
-        pmid = self.get_argument("newPMID")
+        pmid = self.get_argument("pmid")
         self.write(pmid)
         self.redirect("/")
 

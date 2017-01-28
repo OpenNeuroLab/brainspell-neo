@@ -6,7 +6,5 @@ Main functionality:
 - Make the URLs backwards-compatible with brainspell.org
 - Clean/comment code thoroughly; clean up requirements.txt
 - Write API documentation (and put on GitHub)
-
-If users are really necessary:
-- Set up login system, registration with hashing/salting
 - Add features for users to save articles, add/vote on tags, etc.
+- Potentially use PubMed’s search results rather than querying our own database.

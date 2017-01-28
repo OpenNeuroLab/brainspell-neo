@@ -135,7 +135,7 @@
                 obj = JSON.parse(j);
                 var holder = {{queries}};
                 $("#randomResults").html("");
-                $("#randomResults").append($("<p>").css("color", "#c0c0c0").text(holder+ " articles indexed"));
+                $("#randomResults").append($("<p>").css("color", "#c0c0c0").text(holder + " articles indexed"));
                 $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Randomly selected articles:"));
                 obj = obj["articles"]
                 for (var i = 0; i < obj.length; i++) {

@@ -14,8 +14,6 @@ from models import *
 import subprocess
 import hashlib
 
-
-
 """Handles User Login Requests"""
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -75,7 +73,7 @@ class SearchHandler(BaseHandler):
 
 class AddArticleHandler(BaseHandler):
     def post(self):
-        pmid = self.get_argument("newPMID")
+        pmid = self.get_argument("pmid")
         self.write(pmid)
         self.redirect("/")
 
@@ -192,6 +190,11 @@ class ArticleEndpointHandler(BaseHandler):
         response["title"] = article.title
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
+
+public_key = "private-key"
+if "COOKIE_SECRET" in os.environ:
+    public_key = os.environ["COOKIE_SECRET"]
+assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
 settings = {
     "cookie_secret": os.environ["COOKIE_SECRET"],

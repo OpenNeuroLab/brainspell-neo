@@ -193,6 +193,11 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+public_key = "private-key"
+if "COOKIE_SECRET" in os.environ:
+    public_key = os.environ["COOKIE_SECRET"]
+assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
+
 settings = {
     "cookie_secret": os.environ["COOKIE_SECRET"],
     "login_url": "/login",

@@ -145,17 +145,19 @@
             table.addClass("gradient-style");
             table.append($("<caption>").text("Experiment " + position));
             var contents = $('<tbody>');
-            contents.append($("<td>", {"class": "experiment-header"}).text("X"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Y"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Z"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
+            var header = $('<tr>');
+            header.append($("<td>", {"class": "experiment-header"}).text("X"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Y"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Z"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
+            contents.append(header);
             for (var i = 0; i < array.length; i++) {
                 var row = $("<tr>");
                 array[i] = array[i].split(",");
                 for (var j in array[i]) {
                     row.append($("<td>").text(array[i][j]));
                 }
-                row.append($("<td>").append($("<input>", {"type": "text"})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "text"})));
                 contents.append(row);
             }
             table.append(contents);

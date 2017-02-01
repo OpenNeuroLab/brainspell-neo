@@ -96,10 +96,10 @@
                 <div class="input-group">
                    <input type="text" name="q" style="width:80%" placeholder="Search articles by title, author, keyword..." class="form-control">
                    <select id="searcher" class="selectpicker form-control" data-live-search="true" title="Select a search option" style="width: 20%;">
-                        <option id = "all">All</option>
-                        <option id = "experiments">Experiments</option>
-                        <option id="pmid">PubMed ID</option>
-                        <option id="reference">Reference</option>
+                        <option id ="default">Default</option>
+                        <option id ="experiments">Experiments</option>
+                        <option id ="pmid">PubMed ID</option>
+                        <option id ="reference">Reference</option>
                    </select>
                    <span class="input-group-btn">
                         <input type="submit" class="btn btn-default" value="Search" />
@@ -133,7 +133,7 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                var holder = {{queries}};
+                var holder = {{ queries }};
                 $("#randomResults").html("");
                 $("#randomResults").append($("<p>").css("color", "#c0c0c0").text(holder + " articles indexed"));
                 $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Randomly selected articles:"));

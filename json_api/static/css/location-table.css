@@ -27,14 +27,8 @@
 .experiment-header {
     font-weight: bold;
 }
-.table-fixed thead {
-  width: 97%;
-}
-.table-fixed tbody {
-  height: 230px;
-  overflow-y: auto;
-  width: 100%;
-}
+
+
 .table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
   display: block;
 }
@@ -45,7 +39,7 @@
 .scroller thead, tbody, tr, th, td {display: block;}
 .scroller thead tr {
     /* fallback */
-    width: 97%;
+    width: 80%;
     /* minus scroll bar width */
     width: -webkit-calc(100% - 16px);
     width:    -moz-calc(100% - 16px);
@@ -59,6 +53,7 @@
 }
 .scroller tbody {
     height: 200px;
+    width: 400px;
     overflow-y: auto;
     overflow-x: hidden;
 }

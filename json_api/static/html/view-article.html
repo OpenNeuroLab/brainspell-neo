@@ -153,9 +153,9 @@
                 var row = $("<tr>");
                 array[i] = array[i].split(",");
                 for (var j in array[i]) {
-                    row.append($("<td>").text(array[i][j]));
+                    row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").append($("<input>", {"type": "text"})));
+                row.append($("<td>").append($("<input>", {"type": "text", "style":"width:40%;"})));
                 contents.append(row);
             }
             table.append(contents);

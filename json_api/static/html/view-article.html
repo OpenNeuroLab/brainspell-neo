@@ -13,7 +13,7 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://brainspell.herokuapp.com/static/css/location-table.css" rel="stylesheet">
+    <link href="static/css/location-table.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <style>
@@ -145,19 +145,23 @@
             table.addClass("gradient-style");
             table.append($("<caption>").text("Experiment " + position));
             var contents = $('<tbody>');
-            contents.append($("<td>", {"class": "experiment-header"}).text("X"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Y"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Z"));
-            contents.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
+            var header = $('<tr>');
+            header.append($("<td>", {"class": "experiment-header"}).text("X"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Y"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Z"));
+            header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
+            contents.append(header);
             for (var i = 0; i < array.length; i++) {
                 var row = $("<tr>");
                 array[i] = array[i].split(",");
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").append($("<input>", {"type": "text", "style":"width:40%;"})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "text", "style":"width:60%;"})));
                 contents.append(row);
+
             }
+
             table.append(contents);
             return table;
         }

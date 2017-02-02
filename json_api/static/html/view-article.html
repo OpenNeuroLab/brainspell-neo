@@ -157,14 +157,14 @@
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "text", "style":"width:60%;"})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;"})));
                 contents.append(row);
-
             }
 
             table.append(contents);
             return table;
         }
     </script>
+
 </body>
 </html>

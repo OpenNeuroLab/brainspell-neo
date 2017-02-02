@@ -97,8 +97,10 @@
                 <div class="input-group">
                    <input type="text" name="q" style="width:90%" value="{{ query }}" placeholder="Search articles by title, author, keyword..." class="form-control">
                    <select id="lunch" class="selectpicker form-control" data-live-search="true" title="Please select a lunch ..." style="width: 10%;">
-                    <option>Asdf</option>
-                    <option>AFSD</option>
+                        <option id ="default">Default</option>
+                        <option id ="experiments">Experiments</option>
+                        <option id ="pmid">PubMed ID</option>
+                        <option id ="reference">Reference</option>
                    </select>
                    <span class="input-group-btn">
                         <input type="submit" class="btn btn-default" value="Search" />

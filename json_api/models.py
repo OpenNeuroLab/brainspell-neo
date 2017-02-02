@@ -99,6 +99,18 @@ class User(BaseModel):
     class Meta:
         db_table = 'users'
 
+"""
+Returns a list of relevant columns user wishes to search
+Follows PubMed Labeling System:
+    [au] indicates author
+    [ALL] all fields
+    [MH] Mesh terms --> To be added
+    [PMID] --> Pubmed ID
+    [TIAB] --> Title/Abstract
+"""
+def parse(query):
+    pass
+
 def article_search(query, start):
     query = query.replace(" ", "%")
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(

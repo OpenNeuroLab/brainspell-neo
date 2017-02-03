@@ -196,7 +196,7 @@ assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs
 settings = {
     "cookie_secret": os.environ["COOKIE_SECRET"],
     "login_url": "/login",
-    #"debug":True
+    "compress_response":True
 }
 
 def make_app():

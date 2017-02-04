@@ -92,9 +92,9 @@ class SearchEndpointHandler(BaseHandler):
 
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
-        # option = self.get_query_argument("searcher")
 
-        # #TODO Evaluate the drop down option
+
+        #TODO Evaluate the drop down option
 
         results = article_search(q, start)
         response = {}

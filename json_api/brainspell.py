@@ -14,6 +14,8 @@ from models import *
 import subprocess
 import hashlib
 
+from get_article_data import *
+
 """Handles User Login Requests"""
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -67,7 +69,10 @@ class SearchHandler(BaseHandler):
 class AddArticleHandler(BaseHandler):
     def post(self):
         pmid = self.get_argument("pmid")
-        self.write(pmid)
+        x = getArticleData(pmid)
+        request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
+                                  experiments=x["experiments"],title=x["title"])
+        request.execute()
         self.redirect("/")
 
 
@@ -85,12 +90,12 @@ class SearchEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
         database_dict = {}
+
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
+        # option = self.get_query_argument("searcher")
 
-
-        #option = self.get_argument("searcher")
-        #TODO Evaluate the drop down option
+        # #TODO Evaluate the drop down option
 
         results = article_search(q, start)
         response = {}

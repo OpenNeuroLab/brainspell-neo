@@ -134,6 +134,8 @@ def insert_user(user, pw, email):
 def get_user(user):
     q = User.select().where(User.emailaddress==user)
     return q.execute()
+
+
 def user_login(email,password):
         hasher=hashlib.md5()
         hasher.update(password)

@@ -117,9 +117,21 @@
         }).complete(function(o) {
             j = o.responseText;
             obj = JSON.parse(j);
+            console.log(obj["metadata"]);
+            metadata = JSON.parse(obj["metadata"])["meshHeadings"];
             $("#articleContents").html("");
     		$("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
     		$("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
+
+            var metadataStr = "";
+            for (var i = 0; i < metadata.length; i++) {
+                if (metadataStr != "") {
+                    metadataStr = metadataStr + ", " + metadata[i]["name"];
+                }
+                else {
+                    metadataStr = metadata[i]["name"];
+                }
+            }
     		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 
             var linkParagraph = $("<p>");
@@ -127,6 +139,7 @@
             linkParagraph.append(" | ");
             linkParagraph.append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynth"));
             $("#articleContents").append(linkParagraph);
+            $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: " + metadataStr.replace(/\\"/g, '"').replace(/\\'/g, "'")));
             // generate experiment tables
             var experimentsObj = jQuery.parseJSON(obj["experiments"]);
             var count = 1;

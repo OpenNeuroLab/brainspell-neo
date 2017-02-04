@@ -4,7 +4,6 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import os
-import certifi
 import json
 import peewee
 import tornado

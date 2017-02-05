@@ -89,12 +89,10 @@ class SearchEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
         database_dict = {}
-
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
-
-
         #TODO Evaluate the drop down option
+
 
         results = article_search(q, start)
         response = {}

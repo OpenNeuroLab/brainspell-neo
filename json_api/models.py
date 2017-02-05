@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import playhouse
 import hashlib
 from playhouse.postgres_ext import *
+import re
 
 from peewee import DateTimeField, CharField, IntegerField
 # urlparse.uses_netloc.append("postgres")
@@ -109,7 +110,39 @@ Follows PubMed Labeling System:
     [TIAB] --> Title/Abstract
 """
 def parse(query):
-    pass
+    columns = []
+    au = re.compile(r"\[au]")
+    all = re.compile(r"\[ALL]")
+    mesh = re.compile(r"\[MH]")
+    pmid = re.compile(r"\[PMID]")
+    tiab = re.compile(r"\[TIAB]")
+    if au.search(query):
+        columns.append(Articles.authors)
+    if all.search(query):
+        columns.extend([Articles.timestamp, Articles.abstract,
+                        Articles.authors, Articles.doi,
+                        Articles.experiments, Articles.metadata,
+                        Articles.neurosynthid, Articles.pmid,
+                        Articles.reference,Articles.title])
+    if mesh.search(query):
+        columns.append(Articles.metadata)
+    if pmid.search(query):
+        columns.append(Articles.pmid)
+    if tiab.search(query):
+        columns.extend([Articles.title, Articles.abstract])
+    return columns
+
+def formatted_search(query,start):
+    query = query.replace(" ", "%")
+    columns = parse(query)
+    if not columns: #Implement default parameters
+        columns.extend([Articles.title, Articles.abstract, Articles.authors])
+    formatted = [(x, query) for x in columns]
+    formatted = ["Match" + str(x) for x in formatted]
+    formatted = " | ".join(formatted)
+    search = Articles.select(*columns).where(
+        formatted).limit(10).offset(start)
+    return search.execute()
 
 def article_search(query, start):
     query = query.replace(" ", "%")

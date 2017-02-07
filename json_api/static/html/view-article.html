@@ -138,7 +138,7 @@
             //Create a drop down menu for each term (approve or reject)
             var dropper = $("<div>").attr("class",'dropdown');
             for (var i = 0; i < metadatalst.length; i++) {
-                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick","drop()").append($("<div>").attr("class",'dropdown-content').attr("id","myDropdown").append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
+                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "drop(this)").append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
             }
     		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 
@@ -240,8 +240,12 @@
         .show {display:block;}
     </style>
     <script>
-    function drop() {
-        document.getElementById("myDropdown").classList.toggle("show");
+    function drop(element) {
+        if (element.lastChild.style.display == "block") {
+            element.lastChild.style.display = "none";
+        } else {
+            element.lastChild.style.display = "block";
+        }
     }
 
     // Close the dropdown menu if the user clicks outside of it

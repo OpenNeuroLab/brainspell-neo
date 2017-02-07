@@ -61,9 +61,10 @@ class SearchHandler(BaseHandler):
     def get(self):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
+        req = self.get_query_argument("req", "t")
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
         self.render("static/html/search.html", query=q, start=start,
-            title=name)
+            title=name, req=req)
 
 class AddArticleHandler(BaseHandler):
     def post(self):
@@ -91,10 +92,8 @@ class SearchEndpointHandler(BaseHandler):
         database_dict = {}
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
-        #TODO Evaluate the drop down option
-        option = self.get_query_argument("searcher", "")
+        option = self.get_query_argument("req", "t")
         print(str(option))
-
         results = article_search(q, start)
         response = {}
         output_list = []

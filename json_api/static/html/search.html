@@ -96,11 +96,11 @@
                 <form method="get" action="search">
                 <div class="input-group">
                    <input type="text" name="q" style="width:90%" value="{{ query }}" placeholder="Search articles by title, author, keyword..." class="form-control">
-                   <select id="searcher" name="searcher" class="selectpicker form-control" data-live-search="true" title="Select option" style="width: 10%;">
-                        <option value= "default" id ="default">Default</option>
-                        <option value = "experiments" id ="experiments">Experiments</option>
-                        <option value = "pmid" id ="pmid">PubMed ID</option>
-                        <option value = "reference" id ="reference">Reference</option>
+                   <select name="req" id="req" class="selectpicker form-control" style="width: 10%;">
+                        <option selected value="t" id="default">Title, author, abstract</option>
+                        <option value="x" id="experiments">Experiments</option>
+                        <option value="p" id="pmid">PubMed ID</option>
+                        <option value="r" id="reference">Reference</option>
                    </select>
                    <span class="input-group-btn">
                         <input type="submit" class="btn btn-default" value="Search" />
@@ -134,7 +134,7 @@
         $(
             $.ajax({
                 type: "GET", 
-                url: "/query?q={{query}}&start={{start}}"
+                url: "/query?q={{query}}&start={{start}}&req={{req}}"
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);

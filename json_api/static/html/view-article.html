@@ -196,7 +196,7 @@
                 tagBody.append(singleTag);
             }
             tagBody.css("position", "fixed").css("top", "10%").css("left", "0").css("right", "0").css("width", "60%").css("margin", "auto").css("background-color", "white").css("border", "solid 1px #c0c0c0").css("height", "80%").css("padding", "20px").css("overflow-y", "scroll");
-            var cover = $("<div>").css("top", "0").css("left", "0").css("position", "fixed").css("width", "100%").css("height", "100%").css("background-color", "#c0c0c0").css("opacity", ".5").css("word-wrap","break-word").attr("colspan",3).attr("onclick", "$(this).css('display', 'none'); $('.tagBody').css('display', 'none');");
+            var cover = $("<div>").css("top", "0").css("left", "0").css("position", "fixed").css("width", "100%").css("height", "100%").css("background-color", "#c0c0c0").css("opacity", ".5").attr("onclick", "$(this).css('display', 'none'); $('.tagBody').css('display', 'none');");
             $("body").append(cover);
             $("body").append(tagBody);
         }

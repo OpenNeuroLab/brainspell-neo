@@ -139,10 +139,8 @@
             var dropper = $("<div/>");
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
-                dropper.append($("<button>", {class: "dropbtn"}).text(metadatalst[i]).attr("onclick","drop()")
-                        .append($("<div>").attr("class",'dropdown-content').attr("id","myDropdown")
-                        .append($("<a>").attr("href", "#").text("Agree"))
-                        .append($("<a>").attr("href","#").text("Disagree"))));
+
+                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "drop(this)").append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
             }
     		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
 
@@ -200,7 +198,7 @@
                 tagBody.append(singleTag);
             }
             tagBody.css("position", "fixed").css("top", "10%").css("left", "0").css("right", "0").css("width", "60%").css("margin", "auto").css("background-color", "white").css("border", "solid 1px #c0c0c0").css("height", "80%").css("padding", "20px").css("overflow-y", "scroll");
-            var cover = $("<div>").css("top", "0").css("left", "0").css("position", "fixed").css("width", "80%").css("height", "100%").css("background-color", "#c0c0c0").css("opacity", ".5").css("word-wrap","break-word").attr("colspan",3).attr("onclick", "$(this).css('display', 'none'); $('.tagBody').css('display', 'none');");
+            var cover = $("<div>").css("top", "0").css("left", "0").css("position", "fixed").css("width", "100%").css("height", "100%").css("background-color", "#c0c0c0").css("opacity", ".5").attr("onclick", "$(this).css('display', 'none'); $('.tagBody').css('display', 'none');");
             $("body").append(cover);
             $("body").append(tagBody);
         }
@@ -246,8 +244,12 @@
         .show {display:block;}
     </style>
     <script>
-    function drop() {
-        document.getElementById("myDropdown").classList.toggle("show");
+    function drop(element) {
+        if (element.lastChild.style.display == "block") {
+            element.lastChild.style.display = "none";
+        } else {
+            element.lastChild.style.display = "block";
+        }
     }
 
     // Close the dropdown menu if the user clicks outside of it

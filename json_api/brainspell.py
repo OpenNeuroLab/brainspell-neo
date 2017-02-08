@@ -73,7 +73,8 @@ class AddArticleHandler(BaseHandler):
         request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
                                   experiments=x["experiments"],title=x["title"])
         request.execute()
-        self.redirect("/")
+        response = {"success": 1}
+        self.write(json.dumps(response))
 
 
 class ArticleHandler(BaseHandler):

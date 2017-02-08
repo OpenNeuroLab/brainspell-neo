@@ -132,17 +132,27 @@ def parse(query):
         columns.extend([Articles.title, Articles.abstract])
     return columns
 
-def formatted_search(query,start):
-    query = query.replace(" ", "%")
-    columns = parse(query)
-    if not columns: #Implement default parameters
-        columns.extend([Articles.title, Articles.abstract, Articles.authors])
-    formatted = [(x, query) for x in columns]
-    formatted = ["Match" + str(x) for x in formatted]
-    formatted = " | ".join(formatted)
-    search = Articles.select(*columns).where(
-        formatted).limit(10).offset(start)
-    return search.execute()
+def formatted_search(query,start,param=None):
+    if not param:
+        query = query.replace(" ", "%")
+        columns = parse(query)
+        if not columns: #Implement default parameters
+            columns.extend([Articles.title, Articles.abstract, Articles.authors])
+        formatted = [(x, query) for x in columns]
+        formatted = ["Match" + str(x) for x in formatted]
+        formatted = " | ".join(formatted)
+        search = Articles.select(*columns).where(
+            formatted).limit(10).offset(start)
+        return search.execute()
+    else:
+        if param == "t":
+            pass
+        if param == "x":
+            pass
+        if param == "p":
+            pass
+        if param == "r":
+            pass
 
 def article_search(query, start):
     query = query.replace(" ", "%")

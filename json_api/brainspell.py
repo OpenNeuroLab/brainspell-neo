@@ -71,7 +71,7 @@ class AddArticleHandler(BaseHandler):
         pmid = self.get_argument("pmid")
         x = getArticleData(pmid)
         request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
-                                  experiments=x["experiments"],title=x["title"])
+                                  experiments=x["coordinates"],title=x["title"])
         request.execute()
         self.redirect("/")
 

@@ -93,7 +93,6 @@ class SearchEndpointHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
-        print(str(option))
         results = article_search(q, start)
         response = {}
         output_list = []

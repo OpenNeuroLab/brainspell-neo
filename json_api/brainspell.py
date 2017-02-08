@@ -73,7 +73,8 @@ class AddArticleHandler(BaseHandler):
         request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
                                   experiments=x["coordinates"],title=x["title"])
         request.execute()
-        self.redirect("/")
+        response = {"success": 1}
+        self.write(json.dumps(response))
 
 
 class ArticleHandler(BaseHandler):
@@ -93,7 +94,6 @@ class SearchEndpointHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
-        print(str(option))
         results = article_search(q, start)
         response = {}
         output_list = []

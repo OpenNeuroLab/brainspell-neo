@@ -48,7 +48,7 @@ class LogoutHandler(BaseHandler):
 
 class RegisterHandler(BaseHandler):
     def get(self):
-        self.render("static/html/register.html")
+        self.render("static/html/register.html", title="")
     def post(self):
         username = self.get_body_argument("name")
         email = self.get_body_argument("email")

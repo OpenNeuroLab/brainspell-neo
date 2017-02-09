@@ -27,7 +27,7 @@ class MainHandler(BaseHandler):
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.render("static/html/login.html", message="None")
+        self.render("static/html/login.html", message="None", title="")
 
     def post(self):
         email = self.get_argument("email")

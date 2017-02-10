@@ -68,7 +68,7 @@ class SearchHandler(BaseHandler):
 
 class AddArticleHandler(BaseHandler):
     def post(self):
-        pmid = self.get_argument("pmid")
+        pmid = self.get_body_argument("pmid")
         x = getArticleData(pmid)
         request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
                                   experiments=x["coordinates"],title=x["title"])

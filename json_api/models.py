@@ -61,7 +61,7 @@ class Articles(BaseModel):
     experiments = CharField(null = True)
     metadata = CharField(null=True)
     neurosynthid = CharField(null=True)
-    pmid = CharField(null=True)
+    pmid = CharField(null=True, unique=True)
     reference = CharField(null=True)
     title = CharField(null=True)
     uniqueid = peewee.PrimaryKeyField()

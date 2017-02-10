@@ -36,13 +36,7 @@ def getDOI(lst):
             return x.group(1)
 
 """ Need:
-        Authors
-        Abtract
-        DOI
-        Experiments
         Metadata
         NeuroSynthID
-        PMID
         Reference
-        Title
 """

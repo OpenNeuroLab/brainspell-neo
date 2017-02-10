@@ -142,8 +142,7 @@
 
                 dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "drop(this)").append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
             }
-    		$("#articleContents").append($("<p>").text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
-
+    		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
             linkParagraph.append(" | ");
@@ -264,6 +263,16 @@
       }
     }
     </script>
-
+<style>
+    .make-column {
+    -moz-column-count: 2;
+    -moz-column-gap: 10px;
+    -webkit-column-count: 2;
+    -webkit-column-gap: 10px;
+    column-count: 2;
+    column-gap: 10px;
+    width: 100%;
+}
+</style>
 </body>
 </html>

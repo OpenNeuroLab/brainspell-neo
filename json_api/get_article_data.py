@@ -25,7 +25,11 @@ def getArticleData(article_id):
     articleInfo["authors"] = records.get("AU")
     articleInfo["abstract"] = records.get("AB")
     articleInfo["DOI"] = getDOI(records.get("AID"))
-    articleInfo["coordinates"] = urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + pmid + "/").read()
+    articleInfo["coordinates"] = ""
+    try:
+        urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + pmid + "/").read()
+    except:
+        pass
     return articleInfo
 
 def getDOI(lst):

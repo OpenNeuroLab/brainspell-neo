@@ -67,8 +67,19 @@ class SearchHandler(BaseHandler):
             title=name, req=req)
 
 class AddArticleHandler(BaseHandler):
-    def post(self):
-        pmid = self.get_body_argument("pmid")
+    """def post(self):
+        pmid = self.get_query_argument("pmid", "")
+        if pmid == "":
+            pmid = self.get_body_argument("pmid")
+        x = getArticleData(pmid)
+        request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
+                                  experiments=x["coordinates"],title=x["title"])
+        request.execute()
+        response = {"success": 1}
+        self.write(json.dumps(response))
+    get = post"""
+    def get(self):
+        pmid = self.get_query_argument("pmid", "")
         x = getArticleData(pmid)
         request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
                                   experiments=x["coordinates"],title=x["title"])

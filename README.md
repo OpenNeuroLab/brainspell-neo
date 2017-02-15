@@ -1,5 +1,5 @@
 # brainspell-neo
-Working on a new version on Brainspell. Experimenting with different stacks and setting up the JSON API with Postgres.
+Working on a new version on Brainspell.
 
 Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/.
 

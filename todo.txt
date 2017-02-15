@@ -2,7 +2,7 @@ To do:
 
 Main functionality:
 - Add widgets to "view article" and (potentially) "search" pages
-- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
+- Make "add article" UI (won't necessarily work; we're over Heroics’ database limit)
 - Make the URLs backwards-compatible with brainspell.org
 - Write API documentation (and put on GitHub)
 - Add features for users to save articles, etc.

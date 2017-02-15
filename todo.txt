@@ -1,10 +1,30 @@
 To do:
 
 Main functionality:
+- Change the “id” parameter for the article endpoint to “pmid”.
+- Don't return “Neurosynth ID” in the JSON API.
+- Round upvote/downvote values to two decimal places.
+- Change URLs for JSON endpoints to /json/* of the corresponding page.
+- Definitions for MeSH descriptors and tags on click.
+- Create the API endpoint for bulk-add to take a JSON POST request.
+- Create an API endpoint to edit tags, coordinates, authors for an article.
+- In late February, send the API specification to Roberto and JB again, for them to submit some final changes.
+- Give Roberto the Heroku public IP, so it can connect to the database. Move the Brainspell database to Pasteur.
+- Finalize API documentation (and put on GitHub)
 - Add widgets to "view article" and (potentially) "search" pages
 - Make "add article" UI (won't necessarily work; we're over Heroics’ database limit)
 - Make the URLs backwards-compatible with brainspell.org
 - Write API documentation (and put on GitHub)
+- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
+- Add API keys (associated with each account; potentially their password hash, which is checked before any database operations).
+- Check if Unique PMID functionality actually prevents adding duplicate articles.
+
+Not urgent:
 - Add features for users to save articles, etc.
+- Show a user’s own information (ratings, e.g.) if they’re logged in.
+- Make sure that input to the database is sanitized (should be handled by ORM).
+- Compute JSON diff and store with user metadata when a database operation is done.
+- add-article-manual endpoint, which allows users to add articles that aren’t on PubMed.
+- Potentially make a cron job to automatically update DOIs.
+- Get a better logo designed.
 - Potentially use PubMed’s search results rather than querying our own database.
-- Check if Unique PMID functionality actually prevents adding duplicate articles. 

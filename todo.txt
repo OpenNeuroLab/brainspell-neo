@@ -12,9 +12,6 @@ Main functionality:
 - Give Roberto the Heroku public IP, so it can connect to the database. Move the Brainspell database to Pasteur.
 - Finalize API documentation (and put on GitHub)
 - Add widgets to "view article" and (potentially) "search" pages
-- Make "add article" UI (won't necessarily work; we're over Heroics’ database limit)
-- Make the URLs backwards-compatible with brainspell.org
-- Write API documentation (and put on GitHub)
 - Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
 - Add API keys (associated with each account; potentially their password hash, which is checked before any database operations).
 - Check if Unique PMID functionality actually prevents adding duplicate articles.

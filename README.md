@@ -3,7 +3,7 @@ Working on a new version on Brainspell.
 
 Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/.
 
-=================================================
+## Running Brainspell
 
 To run Brainspell locally:  
 1) Clone the Git repo.  
@@ -11,7 +11,7 @@ To run Brainspell locally:
 
 Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
 
-================================================
+## Code Organization
 
 `json_api/brainspell.py` runs the Tornado main event loop.  
 `json_api/models.py` is for our ORM, PeeWee, which lets us treat our database like a Python object.  

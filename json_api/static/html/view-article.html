@@ -149,8 +149,6 @@
     		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
-            linkParagraph.append(" | ");
-            linkParagraph.append($("<a>").attr("href", "http://neurosynth.org/studies/" + obj["pmid"]).text("NeuroSynth"));
             $("#articleContents").append(linkParagraph);
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
             $("#articleContents").append(dropper);
@@ -185,7 +183,7 @@
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;"})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01"})));
                 contents.append(row);
             }
 
@@ -267,16 +265,13 @@
       }
     }
     </script>
-<!--<style>-->
-    <!--.make-column {-->
-    <!-- -moz-column-count: 2;-->
-    <!-- -moz-column-gap: 10px;-->
-    <!-- -webkit-column-count: 2;-->
-    <!-- -webkit-column-gap: 10px;-->
-    <!--column-count: 2;-->
-    <!--column-gap: 10px;-->
-    <!--width: 100%;-->
-<!--}-->
-<!--</style>-->
+    <!--Hides the Buttons on the Numerical Input Fields-->
+    <style>
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+        /* display: none; <- Crashes Chrome on hover */
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    </style>
 </body>
 </html>

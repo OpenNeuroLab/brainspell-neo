@@ -124,12 +124,14 @@
                         ($("<h4>", {"class":"modal-title"}).text(element))).append(
                     $("<div>", {"class":"modal-body"}).append(
                             $("<p>").text(definitions[element])
-                    )
+                    ).append(
+                            $("<a>", {"type":"button","class": "btn btn-default"}).text("Agree")
+                    ).append(
+                            $("<a>", {"type":"button","class": "btn btn-default"}).text("Disagree"))
                     ).append(
                         $("<div>", {"class":"modal-footer"}).append(
                             $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
-                            ))
-                        );
+                    )));
         $("#articleContents").append(first);
     }
 

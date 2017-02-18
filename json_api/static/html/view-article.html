@@ -115,6 +115,7 @@
 
     <script>
     function popup(element) {
+        console.log(element);
         var first = $("<div>", {"id":"myModal","class":"modal fade","role":"dialog"}).append(
                 $("<div>", {"class":"modal-dialog"}).append(
                     $("<div>", {"class":"modal-content"}).append(
@@ -167,12 +168,6 @@
 //
 //
 // .append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
-
-
-
-
-
-
 
     		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");

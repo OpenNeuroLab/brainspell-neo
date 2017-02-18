@@ -115,7 +115,6 @@
 
     <script>
     function popup(element) {
-        console.log(element);
         var first = $("<div>", {"id":"myModal","class":"modal fade","role":"dialog"}).append(
                 $("<div>", {"class":"modal-dialog"}).append(
                     $("<div>", {"class":"modal-content"}).append(
@@ -133,31 +132,34 @@
                             $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
                     )).css("z-index","2000"));
         $("#articleContents").append(first);
+        $('#myModal').on('hidden.bs.modal', function(){
+            $(this).remove();
+        });
     }
 
     //This Function doesn't work yet.. TODO: FIX THIS TO ACCURATELY SEARCH
     $(function(){
-	$('#search').keyup(function(){
-		var current_query = $('#search').val();
-		if (current_query !== "") {
-			$(".list-group li").hide();
-			$(".list-group li").each(function(){
-				var current_keyword = $(this).text();
-				if (current_keyword.indexOf(current_query) >=0) {
-					$(this).show();
-				}
-			});
-		} else {
-			$(".list-group li").show();
-		}
-	});
-});
-    function meshadder() {
+    	$('#search').keyup(function(){
+    		var current_query = $('#search').val();
+    		if (current_query !== "") {
+    			$(".list-group li").hide();
+    			$(".list-group li").each(function(){
+    				var current_keyword = $(this).text();
+    				if (current_keyword.indexOf(current_query) >=0) {
+    					$(this).show();
+    				}
+    			});
+    		} else {
+    			$(".list-group li").show();
+    		}
+    	});
+    });
+
+    function meshAdder() {
         var items = $("<ul>", {"class":"list-group"});
         for (var i = 0; i < descriptors.length; i++) {
             var temp = descriptors[i]["name"];
-            var single = $("<li>", {"class":"list-group-item"}).text(temp).attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal");
-//            dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal"));
+            var single = $("<li>", {"class":"list-group-item"}).text(temp).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
             items.append(single);
         }
         var descriptor = $("<div>", {"class": "container"}).append(
@@ -217,12 +219,8 @@
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
                 var temp = metadatalst[i];
-                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal"));
+                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
             }
-
-//
-//
-// .append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
 
     		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
@@ -231,7 +229,7 @@
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
 
 
-            dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshadder()").css("font-weight","bold"));
+            dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
 
             $("#articleContents").append(dropper);
 

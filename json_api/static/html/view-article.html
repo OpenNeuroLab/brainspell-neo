@@ -131,7 +131,7 @@
                     ).append(
                         $("<div>", {"class":"modal-footer"}).append(
                             $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
-                    )));
+                    )).css("z-index","2000"));
         $("#articleContents").append(first);
     }
 
@@ -181,7 +181,7 @@
                 )
 
         )
-    );
+        ).css("z-index","1999");
         $("#articleContents").append(descriptor);
     }
 

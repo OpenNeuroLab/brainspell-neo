@@ -164,7 +164,7 @@
         }
         var descriptor = $("<div>", {"class": "container"}).append(
                 $("<div>", {"class":"row"}).append(
-                $("<div>",{"class":"modal fade bs-example-modal-lg","tabindex":-1,"role":"dialog","aria-labelledby":"myLargeModalLabel"}).append(
+                $("<div>",{"id":"descriptorModal", "class":"modal fade bs-example-modal-lg","tabindex":-1,"role":"dialog","aria-labelledby":"myLargeModalLabel"}).append(
                     $("<div>",{"class":"modal-dialog modal-lg"}).append(
                         $("<div>",{"class":"modal-content"}).append(
                             $("<div>",{"id":"custom-search-input"}).append(
@@ -185,6 +185,11 @@
         )
         ).css("z-index","1999");
         $("#articleContents").append(descriptor);
+
+        $('#descriptorModal').on('hidden.bs.modal', function(){
+            $(this).remove();
+        });
+
     }
 
 

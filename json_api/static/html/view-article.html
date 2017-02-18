@@ -120,7 +120,8 @@
                 $("<div>", {"class":"modal-dialog"}).append(
                     $("<div>", {"class":"modal-content"}).append(
                         $("<div>", {"class":"modal-header"}).append(
-                $("<button>", {"type":"button","class":"close","data-dismiss":"modal"})).append($("<h4>", {"class":"modal-title"}).text(element))).append(
+                $("<button>", {"type":"button","class":"close","data-dismiss":"modal"})).append
+                        ($("<h4>", {"class":"modal-title"}).text(element))).append(
                     $("<div>", {"class":"modal-body"}).append(
                             $("<p>").text(definitions[element])
                     )
@@ -132,12 +133,29 @@
         $("#articleContents").append(first);
     }
 
-    //Better looking MeSH Descriptor Modal
+    //This Function doesn't work yet.. TODO: FIX THIS TO ACCURATELY SEARCH
+    $(function(){
+	$('#search').keyup(function(){
+		var current_query = $('#search').val();
+		if (current_query !== "") {
+			$(".list-group li").hide();
+			$(".list-group li").each(function(){
+				var current_keyword = $(this).text();
+				if (current_keyword.indexOf(current_query) >=0) {
+					$(this).show();
+				}
+			});
+		} else {
+			$(".list-group li").show();
+		}
+	});
+});
     function meshadder() {
-        console.log("I HIT THIS");
         var items = $("<ul>", {"class":"list-group"});
         for (var i = 0; i < descriptors.length; i++) {
-            var single = $("<li>", {"class":"list-group-item"}).text(descriptors[i]["name"]);
+            var temp = descriptors[i]["name"];
+            var single = $("<li>", {"class":"list-group-item"}).text(temp).attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal");
+//            dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal"));
             items.append(single);
         }
         var descriptor = $("<div>", {"class": "container"}).append(
@@ -209,14 +227,11 @@
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
             $("#articleContents").append(linkParagraph);
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
+
+
+            dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshadder()").css("font-weight","bold"));
+
             $("#articleContents").append(dropper);
-            $("#articleContents").append($("<p>").append($("<a>").attr("href", "#!").attr("onclick", "addMesh()").text("Add MeSH descriptor")));
-
-
-            $("#articleContents").append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg"}).text("Add MeSH descriptor").attr("onclick","meshadder()"));
-
-
-
 
             // generate experiment tables
             var experimentsObj = jQuery.parseJSON(obj["experiments"]);

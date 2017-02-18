@@ -114,22 +114,6 @@
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
 
     <script>
-    function popup(element) {
-        var first = $("<div>", {"id":"myModal","class":"modal fade","role":"dialog"}).append(
-                $("<div>", {"class":"modal-dialog"}).append(
-                    $("<div>", {"class":"modal-content"}).append(
-                        $("<div>", {"class":"modal-header"}).append(
-                $("<button>", {"type":"button","class":"close","data-dismiss":"modal"})).append($("<h4>", {"class":"modal-title"}).text(element))).append(
-                    $("<div>", {"class":"modal-body"}).append(
-                            $("<p>").text(definitions[element])
-                    )
-                    ).append(
-                        $("<div>", {"class":"modal-footer"}).append(
-                            $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
-                            ))
-                        );
-        $("#articleContents").append(first);
-    }
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
         $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $($.ajax({
@@ -156,24 +140,13 @@
             for (var j = 0; j < metadata.length; j++) {
                 metadatalst.push(metadata[j]["name"]);
             }
-            //Create a modal for each term (approve or reject)
+            //Create a drop down menu for each term (approve or reject)
             var dropper = $("<div/>");
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
-                var temp = metadatalst[i];
-                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", `popup("${temp}` + '")').attr("data-toggle", "modal").attr("data-target", "#myModal"));
+
+                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "drop(this)").append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
             }
-
-//
-//
-// .append($("<div>").attr("class",'dropdown-content').append($("<a>").attr("href", "#").text("Agree")).append($("<a>").attr("href","#").text("Disagree"))));
-
-
-
-
-
-
-
     		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));

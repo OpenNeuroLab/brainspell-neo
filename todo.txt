@@ -1,9 +1,6 @@
 To do:
 
 Main functionality:
-- Change the “id” parameter for the article endpoint to “pmid”.
-- Change URLs for JSON endpoints to /json/* of the corresponding page.
-- Definitions for MeSH descriptors and tags on click.
 - Create the API endpoint for bulk-add to take a JSON POST request.
 - Create an API endpoint to edit tags, coordinates, authors for an article.
 - In late February, send the API specification to Roberto and JB again, for them to submit some final changes.

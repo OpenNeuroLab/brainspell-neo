@@ -66,7 +66,7 @@ class SearchHandler(BaseHandler):
         self.render("static/html/search.html", query=q, start=start,
             title=name, req=req)
 
-class AddArticleHandler(BaseHandler):
+class AddArticleEndpointHandler(BaseHandler):
     """def post(self):
         pmid = self.get_query_argument("pmid", "")
         if pmid == "":
@@ -185,7 +185,7 @@ class AccountHandler(BaseHandler):
 
 class ArticleEndpointHandler(BaseHandler):
     def get(self):
-        id = self.get_query_argument("id")
+        id = self.get_query_argument("pmid")
         article = next(get_article(id))
         response = {}
         response["timestamp"] = article.timestamp
@@ -218,14 +218,14 @@ def make_app():
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'static')}),
         (r"/", MainHandler),
-        (r"/query", SearchEndpointHandler),
-        (r"/random-query", RandomEndpointHandler),
+        (r"/json/query", SearchEndpointHandler),
+        (r"/json/random-query", RandomEndpointHandler),
         (r"/search", SearchHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
-        (r"/article", ArticleEndpointHandler),
+        (r"/json/article", ArticleEndpointHandler),
         (r"/view-article", ArticleHandler),
-        (r"/add-article", AddArticleHandler),
+        (r"/json/add-article", AddArticleEndpointHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler)
     ], debug=True, **settings)

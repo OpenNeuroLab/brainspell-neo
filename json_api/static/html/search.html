@@ -134,7 +134,7 @@
         $(
             $.ajax({
                 type: "GET", 
-                url: "/query?q={{query}}&start={{start}}&req={{req}}"
+                url: "/json/query?q={{query}}&start={{start}}&req={{req}}"
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);

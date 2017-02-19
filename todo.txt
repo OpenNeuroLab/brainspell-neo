@@ -1,6 +1,7 @@
 To do:
 
 Main functionality:
+- Create the API endpoint for bulk-add to take a JSON POST request.
 - Give Roberto the Heroku public IP, so it can connect to the database. Move the Brainspell database to Pasteur.
 - Create an API endpoint to edit tags, coordinates, authors for an article.
 - In late February, send the API specification to Roberto and JB again, for them to submit some final changes.

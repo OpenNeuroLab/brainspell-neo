@@ -197,7 +197,7 @@
         $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $($.ajax({
             type: "GET",
-	        url: "/json/article?id={{id}}"
+	        url: "/json/article?pmid={{id}}"
         }).complete(function(o) {
             j = o.responseText;
             obj = JSON.parse(j);

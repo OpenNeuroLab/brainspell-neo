@@ -34,7 +34,7 @@ class LoginHandler(BaseHandler):
         password = self.get_argument("password").encode("utf-8")
         user = user_login(email,password)
         if user.count == 0:
-            self.render("static/html/login.html", message="Invalid")
+            self.render("static/html/login.html", message="Invalid", title="")
         else:
             self.set_secure_cookie("user", email)
             self.redirect("/")

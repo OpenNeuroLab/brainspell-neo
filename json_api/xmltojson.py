@@ -4,6 +4,10 @@ import xml.etree.ElementTree as ET
 tree = ET.parse('brainspell2.xml')
 root = tree.getroot()
 
+from models import * 
+
+
+
 def convertToJSON(xmlObj):
     p = {}
     for attr in xmlObj:
@@ -70,8 +74,12 @@ for p in dictionary["paper"]:
         pass
 
 def add_bulk(papers, limit=100): #Papers is the entire formatted data set
-    with db.atomic():
+    with conn.atomic():
         for article in range(0,len(papers), limit): #Inserts limit at a time
             Articles.insert_many(papers[article:article+limit]).execute()
 
 papers = dictionary["paper"]
+
+
+
+

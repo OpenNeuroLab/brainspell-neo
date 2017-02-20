@@ -2,7 +2,7 @@ To do:
 
 Main functionality:
 - Create the API endpoint for bulk-add to take a JSON POST request.
-- Give Roberto the Heroku public IP, so it can connect to the database. Move the Brainspell database to Pasteur.
+- Move the Brainspell Postgres database (whether to Pasteur or elsewhere).
 - Create an API endpoint to edit tags, coordinates, authors for an article.
 - In late February, send the API specification to Roberto and JB again, for them to submit some final changes.
 - Finalize API documentation (and put on GitHub)
@@ -13,7 +13,7 @@ Main functionality:
 Not urgent:
 - Add features for users to save articles, etc.
 - Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
-- Show a user’s own information (ratings, e.g.) if they’re logged in.
+- Show a user’s own information (ratings, e.g.) if they’re logged in. (Detect with API key.)
 - Make sure that input to the database is sanitized (should be handled by ORM).
 - Compute JSON diff and store with user metadata when a database operation is done.
 - add-article-manual endpoint, which allows users to add articles that aren’t on PubMed.

@@ -141,22 +141,23 @@
     }
 
     //This Function doesn't work yet.. TODO: FIX THIS TO ACCURATELY SEARCH
-    $(function(){
-    	$('#search').keyup(function(){
-    		var current_query = $('#search').val();
-    		if (current_query !== "") {
-    			$(".list-group li").hide();
-    			$(".list-group li").each(function(){
-    				var current_keyword = $(this).text();
-    				if (current_keyword.indexOf(current_query) >=0) {
-    					$(this).show();
-    				}
-    			});
-    		} else {
-    			$(".list-group li").show();
-    		}
-    	});
-    });
+    function searcher() {
+        $('#search').keyup(function () {
+            var current_query = $('#search').val();
+            if (current_query != "") {
+                $(".list-group li").hide();
+                $(".list-group li").each(function () {
+                    var current_keyword = $(this).text();
+                    if (current_keyword.indexOf(current_query) >= 0) {
+                        $(this).show();
+                    }
+                });
+            } else {
+                $(".list-group li").show();
+            }
+        });
+    }
+
 
     function meshAdder() {
         var items = $("<ul>", {"class":"list-group"});
@@ -192,8 +193,11 @@
         $('#descriptorModal').on('hidden.bs.modal', function(){
             $(this).remove();
         });
+        searcher();
 
     }
+
+
 
 
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
@@ -236,8 +240,8 @@
             $("#articleContents").append(linkParagraph);
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
 
-
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
+
 
             $("#articleContents").append(dropper);
 

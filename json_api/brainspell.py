@@ -232,7 +232,7 @@ def make_app():
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler),
-        (r"/contribute",ContributionHandler)
+        (r"/contribute", ContributionHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

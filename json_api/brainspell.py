@@ -182,6 +182,10 @@ class AccountHandler(BaseHandler):
             update = User.update(password = newPass).where(User.emailaddress == name)
             update.execute()
         self.redirect("/")
+class ContributionHandler(BaseHandler):
+    def get(self):
+        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        self.render('static/html/contribute.html',title=name)
 
 class ArticleEndpointHandler(BaseHandler):
     def get(self):
@@ -227,7 +231,8 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/logout", LogoutHandler),
-        (r"/account", AccountHandler)
+        (r"/account", AccountHandler),
+        (r"/contribute",ContributionHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

@@ -107,6 +107,9 @@ class ArticleHandler(BaseHandler):
             self.redirect("/") # id wasn't passed; redirect to home page
         self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
+    def post(self):
+        values = self.get_argument("dbChanges")
+        print(json.loads(values))
 
 
 class SearchEndpointHandler(BaseHandler):

@@ -239,20 +239,21 @@
 
             $("#articleContents").append(dropper);
 
-            $("#articleContents").append('<form action="/view-article" method="post"');
+
+            var form = $('<form>', {"action":"/view-article", "method":"post",'id':"locations"});
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
-                    $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], count));
+                    form.append(experimentsTable(experimentsObj[i]["locations"], count));
                     count++;
                 }
             }
 
-            $("#articleContents").append($("<div>").css("clear", "both"));
-            $("#articleContents").append($("<p><br></p>"));
-             $("#articleContents").append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default"}).text("Save Scores"));
-            $("#articleContents").append('</form>');
+            form.append($("<div>").css("clear", "both"));
+            form.append($("<p><br></p>"));
+            form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).text("Save Scores"));
+            $("#articleContents").append(form);
     	}));
 
         function experimentsTable(array, position) {
@@ -273,7 +274,7 @@
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + (position - 1) + i})));
                 contents.append(row);
             }
             table.append(contents);
@@ -387,20 +388,20 @@
 
     <script>
         //Add altered values to database
-        $("#scorer").click(function() {
+
+        function submitHandler() {
             var changes = {};
-            for (var i = 0; i < count - 1; i++) {
+            for (var i = 0; i < count; i++) {
                 for (var j = 0; j < experimentsObj[i]["locations"].length; j++) {
-                    if ($("#" + i + j).val()) {
-                    changes.push({
-                        key: "" + i + j,
-                        value: $("#" + i + j).val()
-                    })
-                    }
+                        changes["" + i + j] = $("#" + i + j).val()
                 }
             }
-            $("#scorer").submit();
-            });
+            changes = JSON.stringify(changes);
+            console.log(changes);
+            $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
+            return true;
+
+        }
     </script>
 </body>
 </html>

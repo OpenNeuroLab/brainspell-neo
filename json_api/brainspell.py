@@ -13,9 +13,9 @@ from models import *
 import subprocess
 import hashlib
 
-from get_article_data import *
+from helper_functions import *
 
-"""Handles User Login Requests"""
+# Handles User Login Requests
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
@@ -209,48 +209,6 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
-def clean_bulk_add(contents):
-    clean_articles = []
-    for article in contents:
-        try:
-            if "timestamp" not in article:
-                article["timestamp"] = None
-            article["authors"] = ",".join(article["authors"])
-            if "doi" not in article:
-                article["doi"] = None
-            if "experiments" in article:
-                article["experiments"] = str(article["experiments"])
-            else:
-                article["experiments"] = str([])
-            if "meshHeadings" in article:
-                article["metadata"] = str({"meshHeadings": article["meshHeadings"]})
-                del article["meshHeadings"]
-            else:
-                article["metadata"] = str({"meshHeadings": []})
-            if "journal" in article and "year" in article:
-                article["reference"] = article["authors"] + "(" + str(article["year"]) + ") " + article["journal"]
-                del article["journal"]
-                del article["year"]
-            else:
-                article["reference"] = None
-            # once the article data is clean, add it to a separate list that we'll pass to PeeWee
-            article = {
-                "timestamp": article["timestamp"],
-                "abstract": article["abstract"],
-                "authors": article["authors"],
-                "doi": article["doi"],
-                "experiments": article["experiments"],
-                "metadata": article["metadata"],
-                "neurosynth": None,
-                "pmid": article["pmid"],
-                "reference": article["reference"],
-                "title": article["title"]
-            }
-            clean_articles.append(article)
-        except:
-            pass
-    return clean_articles
-
 class BulkAddHandler(tornado.web.RequestHandler):
     def post(self):
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
@@ -296,17 +254,17 @@ def make_app():
         (r"/", MainHandler),
         (r"/json/query", SearchEndpointHandler),
         (r"/json/random-query", RandomEndpointHandler),
-        (r"/search", SearchHandler),
+        (r"/json/add-article", AddArticleEndpointHandler),
+        (r"/json/article", ArticleEndpointHandler),
+        (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
-        (r"/json/article", ArticleEndpointHandler),
-        (r"/view-article", ArticleHandler),
-        (r"/json/add-article", AddArticleEndpointHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler),
+        (r"/search", SearchHandler),
+        (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
-        (r"/bulk-add", BulkAddHandler),
-        (r"/json/bulk-add", BulkAddEndpointHandler)
+        (r"/bulk-add", BulkAddHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

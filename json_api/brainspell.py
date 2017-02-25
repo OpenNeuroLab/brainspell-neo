@@ -23,7 +23,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
-        try:
+        try: # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
             submitted = 0
@@ -77,17 +77,6 @@ class SearchHandler(BaseHandler):
             title=name, req=req)
 
 class AddArticleEndpointHandler(BaseHandler):
-    """def post(self):
-        pmid = self.get_query_argument("pmid", "")
-        if pmid == "":
-            pmid = self.get_body_argument("pmid")
-        x = getArticleData(pmid)
-        request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
-                                  experiments=x["coordinates"],title=x["title"])
-        request.execute()
-        response = {"success": 1}
-        self.write(json.dumps(response))
-    get = post"""
     def get(self):
         pmid = self.get_query_argument("pmid", "")
         x = getArticleData(pmid)
@@ -196,6 +185,7 @@ class AccountHandler(BaseHandler):
             update = User.update(password = newPass).where(User.emailaddress == name)
             update.execute()
         self.redirect("/")
+
 class ContributionHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
@@ -219,40 +209,73 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+def clean_bulk_add(contents):
+    clean_articles = []
+    for article in contents:
+        try:
+            if "timestamp" not in article:
+                article["timestamp"] = None
+            article["authors"] = ",".join(article["authors"])
+            if "doi" not in article:
+                article["doi"] = None
+            if "experiments" in article:
+                article["experiments"] = str(article["experiments"])
+            else:
+                article["experiments"] = str([])
+            if "meshHeadings" in article:
+                article["metadata"] = str({"meshHeadings": article["meshHeadings"]})
+                del article["meshHeadings"]
+            else:
+                article["metadata"] = str({"meshHeadings": []})
+            if "journal" in article and "year" in article:
+                article["reference"] = article["authors"] + "(" + str(article["year"]) + ") " + article["journal"]
+                del article["journal"]
+                del article["year"]
+            else:
+                article["reference"] = None
+            # once the article data is clean, add it to a separate list that we'll pass to PeeWee
+            article = {
+                "timestamp": article["timestamp"],
+                "abstract": article["abstract"],
+                "authors": article["authors"],
+                "doi": article["doi"],
+                "experiments": article["experiments"],
+                "metadata": article["metadata"],
+                "neurosynth": None,
+                "pmid": article["pmid"],
+                "reference": article["reference"],
+                "title": article["title"]
+            }
+            clean_articles.append(article)
+        except:
+            pass
+    return clean_articles
+
 class BulkAddHandler(tornado.web.RequestHandler):
     def post(self):
-        # get post data
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
         contents = json.loads(file_body)
         if type(contents) == list:
-            for article in contents:
-                try:
-                    if "timestamp" not in article:
-                        article["timestamp"] = None
-                    article["authors"] = ",".join(article["authors"])
-                    if "doi" not in article:
-                        article["doi"] = None
-                    if "experiments" in article:
-                        article["experiments"] = str(article["experiments"])
-                    else:
-                        article["experiments"] = str([])
-                    if "meshHeadings" in article:
-                        article["metadata"] = str({"meshHeadings": article["metadata"]})
-                        del article["meshHeadings"]
-                    else:
-                        article["metadata"] = str({"meshHeadings": []})
-                    if "journal" in article and "year" in article:
-                        article["reference"] = article["authors"] + "(" + article["year"] + ") " + article["journal"]
-                        del article["journal"]
-                        del article["year"]
-                    else:
-                        article["reference"] = None
-                except:
-                    pass
-            add_bulk(contents)
+            clean_articles = clean_bulk_add(contents)
+            add_bulk(clean_articles)
             self.redirect("/?success=1")
         else:
-            self.redirect("/?success=0")
+            # data is malformed
+            self.redirect("/?failure=1")
+
+class BulkAddEndpointHandler(tornado.web.RequestHandler):
+    def post(self):
+        response = {}
+        file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
+        contents = json.loads(file_body)
+        if type(contents) == list:
+            clean_articles = clean_bulk_add(contents)
+            add_bulk(clean_articles)
+            response["success"] = 1
+        else:
+            # data is malformed
+            response["success"] = 0
+        self.write(json.dumps(response))
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
@@ -282,14 +305,15 @@ def make_app():
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler),
         (r"/contribute", ContributionHandler),
-        (r"/bulk-add", BulkAddHandler)
+        (r"/bulk-add", BulkAddHandler),
+        (r"/json/bulk-add", BulkAddEndpointHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))
-    http_server.listen(port) # hosts on localhost:5000
+    http_server.listen(port) # runs at localhost:5000
     print("Running Brainspell at http://localhost:5000...")
     tornado.ioloop.IOLoop.current().start()
 

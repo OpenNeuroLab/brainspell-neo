@@ -1,7 +1,7 @@
 from peewee import * 
 
 import xml.etree.ElementTree as ET
-tree = ET.parse('brainspell2.xml')
+tree = ET.parse('database.xml')
 root = tree.getroot()
 
 from models import * 

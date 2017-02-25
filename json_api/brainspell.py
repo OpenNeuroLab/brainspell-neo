@@ -226,7 +226,7 @@ class BulkAddHandler(tornado.web.RequestHandler):
                 try:
                     if "timestamp" not in article:
                         article["timestamp"] = None
-                    articles["authors"] = ",".join(articles["authors"])
+                    article["authors"] = ",".join(article["authors"])
                     if "doi" not in article:
                         article["doi"] = None
                     if "experiments" in article:

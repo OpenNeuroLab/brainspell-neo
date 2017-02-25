@@ -240,23 +240,22 @@
 
         dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
 
-            $("#articleContents").append(dropper);
+        $("#articleContents").append(dropper);
 
-
-            var form = $('<form>', {"action":"/view-article", "method":"post",'id':"locations"});
-            // generate experiment tables
-            experimentsObj = jQuery.parseJSON(obj["experiments"]);
-            for (var i = 0; i < experimentsObj.length; i++) {
-                if (experimentsObj[i]["locations"].length > 0) {
-                    form.append(experimentsTable(experimentsObj[i]["locations"], count));
-                    count++;
-                }
+        var form = $('<form>', {"action":"/view-article", "method":"post",'id':"locations"});
+        // generate experiment tables
+        experimentsObj = jQuery.parseJSON(obj["experiments"]);
+        for (var i = 0; i < experimentsObj.length; i++) {
+            if (experimentsObj[i]["locations"].length > 0) {
+                form.append(experimentsTable(experimentsObj[i]["locations"], count));
+                count++;
             }
+        }
 
-            form.append($("<div>").css("clear", "both"));
-            form.append($("<p><br></p>"));
-            form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).text("Save Scores"));
-            $("#articleContents").append(form);
+        form.append($("<div>").css("clear", "both"));
+        form.append($("<p><br></p>"));
+        form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).text("Save Scores"));
+        $("#articleContents").append(form);
     	}));
 
         function experimentsTable(array, position) {
@@ -284,8 +283,6 @@
             return table;
         }
 
-
-        $("#articleContents").append(dropper);
         // generate experiment tables
         experimentsObj = jQuery.parseJSON(obj["experiments"]);
         for (var i = 0; i < experimentsObj.length; i++) {
@@ -298,7 +295,6 @@
         if (experimentsObj.length > 0) {
             $("#articleContents").append($("<button>").attr("type", "submit").attr("id", "scorer").attr("class", "btn btn-default").css("margin-top", "30px").text("Save scores"));
         }
-    }));
 
     function experimentsTable(array, position) {
         var table = $("<table>", {"class": "gradient-style"});

@@ -237,9 +237,9 @@
 
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
 
-
             $("#articleContents").append(dropper);
 
+            $("#articleContents").append('<form action="/view-article" method="post"');
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
@@ -248,7 +248,11 @@
                     count++;
                 }
             }
+
             $("#articleContents").append($("<div>").css("clear", "both"));
+            $("#articleContents").append($("<p><br></p>"));
+             $("#articleContents").append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default"}).text("Save Scores"));
+            $("#articleContents").append('</form>');
     	}));
 
         function experimentsTable(array, position) {
@@ -278,11 +282,6 @@
 
 
     </script>
-    <div class="container">
-        <div class="row">
-            <button type="submit" id="scorer" class='btn btn-default' style="margin-left:1%;margin-bottom: 20px;">Save Scores</button>
-        </div>
-    </div>
     <style>
         .dropbtn {
             background-color: white;
@@ -400,6 +399,7 @@
                     }
                 }
             }
+            $("#scorer").submit();
             });
     </script>
 </body>

@@ -139,8 +139,6 @@
             $(this).remove();
         });
     }
-
-    //This Function doesn't work yet.. TODO: FIX THIS TO ACCURATELY SEARCH
     function searcher() {
         $('#search').keyup(function () {
             var current_query = $('#search').val();
@@ -194,12 +192,9 @@
             $(this).remove();
         });
         searcher();
-
     }
-
-
-
-
+        var count = 1;
+        var experimentsObj;
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
         $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $($.ajax({
@@ -246,8 +241,7 @@
             $("#articleContents").append(dropper);
 
             // generate experiment tables
-            var experimentsObj = jQuery.parseJSON(obj["experiments"]);
-            var count = 1;
+            experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
                     $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], count));
@@ -275,17 +269,20 @@
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01"})));
+                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
                 contents.append(row);
             }
-
             table.append(contents);
             return table;
         }
 
 
     </script>
-
+    <div class="container">
+        <div class="row">
+            <button type="submit" id="scorer" class='btn btn-default' style="margin-left:1%;margin-bottom: 20px;">Save Scores</button>
+        </div>
+    </div>
     <style>
         .dropbtn {
             background-color: white;
@@ -349,7 +346,7 @@
             border-left: solid 1px #ccc;
         }
 
-        #custom-search-input .glyphicon-search{
+        #custom-search-input .glyphicon-search {
             font-size: 23px;
         }
     </style>
@@ -388,5 +385,22 @@
         margin: 0;
     }
     </style>
+
+    <script>
+        //Add altered values to database
+        $("#scorer").click(function() {
+            var changes = {};
+            for (var i = 0; i < count - 1; i++) {
+                for (var j = 0; j < experimentsObj[i]["locations"].length; j++) {
+                    if ($("#" + i + j).val()) {
+                    changes.push({
+                        key: "" + i + j,
+                        value: $("#" + i + j).val()
+                    })
+                    }
+                }
+            }
+            });
+    </script>
 </body>
 </html>

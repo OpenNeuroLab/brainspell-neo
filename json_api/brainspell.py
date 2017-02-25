@@ -98,6 +98,7 @@ class ArticleHandler(BaseHandler):
         self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
 
+
 class SearchEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")

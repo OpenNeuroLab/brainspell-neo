@@ -23,7 +23,17 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
-        self.render("static/html/index.html", title=name, queries=Articles.select().wrapped_count())
+        try:
+            submitted = int(self.get_argument("success", 0))
+        except:
+            submitted = 0
+        try:
+            failure = int(self.get_argument("failure", 0))
+        except:
+            failure = 0
+        self.render("static/html/index.html", title=name, 
+            queries=Articles.select().wrapped_count(), success=submitted,
+            failure=failure)
 
 class LoginHandler(BaseHandler):
     def get(self):
@@ -205,6 +215,41 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+class BulkAddHandler(tornado.web.RequestHandler):
+    def post(self):
+        # get post data
+        file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
+        contents = json.loads(file_body)
+        if type(contents) == list:
+            for article in contents:
+                try:
+                    if "timestamp" not in article:
+                        article["timestamp"] = None
+                    articles["authors"] = ",".join(articles["authors"])
+                    if "doi" not in article:
+                        article["doi"] = None
+                    if "experiments" in article:
+                        article["experiments"] = str(article["experiments"])
+                    else:
+                        article["experiments"] = str([])
+                    if "meshHeadings" in article:
+                        article["metadata"] = str({"meshHeadings": article["metadata"]})
+                        del article["meshHeadings"]
+                    else:
+                        article["metadata"] = str({"meshHeadings": []})
+                    if "journal" in article and "year" in article:
+                        article["reference"] = article["authors"] + "(" + article["year"] + ") " + article["journal"]
+                        del article["journal"]
+                        del article["year"]
+                    else:
+                        article["reference"] = None
+                except:
+                    pass
+            add_bulk(contents)
+            self.redirect("/?success=1")
+        else:
+            self.redirect("/?success=0")
+
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
@@ -232,7 +277,8 @@ def make_app():
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler),
-        (r"/contribute", ContributionHandler)
+        (r"/contribute", ContributionHandler),
+        (r"/bulk-add", BulkAddHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

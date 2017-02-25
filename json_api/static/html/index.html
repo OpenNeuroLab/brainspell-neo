@@ -116,7 +116,21 @@
     </div>
     <!-- /.container -->
 
-    <div class="container" id="randomResults" style="padding-top:30px;padding-bottom:30px">
+    <div class="container" style="padding-top:30px;padding-bottom:30px">
+        <div class="alert alert-success"
+                {% if success!=1 %}
+                style="display: none;"
+                {% end %}>
+            <strong>Well done!</strong> You've successfully added your articles to our database. They might take a while to fully process.
+        </div>
+        <div class="alert alert-danger"
+                {% if failure!=1 %}
+                style="display: none;"
+                {% end %}>
+            <strong>Oh snap!</strong> It looks like your JSON file was malformatted. Are you sure that each article dictionary was contained in a list?
+        </div>
+        <div id="randomResults">
+        </div>
     </div>
 
     <!-- jQuery Version 1.11.1 -->

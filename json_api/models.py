@@ -178,6 +178,11 @@ def get_user(user):
     q = User.select().where(User.emailaddress==user)
     return q.execute()
 
+def add_bulk(papers, limit=100): # Papers is the entire formatted data set
+    with conn.atomic():
+        for article in range(0,len(papers), limit): # Inserts limit at a time
+            Articles.insert_many(papers[article:article+limit]).execute()
+
 
 def user_login(email,password):
         hasher=hashlib.md5()

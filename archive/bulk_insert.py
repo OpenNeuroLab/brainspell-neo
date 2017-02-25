@@ -21,7 +21,7 @@ Assumes the data is of the following form:
 """
 from peewee import * 
 
-#Checks for existing PMID--> Very slow 
+# Checks for existing PMID--> Very slow 
 def check(pmid):
 	existing = Articles.select().where(Article.pmid == pmid)
 	if existing.execute().count == 0:
@@ -31,9 +31,9 @@ def check(pmid):
 
 
 
-def addall(papers, limit=100): #Papers is the entire formatted data set
+def addall(papers, limit=100): # Papers is the entire formatted data set
 	with db.atomic():
-		for article in range(0,len(papers), limit): #Inserts limit at a time
+		for article in range(0,len(papers), limit): # Inserts limit at a time
 			Articles.insert_many(papers[article:article+limit]).execute()
 
 

@@ -89,11 +89,7 @@
         </div>
         <!-- /.container -->
     </nav>
-    <!-- jQuery Version 1.11.1 -->
-    <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
 
-    <!-- Bootstrap Core JavaScript -->
-    <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
     <!-- Page Content -->
     <div class="container">
 
@@ -105,38 +101,70 @@
         </div>
         <!-- /.row -->
     </div>
-    <div class="container" style="padding-bottom:20px;">
-        <div class="row">
-            <h3 style="padding-left:10%">Add a set of articles</h3>
-            <p style="padding-left:12%;padding-right:10%">Have a list of Articles to insert?
-                Provide us with an input form in the
-                following format and we'll add it to our database.
-                Note file sizes are capped at 2 MB.
-            </p>
-            <pre>
+    <!-- /.container -->
+
+    <div class="container" style="padding-top:30px;padding-bottom:30px;">
+        <h3>Add a set of articles</h3>
+        <p>Have a list of articles to insert? Provide us with an input form in the following format and we'll add it to our database. Note file sizes are capped at 2 MB. The <code>year</code>, <code>journal</code>, <code>experiments</code>, <code>doi</code>, and <code>meshHeadings</code> fields are all optional.</p>
+        <pre>
 [
     {
-       'reference':"Aguirre GK,D'Esposito M(1997) The Journal of neuroscience...",
-       'neurosynth':'9065511',
-       'timestamp':'',
-       'metadata':"{'meshHeadings': [{'code': 'M01.060.116', 'name': 'Adult', 'majortopic': 'N'}, ...}]}",
-       'experiments':"[{'location': ['38.0,-48.0,49.0', ...]}]"
-       'title':'Environmental knowledge is subserved ...'
-       'doi':'',
-       'pmid':'9065511',
-       'authors':"Aguirre GK,D'Esposito M",
-       'abstract':'Environmental psychology models propose ...'
+        "pmid": "22521477",
+        "title": "Hundreds of brain maps in one atlas...",
+        "authors": ["Bezgin G", "Vakorin VA", "van Opstal AJ"],
+        "abstract": "Non-invasive measuring methods such as EEG/MEG, fMRI and DTI are increasingly...",
+        "year": 1997,
+        "journal": "The Journal of neuroscience : the official journal of the Society for Neuroscience",
+        "experiments": [
+            {
+                "id": "11069",
+                "title": "Areas of brain activation during...",
+                "caption": "Notes on..",
+                "locations": ["-42.0,54.0,-4.0", "-62.0,-14.0,-24.0", "-42.0,-62.0,50.0"]
+            },
+            {
+                "id": "12000",
+                "title": "Areas of brain activation during...",
+                "caption": "Notes on..",
+                "locations": ["-42.0,54.0,-4.0", "-62.0,-14.0,-24.0", "-42.0,-62.0,50.0"]
+            }
+        ],
+        "doi": "10.1016/j.neuroimage.2012.04.013",
+        "meshHeadings": [
+            {
+                "name": "Animals",
+                "code": "B01.050",
+                "majorTopic": "N"
+            },
+            ... ,
+            {
+                "name": "Computer Simulation",
+                "code": "L01.224.160",
+                "majorTopic": "N"
+            }
+        ]
     },
     {
         ...
     }
 ]
-            </pre>
-        </div>
-        <label class="btn btn-default btn-file" style="margin-left:8%" id="uploader">
-            Browse <input type="file" hidden>
+        </pre>
+        <form action="/bulk-add" method="post" enctype="multipart/form-data">
+        <label class="btn btn-default btn-file" id="uploader">
+            Browse <input type="file" name="articlesFile">
         </label>
+        <label class="btn btn-default btn-file">
+            Submit <input type="submit" hidden>
+        </label>
+    </form>
     </div>
+
+    <!-- jQuery Version 1.11.1 -->
+    <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
+
     <script>
         $(document).on('change',':file',function(e) {
             var input = $(this),
@@ -157,7 +185,6 @@
 
 
     </script>
-
 
     <style>
     code, samp, kbd {

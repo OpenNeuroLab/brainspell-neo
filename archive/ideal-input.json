@@ -1,0 +1,36 @@
+{
+    "pmid": "22521477",
+    "title": "Hundreds of brain maps in one atlas...",
+    "authors": ["Bezgin G", "Vakorin VA", "van Opstal AJ"],
+    "abstract": "Non-invasive measuring methods such as EEG/MEG, fMRI and DTI are increasingly...",
+    "year": 1997,
+    "journal": "The Journal of neuroscience : the official journal of the Society for Neuroscience",
+    "experiments": [
+        {
+            "id": "11069",
+            "title": "Areas of brain activation during...",
+            "caption": "Notes on..",
+            "locations": ["-42.0,54.0,-4.0", "-62.0,-14.0,-24.0", "-42.0,-62.0,50.0"]
+        },
+        {
+            "id": "12000",
+            "title": "Areas of brain activation during...",
+            "caption": "Notes on..",
+            "locations": ["-42.0,54.0,-4.0", "-62.0,-14.0,-24.0", "-42.0,-62.0,50.0"]
+        }
+    ],
+    "doi": "10.1016/j.neuroimage.2012.04.013",
+    "meshHeadings": [
+        {
+            "name": "Animals",
+            "code": "B01.050",
+            "majorTopic": "N"
+        },
+        ... ,
+        {
+            "name": "Computer Simulation",
+            "code": "L01.224.160",
+            "majorTopic": "N"
+        }
+    ]
+}

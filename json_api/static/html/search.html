@@ -118,6 +118,18 @@
 
     <div class="container" id="searchResults" style="padding-top:30px;">
     </div>
+    <div class="container" id="add-article-form" style="display: none;">
+        <p id="pmid-warning" style="display: none;">PMID codes are 8 characters.</p>
+        <p style="color: #c0c0c0;">No results. Add an article?</p>
+            <div class="form-row">
+                <input id="newPMID" name="pmid" placeholder="Enter article PMID">
+                <button onclick="validatePMID()">Submit</button>
+            </div>
+        <!--
+        <form method="post" action="/add-article">
+        </form>
+        -->
+    </div>
     <div class="container" style="padding-bottom:30px;" id="navButtons">
         <div class="btn-group" role="group">
           <a id="backBtn" style="display:none;" href="?q={{query}}&start={{int(start)-10}}"><button type="button" class="btn btn-default">Back</button></a>
@@ -155,31 +167,7 @@
                             + obj["articles"].length) + "."));
 
                 } else {
-                    $("#searchResults").append($("<a>").css("color", "#c0c0c0").text("No results. Add an article?"));
-                    $("#searchResults").append($("<br>"));
-                    $("#searchResults").append($("<br>"));
-                    $("#searchResults").append(
-                            '<form class="form-login" method="post" action="/add-article">' +
-                                '<input ' +
-                                    'id="newPMID" ' +
-                                    'name="pmid" ' +
-                                    'placeholder="Enter article PMID"' +
-                                '<div class="form-row">' +
-                                    '<button type="submit" id="submitter">Submit</button> ' +
-                                '</div>' +
-                            '</form>');
-                    $('#submitter').click(function() {
-                        var name = $.trim($('#newPMID').val());
-                        var pattern = new RegExp("[0-9]{8}");
-                        if (pattern.test(name)) {
-                            alert("Thank you, this information will be added");
-                            $("#newPMID").submit();
-                        } else {
-                            $(".form-login").before($("<p>PMID Codes are 8 characters</p>"));
-                            return false;
-                        }
-                    })
-
+                    document.getElementById("add-article-form").style.display = "block";
                 }
                 obj = obj["articles"];
                 for (var i = 0; i < obj.length; i++) {
@@ -191,6 +179,18 @@
                 }
             })
         );
+
+        function validatePMID() {
+            var name = $.trim($('#newPMID').val());
+            var pattern = new RegExp("[0-9]{8}");
+            if (pattern.test(name)) {
+                alert("This feature hasn't been implemented yet.");
+                // TODO: make an add-article UI
+                // $("#newPMID").submit();
+            } else {
+                document.getElementById("pmid-warning").style.display = "block";
+            }
+        }
     </script>
 
 </body>

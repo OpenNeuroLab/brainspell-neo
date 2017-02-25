@@ -15,6 +15,7 @@
     <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://brainspell.herokuapp.com/static/css/location-table.css" rel="stylesheet">
     <link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">
+    <link href="/static/css/view-article.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/definitions.js"></script>
 
     <!-- Custom CSS -->
@@ -135,10 +136,12 @@
                             $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
                     )).css("z-index","2000"));
         $("#articleContents").append(first);
+        // remove the modal from the DOM on hide
         $('#myModal').on('hidden.bs.modal', function(){
             $(this).remove();
         });
     }
+
     function searcher() {
         $('#search').keyup(function () {
             var current_query = $('#search').val();
@@ -146,7 +149,8 @@
                 $(".list-group li").hide();
                 $(".list-group li").each(function () {
                     var current_keyword = $(this).text();
-                    if (current_keyword.indexOf(current_query) >= 0) {
+                    // case insensitive search
+                    if (current_keyword.toLowerCase().indexOf(current_query.toLowerCase()) >= 0) {
                         $(this).show();
                     }
                 });
@@ -165,7 +169,7 @@
             items.append(single);
         }
         var descriptor = $("<div>", {"class": "container"}).append(
-                $("<div>", {"class":"row"}).append(
+            $("<div>", {"class":"row"}).append(
                 $("<div>",{"id":"descriptorModal", "class":"modal fade bs-example-modal-lg","tabindex":-1,"role":"dialog","aria-labelledby":"myLargeModalLabel"}).append(
                     $("<div>",{"class":"modal-dialog modal-lg"}).append(
                         $("<div>",{"class":"modal-content"}).append(
@@ -183,177 +187,101 @@
                         )
                     )
                 )
-
-        )
+            )
         ).css("z-index","1999");
         $("#articleContents").append(descriptor);
-
         $('#descriptorModal').on('hidden.bs.modal', function(){
             $(this).remove();
         });
         searcher();
     }
-        var count = 1;
-        var experimentsObj;
-        var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
-        $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
-        $($.ajax({
-            type: "GET",
-	        url: "/json/article?pmid={{id}}"
-        }).complete(function(o) {
-            j = o.responseText;
-            obj = JSON.parse(j);
-            metadata = JSON.parse(obj["metadata"])["meshHeadings"];
-            $("#articleContents").html("");
-    		$("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
-    		$("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
 
-            var metadataStr = "";
-            for (var i = 0; i < metadata.length; i++) {
-                if (metadataStr != "") {
-                    metadataStr = metadataStr + ", " + metadata[i]["name"];
-                }
-                else {
-                    metadataStr = metadata[i]["name"];
-                }
+    var count = 1;
+    var experimentsObj;
+    var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
+    $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
+    $($.ajax({
+        type: "GET",
+        url: "/json/article?pmid={{id}}"
+    }).complete(function(o) {
+        j = o.responseText;
+        obj = JSON.parse(j);
+        metadata = JSON.parse(obj["metadata"])["meshHeadings"];
+        $("#articleContents").html("");
+        $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
+        $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
+
+        var metadataStr = "";
+        for (var i = 0; i < metadata.length; i++) {
+            if (metadataStr != "") {
+                metadataStr = metadataStr + ", " + metadata[i]["name"];
             }
-            var metadatalst = [];
-            for (var j = 0; j < metadata.length; j++) {
-                metadatalst.push(metadata[j]["name"]);
+            else {
+                metadataStr = metadata[i]["name"];
             }
-            //Create a modal for each term (approve or reject)
-            var dropper = $("<div/>");
-            dropper.addClass("dropdown");
-            for (var i = 0; i < metadatalst.length; i++) {
-                var temp = metadatalst[i];
-                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+        }
+        var metadatalst = [];
+        for (var j = 0; j < metadata.length; j++) {
+            metadatalst.push(metadata[j]["name"]);
+        }
+        // Create a modal for each term (approve or reject)
+        var dropper = $("<div/>");
+        dropper.addClass("dropdown");
+        for (var i = 0; i < metadatalst.length; i++) {
+            var temp = metadatalst[i];
+            dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+        }
+
+        $("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
+        var linkParagraph = $("<p>");
+        linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
+        $("#articleContents").append(linkParagraph);
+        $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
+
+        dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
+
+
+        $("#articleContents").append(dropper);
+
+        // generate experiment tables
+        experimentsObj = jQuery.parseJSON(obj["experiments"]);
+        for (var i = 0; i < experimentsObj.length; i++) {
+            if (experimentsObj[i]["locations"].length > 0) {
+                $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], count));
+                count++;
             }
+        }
+        $("#articleContents").append($("<div>").css("clear", "both"));
+        if (experimentsObj.length > 0) {
+            $("#articleContents").append($("<button>").attr("type", "submit").attr("id", "scorer").attr("class", "btn btn-default").css("margin-top", "30px").text("Save scores"));
+        }
+    }));
 
-    		$("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
-            var linkParagraph = $("<p>");
-            linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
-            $("#articleContents").append(linkParagraph);
-            $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
-
-            dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
-
-
-            $("#articleContents").append(dropper);
-
-            // generate experiment tables
-            experimentsObj = jQuery.parseJSON(obj["experiments"]);
-            for (var i = 0; i < experimentsObj.length; i++) {
-                if (experimentsObj[i]["locations"].length > 0) {
-                    $("#articleContents").append(experimentsTable(experimentsObj[i]["locations"], count));
-                    count++;
-                }
+    function experimentsTable(array, position) {
+        var table = $("<table>", {"class": "gradient-style"});
+        table.addClass("scroller");
+        table.addClass("gradient-style");
+        table.append($("<caption>").text("Experiment " + position));
+        var contents = $('<tbody>');
+        var header = $('<tr>');
+        header.append($("<td>", {"class": "experiment-header"}).text("X"));
+        header.append($("<td>", {"class": "experiment-header"}).text("Y"));
+        header.append($("<td>", {"class": "experiment-header"}).text("Z"));
+        header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
+        contents.append(header);
+        for (var i = 0; i < array.length; i++) {
+            var row = $("<tr>");
+            array[i] = array[i].split(",");
+            for (var j in array[i]) {
+                row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
             }
-            $("#articleContents").append($("<div>").css("clear", "both"));
-    	}));
+            row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
+            contents.append(row);
+        }
+        table.append(contents);
+        return table;
+    }
 
-        function experimentsTable(array, position) {
-            var table = $("<table>", {"class": "gradient-style"});
-            table.addClass("scroller");
-            table.addClass("gradient-style");
-            table.append($("<caption>").text("Experiment " + position));
-            var contents = $('<tbody>');
-            var header = $('<tr>');
-            header.append($("<td>", {"class": "experiment-header"}).text("X"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Y"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
-            contents.append(header);
-            for (var i = 0; i < array.length; i++) {
-                var row = $("<tr>");
-                array[i] = array[i].split(",");
-                for (var j in array[i]) {
-                    row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
-                }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
-                contents.append(row);
-            }
-            table.append(contents);
-            return table;
-        }
-
-
-    </script>
-    <div class="container">
-        <div class="row">
-            <button type="submit" id="scorer" class='btn btn-default' style="margin-left:1%;margin-bottom: 20px;">Save Scores</button>
-        </div>
-    </div>
-    <style>
-        .dropbtn {
-            background-color: white;
-            color: grey;
-            font-size: 1em;
-            border: 1px;
-            cursor: pointer;
-            position: relative;
-        }
-        .dropbtn:hover .dropbtn:focus {
-            background-color: #3e8e41;
-        }
-        .dropdown {
-            position: relative;
-            display: inline-block;
-            float: right;
-        }
-        .dropdown-content {
-            display: none;
-            position: relative;
-            background-color: #f9f9f9;
-            min-width: 30px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            right: 0;
-        }
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            position: relative;
-        }
-        .dropdown-content a:hover {background-color: #f1f1f1}
-        .show {display:block;}
-        #custom-search-input{
-            padding: 3px;
-            border: solid 1px #E4E4E4;
-            border-radius: 6px;
-            background-color: #fff;
-        }
-
-        #custom-search-input input{
-            border: 0;
-            box-shadow: none;
-        }
-
-        #custom-search-input button{
-            margin: 2px 0 0 0;
-            background: none;
-            box-shadow: none;
-            border: 0;
-            color: #666666;
-            padding: 0 8px 0 10px;
-            border-left: solid 1px #ccc;
-        }
-
-        #custom-search-input button:hover{
-            border: 0;
-            box-shadow: none;
-            border-left: solid 1px #ccc;
-        }
-
-        #custom-search-input .glyphicon-search {
-            font-size: 23px;
-        }
-    </style>
-
-
-
-    <script>
     function drop(element) {
         if (element.lastChild.style.display == "block") {
             element.lastChild.style.display = "none";
@@ -376,31 +304,21 @@
         }
       }
     }
-    </script>
-    <!--Hides the Buttons on the Numerical Input Fields-->
-    <style>
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-        /* display: none; <- Crashes Chrome on hover */
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    </style>
 
-    <script>
-        //Add altered values to database
-        $("#scorer").click(function() {
-            var changes = {};
-            for (var i = 0; i < count - 1; i++) {
-                for (var j = 0; j < experimentsObj[i]["locations"].length; j++) {
-                    if ($("#" + i + j).val()) {
-                    changes.push({
-                        key: "" + i + j,
-                        value: $("#" + i + j).val()
-                    })
-                    }
+    // Add altered values to database
+    $("#scorer").click(function() {
+        var changes = {};
+        for (var i = 0; i < count - 1; i++) {
+            for (var j = 0; j < experimentsObj[i]["locations"].length; j++) {
+                if ($("#" + i + j).val()) {
+                changes.push({
+                    key: "" + i + j,
+                    value: $("#" + i + j).val()
+                })
                 }
             }
-            });
+        }
+    });
     </script>
 </body>
 </html>

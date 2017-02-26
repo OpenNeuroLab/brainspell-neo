@@ -278,31 +278,6 @@
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + (position - 1) + i})));
-                contents.append(row);
-            }
-            table.append(contents);
-            return table;
-        }
-
-        function experimentsTable(array, position) {
-            var table = $("<table>", {"class": "gradient-style"});
-            table.addClass("scroller");
-            table.addClass("gradient-style");
-            table.append($("<caption>").text("Experiment " + position));
-            var contents = $('<tbody>');
-            var header = $('<tr>');
-            header.append($("<td>", {"class": "experiment-header"}).text("X"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Y"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
-            contents.append(header);
-            for (var i = 0; i < array.length; i++) {
-                var row = $("<tr>");
-                array[i] = array[i].split(",");
-                for (var j in array[i]) {
-                    row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));
-                }
                 row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
                 contents.append(row);
             }
@@ -332,7 +307,7 @@
             }
           }
         }
-            //Add altered values to database
+        // Add altered values to database
         function submitHandler() {
             var changes = {};
             for (var i = 0; i < count; i++) {

@@ -97,8 +97,9 @@ class ArticleHandler(BaseHandler):
         self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
     def post(self):
-        values = self.get_argument("dbChanges")
-        print(json.loads(values))
+        values = self.get_body_argument("dbChanges")
+        values = json.loads(values)
+
 
 
 class SearchEndpointHandler(BaseHandler):

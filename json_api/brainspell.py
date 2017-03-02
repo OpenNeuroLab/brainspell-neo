@@ -109,7 +109,7 @@ class SearchEndpointHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
-        results = article_search(q, start)
+        results = formatted_search(q, start,option)
         response = {}
         output_list = []
         for article in results:

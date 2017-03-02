@@ -9,6 +9,7 @@ import playhouse
 import hashlib
 from playhouse.postgres_ext import *
 import re
+from functools import reduce
 
 from peewee import DateTimeField, CharField, IntegerField
 # urlparse.uses_netloc.append("postgres")
@@ -96,6 +97,8 @@ class User(BaseModel):
     emailaddress = CharField(null=True)
     userid = peewee.PrimaryKeyField()
     username = CharField(null=True)
+    # saved_articles= TextField(null=True) #TODO ADD THIS
+
 
     class Meta:
         db_table = 'users'
@@ -130,29 +133,37 @@ def parse(query):
         columns.append(Articles.pmid)
     if tiab.search(query):
         columns.extend([Articles.title, Articles.abstract])
-    return columns
+    formatted_query = re.sub('\[.*\]','',query)
+    matches = [Match(col,formatted_query) for col in columns]
+    term = reduce(lambda x,y:x|y, matches)
+    return (columns,term)
 
-def formatted_search(query,start,param=None):
-    if not param:
-        query = query.replace(" ", "%")
-        columns = parse(query)
+
+def formatted_search(query,start,param=None): #Param specifies drop downs
+    (columns,term) = parse(query)
+    query = query.replace(" ", "%")
+    if columns:
+        query = re.sub('\[.*\]','',query)
         if not columns: #Implement default parameters
             columns.extend([Articles.title, Articles.abstract, Articles.authors])
-        formatted = [(x, query) for x in columns]
-        formatted = ["Match" + str(x) for x in formatted]
-        formatted = " | ".join(formatted)
-        search = Articles.select(*columns).where(
-            formatted).limit(10).offset(start)
+        search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
+            term).limit(10).offset(start)
         return search.execute()
     else:
         if param == "t":
-            pass
+            return article_search(query,start)
         if param == "x":
-            pass
+            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
+                Match(Articles.experiments,query)).limit(10).offset(start)
+            return search.execute()
         if param == "p":
-            pass
+            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
+                Match(Articles.pmid,query)).limit(10).offset(start)
+            return search.execute()
         if param == "r":
-            pass
+            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
+                Match(Articles.reference,query)).limit(10).offset(start)
+            return search.execute()
 
 def article_search(query, start):
     query = query.replace(" ", "%")

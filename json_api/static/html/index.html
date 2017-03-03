@@ -98,7 +98,7 @@
                 <p class="lead">The first open, human-curated classification of neuroimaging literature.</p>
                 <form method="get" action="search">
                     <div class="input-group">
-                       <input type="text" name="q" style="width:90%" placeholder="Search articles by title, author, keyword..." class="form-control">
+                       <input id='searcher' type="text" name="q" style="width:90%" placeholder="Search articles by title, author, keyword..." class="form-control">
                        <select name="req" id="req" class="selectpicker form-control" style="width: 10%;">
                             <option selected value="t" id="default">Title, author, abstract</option>
                             <option value="x" id="experiments">Experiments</option>
@@ -110,6 +110,14 @@
                        </span>
                     </div>
                </form>
+                <p id="description" style="display:none">
+                    We now support PubMed ID Queries.
+                    Use [au] for author,
+                    [ALL] for all fields
+                    [MH] for mesh descriptors,
+                    [PMID] for pubmed ID
+                    [TIAB] for title/abstract search
+                </p>
             </div>
         </div>
         <!-- /.row -->
@@ -164,7 +172,16 @@
                 }
             })
         );
+     $("#searcher").hover(
+             function(e) {
+                 $("#description").show();
+             },
+             function(e) {
+                 $("#description").hide()
+             }
+     );
     </script>
+
 
 </body>
 

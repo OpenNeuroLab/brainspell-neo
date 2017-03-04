@@ -83,11 +83,11 @@
                         <a href="https://github.com/neelsomani/brainspell-neo">Github</a>
                     </li>
                     <li>
-                        <a href="#">Add Article to Docket</a>
+                        <a href=" javascript:document.location.href=getaURL('id')"> Add Article to Docket </a>
                     </li>
                 </ul>
                 {% if title!="" %}
-                   <a href="/account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
+                   <a href="/account" class="navbar-brand navbar-right" style="font-size:1em;"> Welcome {{ title }}</a>
                 {% end %}
             </div>
             <!-- /.navbar-collapse -->
@@ -323,6 +323,17 @@
             $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
             location.reload();
             return true;
+        }
+        function getaURL(name, url) {
+            if (!url) {
+              url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
     </script>
 </body>

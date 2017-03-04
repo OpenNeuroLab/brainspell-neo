@@ -210,7 +210,7 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
-class BulkAddHandler(tornado.web.RequestHandler):
+class BulkAddHandler(BaseHandler):
     def post(self):
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
         contents = json.loads(file_body)
@@ -222,7 +222,7 @@ class BulkAddHandler(tornado.web.RequestHandler):
             # data is malformed
             self.redirect("/?failure=1")
 
-class BulkAddEndpointHandler(tornado.web.RequestHandler):
+class BulkAddEndpointHandler(BaseHandler):
     def post(self):
         response = {}
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
@@ -235,6 +235,13 @@ class BulkAddEndpointHandler(tornado.web.RequestHandler):
             # data is malformed
             response["success"] = 0
         self.write(json.dumps(response))
+
+class SaveArticleHandler(BaseHandler):
+    def get(self,id):
+        value = self.get_query_argument("id")
+        print(value) #THE PMID OF THE ARTICLE THEY WISH TO ADD
+        #TODO Update the database to reflect the added value
+        self.redirect("/account")
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
@@ -265,7 +272,8 @@ def make_app():
         (r"/search", SearchHandler),
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
-        (r"/bulk-add", BulkAddHandler)
+        (r"/bulk-add", BulkAddHandler),
+        (r"/saveArticle(.*)", SaveArticleHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

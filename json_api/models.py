@@ -182,7 +182,6 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
         for article in range(0,len(papers), limit): # Inserts limit at a time
             Articles.insert_many(papers[article:article+limit]).execute()
 
-
 def user_login(email,password):
         hasher=hashlib.md5()
         hasher.update(password)

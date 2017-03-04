@@ -65,15 +65,15 @@
                 <ul class="nav navbar-nav">
                 {% if title=="" %}
                     <li>
-                        <a href="https://brainspell.herokuapp.com/login">Login</a>
+                        <a href="/login">Login</a>
                     </li>
                     <li>
-                        <a href="https://brainspell.herokuapp.com/register">Register</a>
+                        <a href="/register">Register</a>
                     </li>
                 {% end %}
                 {% if title!="" %}
                     <li>
-                        <a href="https://brainspell.herokuapp.com/logout">Logout</a>
+                        <a href="/logout">Logout</a>
                     </li>
                 {% end %}
                     <li>
@@ -128,9 +128,9 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(definitions[element])
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default"}).text("Agree")
+                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree")
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default"}).text("Disagree"))
+                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree"))
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
                                 $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
@@ -141,7 +141,6 @@
                 $(this).remove();
             });
         }
-
         function searcher() {
             $('#search').keyup(function () {
                 var current_query = $('#search').val();
@@ -285,7 +284,6 @@
             table.append(contents);
             return table;
         }
-
         function drop(element) {
             if (element.lastChild.style.display == "block") {
                 element.lastChild.style.display = "none";
@@ -335,6 +333,13 @@
             if (!results) return null;
             if (!results[2]) return '';
             return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+        function updateVote(topic,direction) {
+            if (`{{ title }}` == "") {
+                alert("You must be logged in to vote");
+            }
+            console.log("Topic is: " + topic);
+            console.log("Direction is: " + direction);
         }
     </script>
 </body>

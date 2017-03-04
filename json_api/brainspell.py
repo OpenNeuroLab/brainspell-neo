@@ -237,7 +237,7 @@ class BulkAddEndpointHandler(BaseHandler):
         self.write(json.dumps(response))
 
 class SaveArticleHandler(BaseHandler):
-    def get(self,id):
+    def get(self, id):
         value = self.get_query_argument("id")
         print(value) #THE PMID OF THE ARTICLE THEY WISH TO ADD
         #TODO Update the database to reflect the added value

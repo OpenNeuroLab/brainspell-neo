@@ -11,8 +11,7 @@ Main functionality:
 Not urgent:
 - Add features for users to save articles, etc.
 - Show a user’s own information (ratings, e.g.) if they’re logged in. (Detect with API key.)
-- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
 - add-article-manual endpoint, which allows users to add articles that aren’t on PubMed.
+- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
 - Compute JSON diff and store with user metadata when a database operation is done.
 - Potentially make a cron job to automatically update DOIs.
-- Potentially use PubMed’s search results rather than querying our own database.

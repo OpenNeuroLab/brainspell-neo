@@ -110,21 +110,14 @@
                        </span>
                     </div>
                </form>
-                <p id="description" style="display:none">
-                    We now support PubMed ID Queries.
-                    Use [au] for author,
-                    [ALL] for all fields
-                    [MH] for mesh descriptors,
-                    [PMID] for pubmed ID
-                    [TIAB] for title/abstract search
-                </p>
+                <p style="font-style:italic;text-align:left;padding-top:10px">Use [au] for author, [ALL] for all fields, [MH] for mesh descriptors, [PMID] for pubmed ID, [TIAB] for title/abstract search.</p>
             </div>
         </div>
         <!-- /.row -->
     </div>
     <!-- /.container -->
 
-    <div class="container" style="padding-top:30px;padding-bottom:30px">
+    <div class="container" style="padding-top:20px;padding-bottom:30px">
         <div class="alert alert-success"
                 {% if success!=1 %}
                 style="display: none;"
@@ -172,14 +165,6 @@
                 }
             })
         );
-     $("#searcher").hover(
-             function(e) {
-                 $("#description").show();
-             },
-             function(e) {
-                 $("#description").hide()
-             }
-     );
     </script>
 
 

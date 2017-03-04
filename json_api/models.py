@@ -147,8 +147,6 @@ def formatted_search(query, start, param=None): # param specifies drop downs
     query = query.replace(" ", "%")
     if columns:
         query = re.sub('\[.*\]','',query)
-        if not columns: # implement default parameters (?) this will never be executed
-            columns.extend([Articles.title, Articles.abstract, Articles.authors])
         search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
             term).limit(10).offset(start)
         return search.execute()

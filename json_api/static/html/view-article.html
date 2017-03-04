@@ -334,9 +334,11 @@
             if (!results[2]) return '';
             return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
+        //TODO Send this information to the database, change schema to allow this
         function updateVote(topic,direction) {
             if (`{{ title }}` == "") {
                 alert("You must be logged in to vote");
+                window.location.replace("/login");
             }
             console.log("Topic is: " + topic);
             console.log("Direction is: " + direction);

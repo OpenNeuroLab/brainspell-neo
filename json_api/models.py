@@ -112,7 +112,8 @@ Follows PubMed Labeling System:
     [PMID] --> Pubmed ID
     [TIAB] --> Title/Abstract
 """
-def parse(query):
+
+def parse(query): # needs to be commented
     columns = []
     au = re.compile(r"\[au]")
     all = re.compile(r"\[ALL]")
@@ -135,43 +136,32 @@ def parse(query):
         columns.extend([Articles.title, Articles.abstract])
     formatted_query = re.sub('\[.*\]','',query)
     matches = [Match(col,formatted_query) for col in columns]
+    if len(matches) == 0:
+        return (None, query)
     term = reduce(lambda x,y:x|y, matches)
     return (columns,term)
 
 
-def formatted_search(query,start,param=None): #Param specifies drop downs
+def formatted_search(query, start, param=None): # param specifies drop downs
     (columns,term) = parse(query)
     query = query.replace(" ", "%")
     if columns:
         query = re.sub('\[.*\]','',query)
-        if not columns: #Implement default parameters
+        if not columns: # implement default parameters (?) this will never be executed
             columns.extend([Articles.title, Articles.abstract, Articles.authors])
         search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
             term).limit(10).offset(start)
         return search.execute()
     else:
-        if param == "t":
-            return article_search(query,start)
+        match = Match(Articles.title, query) | Match(Articles.authors, query) | Match(Articles.abstract, query)
         if param == "x":
-            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
-                Match(Articles.experiments,query)).limit(10).offset(start)
-            return search.execute()
+            match = Match(Articles.experiments, query)
         if param == "p":
-            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
-                Match(Articles.pmid,query)).limit(10).offset(start)
-            return search.execute()
+            match = Match(Articles.pmid, query)
         if param == "r":
-            search = Articles.select(Articles.pmid,Articles.title,Articles.authors).where(
-                Match(Articles.reference,query)).limit(10).offset(start)
-            return search.execute()
-
-def article_search(query, start):
-    query = query.replace(" ", "%")
-    search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
-        Match(Articles.title, query) | Match(Articles.authors, query) | Match(Articles.abstract, query)
-    ).limit(10).offset(start)
-    # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
-    return search.execute() # search.count() makes the above line slow; TODO: find a better way of doing this
+            match = Match(Articles.reference, query)
+        # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
+        return Articles.select(Articles.pmid, Articles.title, Articles.authors).where(match).limit(10).offset(start).execute() # search.count() makes the above line slow; TODO: find a better way of doing this
 
 def random_search():
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).order_by(fn.Random()).limit(5)

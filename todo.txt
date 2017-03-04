@@ -10,8 +10,11 @@ Main functionality:
 
 Not urgent:
 - Add features for users to save articles, etc.
+	Add a column to the Users Table
 - Show a user’s own information (ratings, e.g.) if they’re logged in. (Detect with API key.)
 - add-article-manual endpoint, which allows users to add articles that aren’t on PubMed.
+	This is already done? 
 - Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
+	Also Done? 
 - Compute JSON diff and store with user metadata when a database operation is done.
 - Potentially make a cron job to automatically update DOIs.

@@ -183,14 +183,14 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
             Articles.insert_many(papers[article:article+limit]).execute()
 
 def user_login(email,password):
-        hasher=hashlib.md5()
+        hasher=hashlib.sha224()
         hasher.update(password)
         password = hasher.hexdigest()
         user = User.select().where((User.emailaddress == email) & (User.password == password))
         return user.execute()
 
 def register_user(username,email,password):
-        hasher=hashlib.md5()
+        hasher=hashlib.sha224()
         hasher.update(password)
         password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)

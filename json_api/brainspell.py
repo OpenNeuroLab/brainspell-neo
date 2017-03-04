@@ -157,8 +157,8 @@ class AccountHandler(BaseHandler):
         self.render('static/html/account.html', title=name, username=username, message="")
 
     def post(self):
-        hasher=hashlib.md5()
-        hasher2 = hashlib.md5()
+        hasher=hashlib.sha224()
+        hasher2 = hashlib.sha224()
         newUsername = self.get_argument("newUserName")
         currPassword = self.get_argument("currentPassword").encode('utf-8')
         newPass = self.get_argument("newPassword").encode('utf-8')

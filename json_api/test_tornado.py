@@ -2,8 +2,12 @@ import tornado.web
 import os
 import pytest
 import brainspell
+import models
 
 application = brainspell.make_app()
+
+def test_search():
+    assert len(models.formatted_search("brain", 0)) > 0
 
 def test_procfile():
     f = open("../Procfile", "r")

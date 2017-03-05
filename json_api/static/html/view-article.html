@@ -283,25 +283,27 @@
 
             // start brain widget generation
 
-            $("body").append("<canvas id='3d' style='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none'>");
-            if( Detector.webgl ){
-                renderer = new THREE.WebGLRenderer({
-                    canvas: document.getElementById("3d"),
-                    antialias               : true, // to get smoother output
-                    preserveDrawingBuffer   : true, // to allow screenshot
-                    alpha: true
-                });
-                renderer.setClearColor( 0xffffff, 0 );
-                renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-            } else {
-                console.log("ERROR: No WebGLRenderer available");
-                renderer = new THREE.CanvasRenderer();
+            if ($(window).width() > "500") {
+                $("body").append("<canvas id='3d' style='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none'>");
+                if( Detector.webgl ){
+                    renderer = new THREE.WebGLRenderer({
+                        canvas: document.getElementById("3d"),
+                        antialias               : true, // to get smoother output
+                        preserveDrawingBuffer   : true, // to allow screenshot
+                        alpha: true
+                    });
+                    renderer.setClearColor( 0xffffff, 0 );
+                    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+                } else {
+                    console.log("ERROR: No WebGLRenderer available");
+                    renderer = new THREE.CanvasRenderer();
+                }
+
+                exp = experimentsObj;
+                configureExperiments();
+
+                requestAnimationFrame(animate);
             }
-
-            exp = experimentsObj;
-            configureExperiments();
-
-            requestAnimationFrame(animate);
 
             // end brain widget generation
 
@@ -314,14 +316,16 @@
 
             $(".experimentContainer").each(function() {
                 var elemID = $(this).attr("id").replace("container", "");
-                var wrapper = document.createElement("div");
-                wrapper.append(document.getElementById(elemID));
-                wrapper.style.cssFloat = "left";
-                wrapper.style.styleFloat = "left";
-                wrapper.style.paddingRight = "30px";
-                document.getElementById('container' + elemID).insertBefore(
-                    wrapper, document.getElementById('container' + elemID).firstChild);
-                $(this).append($("<div>").css("clear", "both"));
+                if (document.getElementById(elemID) != null) {
+                    var wrapper = document.createElement("div");
+                    wrapper.append(document.getElementById(elemID));
+                    wrapper.style.cssFloat = "left";
+                    wrapper.style.styleFloat = "left";
+                    wrapper.style.paddingRight = "30px";
+                    document.getElementById('container' + elemID).insertBefore(
+                        wrapper, document.getElementById('container' + elemID).firstChild);
+                    $(this).append($("<div>").css("clear", "both"));
+                }
             });
     	}));
 

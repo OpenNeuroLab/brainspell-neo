@@ -98,7 +98,9 @@ class ArticleHandler(BaseHandler):
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
     def post(self):
         values = self.get_body_argument("dbChanges")
-        values = json.loads(values)
+        values = json.loads(values) #z-values in dictionary
+
+
 
 
 

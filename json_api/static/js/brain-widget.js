@@ -97,7 +97,7 @@ function initTranslucentBrain(eid, ex)
     ex.render.scene = new THREE.Scene();
     
     // create raycaster (for hit detection)
-    container[0].addEventListener('mousedown', function(e){onDocumentMouseDown(e,eid,ex);}, false);
+    container[0].addEventListener('mousedown', function(e){onDocumentMouseDown(e, eid, ex);}, false);
 
     // put a camera in the scene
     ex.render.camera    = new THREE.PerspectiveCamera(40,width/height,25,50);
@@ -215,11 +215,8 @@ function parseLocations(eid, ex)
 }
 
 // handle clicking on location spheres
-function onDocumentMouseDown( event,eid, ex ) {
+function onDocumentMouseDown(event, eid, ex) {
     event.preventDefault();
-    // TODO: highlight the relevant row
-    
-    var x,y,i;
     var r = event.target.getBoundingClientRect();
 
     mouseVector = new THREE.Vector3();
@@ -232,13 +229,15 @@ function onDocumentMouseDown( event,eid, ex ) {
 
     if(intersects.length==0)
         return;
-    ex.render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
+    ex.render.spheres.children.forEach(function(sph) { sph.material.color.setRGB( 1,0,0 );});
     intersects[0].object.material.color.setRGB(0,1,0);
-    /*
-    $(".experiment#"+eid+" .xyztable table td").css({'background-color':''});
-    for(i=0;i<ex.locations.length;i++)
-        if(ex.locations[i].sph==intersects[0].object)
-            $(".experiment#"+eid+" .xyztable tr:eq("+i+") td.coordinate").css({"background-color":"lightGreen"});
-    */
+    $("#container"+eid+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
+    for(var i=0;i<ex.locations.length;i++){
+        if(ex.locations[i].sph==intersects[0].object) {
+            $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
+            $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop() 
+                + $("#container"+eid+" table tbody .experiment-table-row:eq("+(i - 1)+")").position().top);
+        }
+    }
     
 }

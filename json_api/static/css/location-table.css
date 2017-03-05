@@ -33,8 +33,10 @@
 .gradient-style td
 {
     padding: 8px;
-    border-bottom: 1px solid #fff;
     color: #669;
+}
+.gradient-style tr {
+    border-bottom: 1px solid #fff;
     border-top: 1px solid #fff;
     background-color: #e8edff;
 }

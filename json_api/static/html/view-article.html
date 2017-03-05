@@ -266,7 +266,8 @@
 
             $("#articleContents").append(dropper);
 
-            var form = $('<form>', {"action":"/view-article", "method":"post",'id':"locations"});
+            // TODO: add "action" once that endpoint is finished
+            var form = $('<form>', {"method":"post",'id':"locations", "onsubmit": "return submitHandler();"});
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
@@ -381,9 +382,9 @@
           }
         };
         // Add altered values to database
-        var changes = {};
         function submitHandler() {
-            for (var table = count-1; table > 0; table--) {
+            var changes = {};
+            for (var table = count-2; table >= 0; table--) {
                 for (var row = 0; row < experimentsObj[table]["locations"].length;row++) {
                     if ($("#" + table + row).val() != "") {
                         changes["" + table +','+ row] = $("#" + table + row).val()
@@ -394,8 +395,8 @@
             changes = JSON.stringify(changes);
             console.log(changes);
             $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
-            location.reload();
-            return true;
+            // location.reload();
+            return false;
         }
         function getaURL(name, url) {
             if (!url) {
@@ -408,10 +409,9 @@
             if (!results[2]) return '';
             return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
-        //TODO Send this information to the database, change schema to allow this
+        // TODO Send this information to the database, change schema to allow this
         function updateVote(topic,direction) {
             if (`{{ title }}` == "") {
-                alert("You must be logged in to vote");
                 window.location.replace("/login");
             }
             console.log("Topic is: " + topic);

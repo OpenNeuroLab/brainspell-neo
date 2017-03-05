@@ -123,7 +123,7 @@ def parse(query): # needs to be commented
     if au.search(query):
         columns.append(Articles.authors)
     if all.search(query):
-        columns.extend([Articles.timestamp, Articles.abstract,
+        columns.extend([Articles.abstract,
                         Articles.authors, Articles.doi,
                         Articles.experiments, Articles.metadata,
                         Articles.neurosynthid, Articles.pmid,
@@ -135,20 +135,18 @@ def parse(query): # needs to be commented
     if tiab.search(query):
         columns.extend([Articles.title, Articles.abstract])
     formatted_query = re.sub('\[.*\]','',query)
+    if not columns:
+        return (None,None,formatted_query)
     matches = [Match(col,formatted_query) for col in columns]
-    if len(matches) == 0:
-        return (None, query)
     term = reduce(lambda x,y:x|y, matches)
-    return (columns,term)
+    return (columns,term,formatted_query)
 
 
 def formatted_search(query, start, param=None): # param specifies drop downs
-    (columns,term) = parse(query)
-    query = query.replace(" ", "%")
+    (columns,term,formatted_query) = parse(query)
+    query = formatted_query.replace(" ", "%")
     if columns:
-        query = re.sub('\[.*\]','',query)
-        search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(
-            term).limit(10).offset(start)
+        search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(term).limit(10).offset(start)
         return search.execute()
     else:
         match = Match(Articles.title, query) | Match(Articles.authors, query) | Match(Articles.abstract, query)

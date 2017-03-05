@@ -82,9 +82,11 @@
                     <li>
                         <a href="https://github.com/neelsomani/brainspell-neo">GitHub</a>
                     </li>
+                {% if title!="" %}
                     <li>
                         <a href=" javascript:document.location.href=getaURL('id')"> Add Article to Docket </a>
                     </li>
+                {% end %}
                 </ul>
                 {% if title!="" %}
                    <a href="/account" class="navbar-brand navbar-right" style="font-size:1em;"> Welcome {{ title }}</a>

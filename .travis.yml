@@ -6,7 +6,6 @@ python:
 install: "pip install -r requirements.txt"
 # add environment variable
 env:
-  - DATABASE_URL="postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35" 
-  - COOKIE_SECRET="password"
+  - DATABASE_URL="postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35" COOKIE_SECRET="password"
 # command to run tests
 script: cd json_api && pytest

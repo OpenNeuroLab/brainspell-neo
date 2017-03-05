@@ -1,3 +1,22 @@
+.metaCoords {
+    width:300px;
+    height:300px;
+    border:1px solid #c0c0c0;
+}
+.title {
+    font-weight: bold;
+}
+.experiment-locations {
+    display: none;
+}
+.experiment {
+    width: 300px;
+    float: left;
+}
+.experimentContainer {
+    padding-bottom: 15px;
+    padding-top: 15px;
+}
 .boxed {
     border: 1px solid black;
 }
@@ -27,8 +46,6 @@
 .experiment-header {
     font-weight: bold;
 }
-
-
 .table-fixed thead, .table-fixed tbody, .table-fixed tr, .table-fixed td, .table-fixed th {
   display: block;
 }

@@ -130,20 +130,6 @@
     <script src="/static/js/trackball-controls.js"></script>
     <script src="/static/js/brain-widget.js"></script>
 
-    <style>
-    .experiment-locations {
-        display: none;
-    }
-    .experiment {
-        width: 300px;
-        float: left;
-    }
-    .experimentContainer {
-        padding-bottom: 15px;
-        padding-top: 15px;
-    }
-    </style>
-
     <script>
         function popup(element) {
             var first = $("<div>", {"id":"myModal","class":"modal fade","role":"dialog"}).append(
@@ -301,7 +287,7 @@
                 }
 
                 exp = experimentsObj;
-                configureExperiments();
+                configureExperiments(experimentsObj);
 
                 requestAnimationFrame(animate);
             }
@@ -331,14 +317,21 @@
             });
     	}));
 
-        function configureExperiments()
-        {
+        function configureExperiments(exp) {
             $("#experiments").html("");
-            for(i=0;i<exp.length;i++)
+            for(var i=0;i<exp.length;i++)
             {
                 if(exp[i].locations.length==0)
                     continue;
-                $("#experiments").append($('<div class="experiment" id="'+exp[i].id+'">').load("/static/data/experiment.html",addExperiment(exp[i].id)));
+                var widgetElem = $('<div class="experiment" id="'+exp[i].id+'">');
+                var titleElem = $("<div>", {"class": "experiment-title"}).append($("<div>", {"class": "title"}));
+                widgetElem.append(titleElem);
+                var captionElem = $("<div>", {"class": "experiment-caption"}).append($("<div>", {"class": "caption"}));
+                widgetElem.append(captionElem);
+                var table = $("<table>").append($("<tbody>").append($("<tr>").append($("<td>").append($("<div>", {"class": "metaCoords"})))));
+                widgetElem.append(table);
+                $("#experiments").append(widgetElem);
+                addExperiment(exp[i].id, exp[i]);
             }
         }
 
@@ -367,6 +360,7 @@
             table.append(contents);
             return table;
         }
+
         function drop(element) {
             if (element.lastChild.style.display == "block") {
                 element.lastChild.style.display = "none";
@@ -389,6 +383,7 @@
             }
           }
         };
+
         // Add altered values to database
         function submitHandler() {
             var changes = {};
@@ -406,6 +401,7 @@
             // location.reload();
             return false;
         }
+
         function getaURL(name, url) {
             if (!url) {
               url = window.location.href;
@@ -417,6 +413,7 @@
             if (!results[2]) return '';
             return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
+
         // TODO Send this information to the database, change schema to allow this
         function updateVote(topic,direction) {
             if (`{{ title }}` == "") {

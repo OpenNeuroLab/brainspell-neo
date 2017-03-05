@@ -100,6 +100,9 @@ class ArticleHandler(BaseHandler):
         values = self.get_body_argument("dbChanges")
         values = json.loads(values) #z-values in dictionary
 
+        topic = self.get_body_argument("topicChange")
+        direction = self.get_body_argument("directionChange")
+
 
 
 

@@ -232,8 +232,8 @@ function addExperiment(eid)
         // Configure legend (title and caption)
         //-------------------------------------
         var ex = findExperimentByEID(eid);
-        var title=(ex.title)?ex.title:"(Empty)";
-        var caption=(ex.caption)?ex.caption:"(Empty)";
+        var title=(ex.title)?ex.title:"";
+        var caption=(ex.caption)?ex.caption:"";
         $(".experiment#"+eid+" .title").append(title);
         $(".experiment#"+eid+" .caption").append(caption);
 

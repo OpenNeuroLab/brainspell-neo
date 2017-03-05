@@ -239,5 +239,17 @@ function onDocumentMouseDown(event, eid, ex) {
                 + $("#container"+eid+" table tbody .experiment-table-row:eq("+(i - 1)+")").position().top);
         }
     }
+}
+
+function rowClicked(row, element) {
+    var ex = exp[element - 1];
+    var i = $(row).index() - 1;
+    $("#container"+ex.id+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
+    ex.render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
     
+    if(i >= 0) {
+        $(row).css({'background-color':'lightGreen'});
+        ex.locations[i].sph.material.color.setRGB(0,1,0);
+        ex.selectedRow=i;
+    }
 }

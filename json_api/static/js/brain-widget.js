@@ -51,15 +51,15 @@ function updateSize() {
 }
 
 function animate() {
-    requestAnimationFrame( animate );
     updateSize();
     renderer.setClearColor( 0xffffff,0 );
-    renderer.clear( true );
-    renderer.enableScissorTest( true );
+    renderer.clear(true);
+    renderer.enableScissorTest(true);
     for(iExp in exp)
         if(exp[iExp].render)
             render(iExp);
-    renderer.enableScissorTest( false );
+    renderer.enableScissorTest(false);
+    requestAnimationFrame(animate);
 }
 
 // render the scene
@@ -103,7 +103,7 @@ function render(iExp) {
     renderer.setScissor( left, bottom, width, height );
     
     // actually render the scene
-    renderer.render( scene, camera );
+    renderer.render(scene, camera);
 }
 
 // Translucent Viewer
@@ -121,7 +121,7 @@ function initTranslucentBrain(eid)
     ex.render.scene = new THREE.Scene();
     
     // create raycaster (for hit detection)
-    container[0].addEventListener( 'mousedown', function(e){onDocumentMouseDown(e,eid);}, false );
+    container[0].addEventListener('mousedown', function(e){onDocumentMouseDown(e,eid);}, false);
 
     // put a camera in the scene
     ex.render.camera    = new THREE.PerspectiveCamera(40,width/height,25,50);
@@ -129,7 +129,7 @@ function initTranslucentBrain(eid)
     ex.render.scene.add(ex.render.camera);
 
     // create a camera control
-    ex.render.cameraControls=new THREE.TrackballControls(ex.render.camera,ex.render.container[0] )
+    ex.render.cameraControls=new THREE.TrackballControls(ex.render.camera,ex.render.container[0])
     ex.render.cameraControls.noZoom=true;
     ex.render.cameraControls.addEventListener( 'change', function(){ex.render.light.position.copy( ex.render.camera.position );} );
 

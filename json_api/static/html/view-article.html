@@ -423,6 +423,11 @@
             console.log("Topic is: " + topic);
             console.log("Direction is: " + direction);
             var form = $("<form>", {"method":"post","id":"voterselector"});
+            form.append($("<input>", {"type":"hidden","name":"topicChange","id":"topicChange","value":"" + topic}));
+            form.append($("<input>", {"type":"hidden","name":"directionChange","id":"directionChange","value":"" + direction}));
+            document.getElementById("voterselector").submit();
+
+
 
         }
     </script>

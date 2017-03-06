@@ -261,7 +261,7 @@
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
                     var expContainer = $("<div>", {"id": "container" + experimentsObj[i]["id"], "class": "experimentContainer"});
-                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], count));
+                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], count, i));
                     form.append(expContainer);
                     count++;
                 }
@@ -335,7 +335,7 @@
             }
         }
 
-        function experimentsTable(array, position) {
+        function experimentsTable(array, position, experimentNumber) {
             var table = $("<table>").css("position", "relative");
             table.addClass("scroller");
             table.addClass("gradient-style");
@@ -349,7 +349,7 @@
             header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
             contents.append(header);
             for (var i = 0; i < array.length; i++) {
-                var row = $("<tr>", {"class": "experiment-table-row"}).attr("onclick", "rowClicked(this, " + position + ")");
+                var row = $("<tr>", {"class": "experiment-table-row"}).attr("onclick", "rowClicked(this, " + experimentNumber + ")");
                 array[i] = array[i].split(",");
                 for (var j in array[i]) {
                     row.append($("<td>", {"style": "height:100%;"}).text(array[i][j]));

@@ -234,15 +234,16 @@ function onDocumentMouseDown(event, eid, ex) {
     $("#container"+eid+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
     for(var i=0;i<ex.locations.length;i++){
         if(ex.locations[i].sph==intersects[0].object) {
+            clickedRow = $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")");
             $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
             $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop() 
-                + $("#container"+eid+" table tbody .experiment-table-row:eq("+(i - 1)+")").position().top);
+                + clickedRow.position().top - clickedRow.height());
         }
     }
 }
 
 function rowClicked(row, element) {
-    var ex = exp[element - 1];
+    var ex = exp[element];
     var i = $(row).index() - 1;
     $("#container"+ex.id+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
     ex.render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});

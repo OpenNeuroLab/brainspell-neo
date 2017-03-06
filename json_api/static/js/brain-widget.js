@@ -242,7 +242,7 @@ function onDocumentMouseDown(event, eid, ex) {
 }
 
 function rowClicked(row, element) {
-    var ex = exp[element - 1];
+    var ex = exp[element];
     var i = $(row).index() - 1;
     $("#container"+ex.id+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
     ex.render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});

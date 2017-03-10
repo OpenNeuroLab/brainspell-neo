@@ -254,7 +254,7 @@ if "COOKIE_SECRET" in os.environ:
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
 settings = {
-    "cookie_secret": os.environ["COOKIE_SECRET"],
+    "cookie_secret": public_key,
     "login_url": "/login",
     "compress_response":True
 }

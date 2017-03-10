@@ -192,3 +192,42 @@ def register_user(username,email,password):
         hasher.update(password)
         password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)
+
+
+def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
+    target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
+    target = next(target)
+    experiments = eval(target)
+    for key,value in values:
+        position = experiments[int(key[0])]
+        location_set = position['locations'][int(key[1])]
+        location_set = location_set + ',' + str(value)
+        experiments[int(key[0])]['locations'][int(key[1])] = location_set
+        query = Articles.update(experiments=experiments).where(Articles.pmid == 3290).execute()
+
+
+def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
+    target = Articles.select(Articles.metadata).where(Articles.pmid == id).execute()
+    target = eval(target.metadata)['meshHeadings']
+    value = ""
+    for i in range(len(target)):
+        if target[i].get('name') == topic:
+            value = i
+            break
+    if target[value].get("vote"):
+        target[value]["vote"][direction] += 1
+    else:
+        target[value]["vote"] = {"agree":0,"disagree":1}
+        target[value]["vote"][direction] += 1
+
+
+
+
+
+
+
+
+
+
+
+

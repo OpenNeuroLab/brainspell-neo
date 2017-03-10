@@ -132,6 +132,13 @@
 
     <script>
         function popup(element) {
+            value = "";
+            if (definitions[element] == null) {
+                value = definitions[capitalize(element)]
+            }
+            else {
+                value = definitions[element]
+            }
             var first = $("<div>", {"id":"myModal","class":"modal fade","role":"dialog"}).append(
                     $("<div>", {"class":"modal-dialog"}).append(
                         $("<div>", {"class":"modal-content"}).append(
@@ -139,7 +146,7 @@
                     $("<button>", {"type":"button","class":"close","data-dismiss":"modal"})).append
                             ($("<h4>", {"class":"modal-title"}).text(element))).append(
                         $("<div>", {"class":"modal-body"}).append(
-                                $("<p>").text(definitions[element])
+                                $("<p>").text(value)
                         ).append(
                                 $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree")
                         ).append(
@@ -429,6 +436,9 @@
 
 
 
+        }
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
     </script>
 </body>

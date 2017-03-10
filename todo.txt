@@ -5,6 +5,7 @@ Main functionality:
 - Move the Brainspell Postgres database (whether to Pasteur or elsewhere).
 - Finalize API documentation with Roberto and JB, and put on GitHub.
 - Add API keys (associated with each account; potentially their password hash, which is checked before any database operations).
+- Correct Database Password Column to allow hits of 52 characters (SHA224 hashing)
 
 Not urgent:
 - Add features for users to save articles, etc. (add a user-metadata table)

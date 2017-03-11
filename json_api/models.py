@@ -194,6 +194,36 @@ def register_user(username,email,password):
         User.create(username = username, emailaddress = email, password = password)
 
 
+def generate_circle(coordinate): #Coordinate of form "-26,54,14"
+    ordered = [int(x) for x in coordinate.split(",")][0:3] #Ignore z-score
+    search_terms = []
+    for i in range(len(ordered)):
+        for j in range(-1,2,1):
+            val = list(ordered)
+            val[i] = val[i] + j
+            search_terms.append(",".join([str(x) for x in val]))
+    return search_terms
+
+
+
+def coactivation(coordinate): # Yields around 11,000 coordinates 
+    coordinate_sets = []
+    search_circle = generate_circle(coordinate)
+    for item in search_circle:
+        val = Articles.select(Articles.experiments).where(
+            Match(Articles.experiments, item)
+        ).execute()
+        for item in val:
+            data_set = eval(item.experiments)
+            for location_sets in data_set:
+                if location_sets.get("locations"):
+                    coordinate_sets.append(location_sets["locations"])
+    return coordinate_sets
+
+
+
+
+
 def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
     target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
     target = next(target)

@@ -206,7 +206,7 @@ def generate_circle(coordinate): #Coordinate of form "-26,54,14"
 
 
 
-def coactivation(coordinate): # Yields around 11,000 coordinates 
+def coactivation(coordinate): # Yields around 11,000 coordinates
     coordinate_sets = []
     search_circle = generate_circle(coordinate)
     for item in search_circle:

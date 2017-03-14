@@ -416,7 +416,7 @@
                 results = regex.exec(url);
             if (!results) return null;
             if (!results[2]) return '';
-            return "/saveArticle" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
+            return "/save-article" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
 
         // TODO Send this information to the database, change schema to allow this

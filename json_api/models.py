@@ -10,6 +10,7 @@ import hashlib
 from playhouse.postgres_ext import *
 import re
 from functools import reduce
+import json
 
 from peewee import DateTimeField, CharField, IntegerField
 # urlparse.uses_netloc.append("postgres")
@@ -208,7 +209,7 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
     target = Articles.select(Articles.metadata).where(Articles.pmid == id).execute()
-    target = eval(target.metadata)['meshHeadings']
+    target = json.loads(target.metadata)['meshHeadings']
     value = ""
     for i in range(len(target)):
         if target[i].get('name') == topic:

@@ -96,7 +96,7 @@ class ArticleHandler(BaseHandler):
             self.redirect("/") # id wasn't passed; redirect to home page
         self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
-    def post(self):
+    def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_query_argument("id")
         print(id)
         user = self.get_current_user()
@@ -152,11 +152,6 @@ class RandomEndpointHandler(BaseHandler):
             output_list.append(article_dict)
         response["articles"] = output_list
         self.write(json.dumps(response))
-
-class TranslucentViewerHandler(BaseHandler):
-    def get(self):
-        cmd = "python translucent.py"
-        subprocess.call(cmd, shell=True)
 
 class AccountHandler(BaseHandler):
     def get(self):
@@ -282,7 +277,7 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
-        (r"/saveArticle(.*)", SaveArticleHandler)
+        (r"/save-article", SaveArticleHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

@@ -1,12 +1,3 @@
-To do:
-
-Main functionality:
-- Create an API endpoint to edit tags, coordinates, authors for an article.
-- Move the Brainspell Postgres database (whether to Pasteur or elsewhere).
-- Finalize API documentation with Roberto and JB, and put on GitHub.
-- Add API keys (associated with each account; potentially their password hash, which is checked before any database operations).
-- Correct Database Password Column to allow hits of 52 characters (SHA224 hashing)
-
 Not urgent:
 - Add features for users to save articles, etc. (add a user-metadata table)
 - Show a user’s own information (ratings, e.g.) if they’re logged in. (Detect with API key.)

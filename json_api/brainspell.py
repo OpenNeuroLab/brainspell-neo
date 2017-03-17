@@ -15,11 +15,12 @@ import hashlib
 
 from helper_functions import *
 
-# Handles User Login Requests
+# adds function to self; TODO: consider removing
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
 
+# front page
 class MainHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
@@ -35,6 +36,7 @@ class MainHandler(BaseHandler):
             queries=Articles.select().wrapped_count(), success=submitted,
             failure=failure)
 
+# login page
 class LoginHandler(BaseHandler):
     def get(self):
         self.render("static/html/login.html", message="None", title="")
@@ -49,13 +51,13 @@ class LoginHandler(BaseHandler):
             self.set_secure_cookie("user", email)
             self.redirect("/")
 
-
+# log out the user
 class LogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
         self.redirect("/")
 
-
+# registration page
 class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html", title="")
@@ -66,7 +68,7 @@ class RegisterHandler(BaseHandler):
         register_user(username,email,password)
         self.redirect("/login")
 
-
+# search page
 class SearchHandler(BaseHandler):
     def get(self):
         q = self.get_query_argument("q", "")
@@ -76,6 +78,7 @@ class SearchHandler(BaseHandler):
         self.render("static/html/search.html", query=q, start=start,
             title=name, req=req)
 
+# API endpoint to fetch PubMed and Neurosynth data using a user specified PMID, and add the article to our database
 class AddArticleEndpointHandler(BaseHandler):
     def get(self):
         pmid = self.get_query_argument("pmid", "")
@@ -86,7 +89,7 @@ class AddArticleEndpointHandler(BaseHandler):
         response = {"success": 1}
         self.write(json.dumps(response))
 
-
+# view-article page
 class ArticleHandler(BaseHandler):
     def get(self):
         articleId = -1
@@ -110,7 +113,7 @@ class ArticleHandler(BaseHandler):
         if topic and direction:
             update_vote(id,user,topic,direction)
 
-
+# API endpoint to handle search queries; returns 10 results at a time
 class SearchEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
@@ -137,6 +140,7 @@ class SearchEndpointHandler(BaseHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
+# API endpoint that returns five random articles; used on the front page of Brainspell
 class RandomEndpointHandler(BaseHandler):
     def get(self):
         self.set_header("Content-Type", "application/json")
@@ -153,6 +157,7 @@ class RandomEndpointHandler(BaseHandler):
         response["articles"] = output_list
         self.write(json.dumps(response))
 
+# account page
 class AccountHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
@@ -191,11 +196,13 @@ class AccountHandler(BaseHandler):
             update.execute()
         self.redirect("/")
 
+# contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
         name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
         self.render('static/html/contribute.html',title=name)
 
+# API endpoint to get the contents of an article (called by the view-article page)
 class ArticleEndpointHandler(BaseHandler):
     def get(self):
         id = self.get_query_argument("pmid")
@@ -214,6 +221,7 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+# takes a file in JSON format and adds the articles to our database (called from the contribute page)
 class BulkAddHandler(BaseHandler):
     def post(self):
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
@@ -226,6 +234,7 @@ class BulkAddHandler(BaseHandler):
             # data is malformed
             self.redirect("/?failure=1")
 
+# API endpoint corresponding to BulkAddHandler
 class BulkAddEndpointHandler(BaseHandler):
     def post(self):
         response = {}
@@ -240,6 +249,7 @@ class BulkAddEndpointHandler(BaseHandler):
             response["success"] = 0
         self.write(json.dumps(response))
 
+# save an article to a user's account
 class SaveArticleHandler(BaseHandler):
     def get(self, id):
         value = self.get_query_argument("id")

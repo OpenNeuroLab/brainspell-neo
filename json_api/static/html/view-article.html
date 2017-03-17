@@ -276,28 +276,28 @@
 
             // start brain widget generation
 
-            if(!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
-                // if not on mobile
-                $("body").append("<canvas id='3d' style='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none'>");
-                if (Detector.webgl) {
-                    renderer = new THREE.WebGLRenderer({
-                        canvas: document.getElementById("3d"),
-                        antialias: true, // to get smoother output
-                        preserveDrawingBuffer: true, // to allow screenshot
-                        alpha: true
-                    });
-                    renderer.setClearColor(0xffffff, 0);
-                    renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
-                } else {
-                    console.log("ERROR: No WebGLRenderer available");
-                    renderer = new THREE.CanvasRenderer();
-                }
-
-                exp = experimentsObj;
-                configureExperiments(experimentsObj);
-
-                requestAnimationFrame(animate);
+            //if(!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
+            // if not on mobile
+            $("body").append("<canvas id='3d' style='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none'>");
+            if (Detector.webgl) {
+                renderer = new THREE.WebGLRenderer({
+                    canvas: document.getElementById("3d"),
+                    antialias: true, // to get smoother output
+                    preserveDrawingBuffer: true, // to allow screenshot
+                    alpha: true
+                });
+                renderer.setClearColor(0xffffff, 0);
+                renderer.setPixelRatio(window.devicePixelRatio ? window.devicePixelRatio : 1);
+            } else {
+                console.log("ERROR: No WebGLRenderer available");
+                renderer = new THREE.CanvasRenderer();
             }
+
+            exp = experimentsObj;
+            configureExperiments(experimentsObj);
+
+            requestAnimationFrame(animate);
+            //}
             // end brain widget generation
 
             form.append($("<div>").css("clear", "both"));

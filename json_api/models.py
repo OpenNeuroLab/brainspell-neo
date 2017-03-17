@@ -28,7 +28,7 @@ config = dict(
 )
 
 #print(config)
-#Now using extDatabase for PostGres full text search
+#Now using extDatabase for Postgres full text search
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config) #used to be peewee.PostgresqlDatabase
 #print(conn)
 
@@ -100,7 +100,6 @@ class User(BaseModel):
     username = CharField(null=True)
     # saved_articles= TextField(null=True) #TODO ADD THIS
 
-
     class Meta:
         db_table = 'users'
 
@@ -114,7 +113,7 @@ Follows PubMed Labeling System:
     [TIAB] --> Title/Abstract
 """
 
-def parse(query): # needs to be commented
+def parse(query): # TODO: needs to be commented
     columns = []
     au = re.compile(r"\[au]")
     all = re.compile(r"\[ALL]")
@@ -143,7 +142,7 @@ def parse(query): # needs to be commented
     return (columns,term,formatted_query)
 
 
-def formatted_search(query, start, param=None): # param specifies drop downs
+def formatted_search(query, start, param=None): # param specifies dropdown value from search bar
     (columns,term,formatted_query) = parse(query)
     query = formatted_query.replace(" ", "%")
     if columns:
@@ -194,7 +193,6 @@ def register_user(username,email,password):
         password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)
 
-
 def generate_circle(coordinate): #Coordinate of form "-26,54,14"
     ordered = [int(x) for x in coordinate.split(",")][0:3] #Ignore z-score
     search_terms = []
@@ -204,8 +202,6 @@ def generate_circle(coordinate): #Coordinate of form "-26,54,14"
             val[i] = val[i] + j
             search_terms.append(",".join([str(x) for x in val]))
     return search_terms
-
-
 
 def coactivation(coordinate): # Yields around 11,000 coordinates
     coordinate_sets = []
@@ -221,10 +217,6 @@ def coactivation(coordinate): # Yields around 11,000 coordinates
                     coordinate_sets.append(location_sets["locations"])
     return coordinate_sets
 
-
-
-
-
 def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
     target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
     target = next(target)
@@ -235,7 +227,6 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         location_set = location_set + ',' + str(value)
         experiments[int(key[0])]['locations'][int(key[1])] = location_set
         query = Articles.update(experiments=experiments).where(Articles.pmid == 3290).execute()
-
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
     target = Articles.select(Articles.metadata).where(Articles.pmid == id).execute()
@@ -250,15 +241,3 @@ def update_vote(id,user,topic,direction): #TODO save the user that changed the v
     else:
         target[value]["vote"] = {"agree":0,"disagree":1}
         target[value]["vote"][direction] += 1
-
-
-
-
-
-
-
-
-
-
-
-

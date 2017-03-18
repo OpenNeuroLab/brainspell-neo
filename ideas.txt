@@ -1,9 +1,3 @@
-Not urgent:
-- Add features for users to save articles, etc. (add a user-metadata table)
-- Show a user’s own information (ratings, e.g.) if they’re logged in. (Detect with API key.)
-- Add brain widget to search pages.
-- Compute JSON diff and store with user metadata when a database operation is done.
-
 Consider:
 - add-article-manual endpoint, which allows users to add articles that aren’t on PubMed. (potentially make PMID optional)
 - Make "add article" UI (won't necessarily work; we're over Heroku's database limit)

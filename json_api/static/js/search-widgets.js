@@ -368,7 +368,8 @@ function loadLocations()
 			}
 		}
 
-		$("#widgetOption").fadeIn();
+		$("#widgetOption").text("Show widgets");
+		document.getElementById("widgetOption").disabled = false;
 		
 		// refresh the image
 		drawImages();

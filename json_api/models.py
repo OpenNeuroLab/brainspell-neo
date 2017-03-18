@@ -141,8 +141,8 @@ def parse(query): # TODO: needs to be commented
     term = reduce(lambda x,y:x|y, matches)
     return (columns,term,formatted_query)
 
-
-def formatted_search(query, start, param=None): # param specifies dropdown value from search bar
+# used by the search page; an overloaded function that returns either the results of a search, or the experiments that correspond to the articles
+def formatted_search(query, start, param=None, experiments=False): # param specifies dropdown value from search bar; experiments specifies whether to only return the experiments
     (columns,term,formatted_query) = parse(query)
     query = formatted_query.replace(" ", "%")
     if columns:
@@ -157,7 +157,12 @@ def formatted_search(query, start, param=None): # param specifies dropdown value
         if param == "r":
             match = Match(Articles.reference, query)
         # return (search.count(), search.limit(10).offset(start).execute()) # give the total number of results, and output ten results, offset by "start"
-        return Articles.select(Articles.pmid, Articles.title, Articles.authors).where(match).limit(10).offset(start).execute() # search.count() makes the above line slow; TODO: find a better way of doing this
+        fields = (Articles.pmid, Articles.title, Articles.authors)
+        numberResults = 10
+        if experiments:
+            fields = (Articles.experiments,)
+            numberResults = 200
+        return Articles.select(*fields).where(match).limit(numberResults).offset(start).execute() # search.count() makes the above line slow; TODO: find a better way of doing this
 
 def random_search():
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).order_by(fn.Random()).limit(5)

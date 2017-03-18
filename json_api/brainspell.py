@@ -121,7 +121,7 @@ class SearchEndpointHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
-        results = formatted_search(q, start,option)
+        results = formatted_search(q, start, option)
         response = {}
         output_list = []
         for article in results:
@@ -138,6 +138,25 @@ class SearchEndpointHandler(BaseHandler):
             # TODO: consider returning the start/end indices for the range of articles returned instead
         else:
             response["start_index"] = start
+        self.write(json.dumps(response))
+
+# API endpoint to fetch coordinates from all articles that match a query; returns 200 sets of coordinates at a time
+class CoordinatesEndpointHandler(BaseHandler):
+    def get(self):
+        self.set_header("Content-Type", "application/json")
+        database_dict = {}
+        q = self.get_query_argument("q", "")
+        start = self.get_query_argument("start", 0)
+        option = self.get_query_argument("req", "t")
+        results = formatted_search(q, start, option, True)
+        response = {}
+        output_list = []
+        for article in results:
+            article_dict = {}
+            experiments = json.loads(article.experiments)
+            for c in experiments: # get the coordinates from the experiments
+                output_list.extend(c["locations"])
+        response["coordinates"] = output_list
         self.write(json.dumps(response))
 
 # API endpoint that returns five random articles; used on the front page of Brainspell
@@ -275,6 +294,7 @@ def make_app():
                                'static')}),
         (r"/", MainHandler),
         (r"/json/query", SearchEndpointHandler),
+        (r"/json/coordinates", CoordinatesEndpointHandler), # TODO: add to API documentation on wiki
         (r"/json/random-query", RandomEndpointHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),

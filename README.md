@@ -21,6 +21,6 @@ Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell sho
 
 Our Postgres database is hosted on Heroku. The full database is available in the `database_dumps` folder.
 
-================================================
+---
 
 Former website for Brainspell: http://www.brainspell.org

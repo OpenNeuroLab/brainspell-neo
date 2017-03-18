@@ -1,0 +1,6 @@
+Consider:
+- add-article-manual endpoint, which allows users to add articles that aren’t on PubMed. (potentially make PMID optional)
+- Make "add article" UI (won't necessarily work; we're over Heroku's database limit)
+- Maybe an endpoint to get the titles (or all of the information) for a set of PMIDs.
+- A validation for articles before they're sent to the bulk-add endpoint.
+- A cron job to automatically update DOIs.

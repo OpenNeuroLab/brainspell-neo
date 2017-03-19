@@ -125,11 +125,14 @@ class SearchEndpointHandler(BaseHandler):
         response = {}
         output_list = []
         for article in results:
-            article_dict = {}
-            article_dict["id"] = article.pmid
-            article_dict["title"] = article.title
-            article_dict["authors"] = article.authors
-            output_list.append(article_dict)
+            try:
+                article_dict = {}
+                article_dict["id"] = article.pmid
+                article_dict["title"] = article.title
+                article_dict["authors"] = article.authors
+                output_list.append(article_dict)
+            except:
+                pass
         response["articles"] = output_list
         if len(results) == 0:
             response["start_index"] = -1
@@ -152,10 +155,13 @@ class CoordinatesEndpointHandler(BaseHandler):
         response = {}
         output_list = []
         for article in results:
-            article_dict = {}
-            experiments = json.loads(article.experiments)
-            for c in experiments: # get the coordinates from the experiments
-                output_list.extend(c["locations"])
+            try:
+                article_dict = {}
+                experiments = json.loads(article.experiments)
+                for c in experiments: # get the coordinates from the experiments
+                    output_list.extend(c["locations"])
+            except:
+                pass
         response["coordinates"] = output_list
         self.write(json.dumps(response))
 
@@ -168,11 +174,14 @@ class RandomEndpointHandler(BaseHandler):
         response = {}
         output_list = []
         for article in results:
-            article_dict = {}
-            article_dict["id"] = article.pmid
-            article_dict["title"] = article.title
-            article_dict["authors"] = article.authors
-            output_list.append(article_dict)
+            try:
+                article_dict = {}
+                article_dict["id"] = article.pmid
+                article_dict["title"] = article.title
+                article_dict["authors"] = article.authors
+                output_list.append(article_dict)
+            except:
+                pass
         response["articles"] = output_list
         self.write(json.dumps(response))
 

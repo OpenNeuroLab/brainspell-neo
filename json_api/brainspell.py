@@ -279,7 +279,7 @@ class BulkAddEndpointHandler(BaseHandler):
 
 # save an article to a user's account
 class SaveArticleHandler(BaseHandler):
-    def get(self, id):
+    def get(self):
         value = self.get_query_argument("id")
         print(value) #THE PMID OF THE ARTICLE THEY WISH TO ADD
         #TODO Update the database to reflect the added value

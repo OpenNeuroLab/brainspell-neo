@@ -188,14 +188,14 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
 def user_login(email,password):
         hasher=hashlib.sha224()
         hasher.update(password)
-        password = hasher.hexdigest()
+        password = hasher.hexdigest()[:52]
         user = User.select().where((User.emailaddress == email) & (User.password == password))
         return user.execute()
 
 def register_user(username,email,password):
         hasher=hashlib.sha224()
-        hasher.update(password)
-        password = hasher.hexdigest()
+        hasher.update(password.encode("utf-8"))
+        password = hasher.hexdigest()[:52]
         User.create(username = username, emailaddress = email, password = password)
 
 def generate_circle(coordinate): #Coordinate of form "-26,54,14"

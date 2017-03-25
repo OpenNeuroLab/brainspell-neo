@@ -1,9 +1,7 @@
-Tables 
-	Reimplement using Jquery Datatables 
+Tables: reimplement using jQuery Datatables 
 
-Brain Browser 
-	A tool for visualization of translucent images that can take advantage of multi-core systems 
+Brain Browser: a tool for visualization of translucent images that can take advantage of multi-core systems 
 
-Continuous Activation Graphic 
-	Brainsprite - A tool that uses PNG files to show activation with depth 
+Continuous Activation Graphic:
+Brainsprite: a tool that uses PNG files to show activation with depth 
 

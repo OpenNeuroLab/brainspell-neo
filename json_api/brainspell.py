@@ -1,5 +1,4 @@
 import urllib
-
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
@@ -62,9 +61,9 @@ class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html", title="")
     def post(self):
-        username = self.get_body_argument("name")
-        email = self.get_body_argument("email")
-        password = self.get_body_argument("password")
+        username = self.get_body_argument("name").encode('utf-8')
+        email = self.get_body_argument("email").encode('utf-8')
+        password = self.get_body_argument("password").encode('utf-8')
         register_user(username,email,password)
         self.redirect("/login")
 
@@ -194,8 +193,8 @@ class AccountHandler(BaseHandler):
         self.render('static/html/account.html', title=name, username=username, message="")
 
     def post(self):
-        hasher=hashlib.sha224()
-        hasher2 = hashlib.sha224()
+        hasher=hashlib.sha1()
+        hasher2 = hashlib.sha1()
         newUsername = self.get_argument("newUserName")
         currPassword = self.get_argument("currentPassword").encode('utf-8')
         newPass = self.get_argument("newPassword").encode('utf-8')

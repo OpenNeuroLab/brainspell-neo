@@ -14,7 +14,7 @@ import json
 
 from peewee import DateTimeField, CharField, IntegerField
 # urlparse.uses_netloc.append("postgres")
-url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
+# url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
 if "DATABASE_URL" in os.environ:
     url = urlparse(os.environ["DATABASE_URL"])
 
@@ -186,14 +186,14 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
             Articles.insert_many(papers[article:article+limit]).execute()
 
 def user_login(email,password):
-        hasher=hashlib.sha224()
+        hasher=hashlib.sha1()
         hasher.update(password)
         password = hasher.hexdigest()
         user = User.select().where((User.emailaddress == email) & (User.password == password))
         return user.execute()
 
 def register_user(username,email,password):
-        hasher=hashlib.sha224()
+        hasher=hashlib.sha1()
         hasher.update(password)
         password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)

@@ -18,6 +18,9 @@ from peewee import DateTimeField, CharField, IntegerField
 if "DATABASE_URL" in os.environ:
     url = urlparse(os.environ["DATABASE_URL"])
 
+if "HEROKU_DB" in os.environ: # for Heroku to work
+    url = urlparse(os.environ["HEROKU_DB"])
+
 config = dict(
     database = url.path[1:],
     user = url.username,
@@ -188,7 +191,7 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
 def user_login(email,password):
         hasher=hashlib.sha1()
         hasher.update(password)
-        password = hasher.hexdigest()
+        password = hasher.hexdigest()[:52]
         user = User.select().where((User.emailaddress == email) & (User.password == password))
         return user.execute()
 

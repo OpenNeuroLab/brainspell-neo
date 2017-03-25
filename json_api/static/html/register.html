@@ -34,33 +34,33 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="https://brainspell.herokuapp.com/">Brainspell</a>
+                <a class="navbar-brand" href="./">Brainspell</a>
             </div>
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
                 {% if title=="" %}
                     <li>
-                        <a href="/login">Login</a>
+                        <a href="./login">Login</a>
                     </li>
                     <li>
-                        <a href="/register">Register</a>
+                        <a href="./register">Register</a>
                     </li>
                 {% end %}
                 {% if title!="" %}
                     <li>
-                        <a href="/logout">Logout</a>
+                        <a href="./logout">Logout</a>
                     </li>
                 {% end %}
                     <li>
-                        <a href="/contribute">Contribute</a>
+                        <a href="./contribute">Contribute</a>
                     </li>
                     <li>
-                        <a href="https://github.com/neelsomani/brainspell-neo">GitHub</a>
+                        <a href="https://github.com/OpenNeuroLab/brainspell-neo">GitHub</a>
                     </li>
                 </ul>
                 {% if title!="" %}
-                    <a href="/account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
+                    <a href="./account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
                 {% end %}
             </div>
             <!-- /.navbar-collapse -->

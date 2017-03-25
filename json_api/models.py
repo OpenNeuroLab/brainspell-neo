@@ -18,6 +18,9 @@ url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-
 if "DATABASE_URL" in os.environ:
     url = urlparse(os.environ["DATABASE_URL"])
 
+if "HEROKU_DB" in os.environ: # for Heroku to work
+    url = urlparse(os.environ["HEROKU_DB"])
+
 config = dict(
     database = url.path[1:],
     user = url.username,

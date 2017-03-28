@@ -102,13 +102,24 @@ class ArticleHandler(BaseHandler):
         id = self.get_query_argument("id")
         print(id)
         user = self.get_current_user()
-        values = self.get_body_argument("dbChanges")
-        values = json.loads(values) #z-values in dictionary
+        values = ""
+        try:
+            values = self.get_body_argument("dbChanges")
+            values = json.loads(values) #z-values in dictionary
+        except:
+            pass
+
         if values:
             update_z_scores(id,user,values)
 
-        topic = self.get_body_argument("topicChange")
-        direction = self.get_body_argument("directionChange")
+        topic = ""
+        direction = ""
+        try:
+            topic = self.get_body_argument("topicChange")
+            direction = self.get_body_argument("directionChange")
+        except:
+            pass
+
         if topic and direction:
             update_vote(id,user,topic,direction)
 

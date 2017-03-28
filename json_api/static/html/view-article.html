@@ -263,7 +263,7 @@
             $("#articleContents").append(dropper);
 
             // TODO: add "action" once that endpoint is finished
-            var form = $('<form>', {"method":"post",'id':"locations", "onsubmit": "return submitHandler();"});
+            var form = $('<form>', {"method":"post","action":"/view-article",'id':"locations", "onsubmit": "submitHandler();"});
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
@@ -274,8 +274,8 @@
                     count++;
                 }
             }
-            //Generate BrainSprite Images
 
+            //Generate BrainSprite Images
             $("#articleContents").append("<div>" +
                     "<canvas id='3Dviewer'>'" +
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
@@ -408,16 +408,16 @@
             for (var table = count-2; table >= 0; table--) {
                 for (var row = 0; row < experimentsObj[table]["locations"].length;row++) {
                     if ($("#" + table + row).val() != "") {
-                        changes["" + table +','+ row] = $("#" + table + row).val()
+                        changes["" + table - 1 +','+ row] = $("#" + table + row).val()
                     }
                 }
-
             }
+
             changes = JSON.stringify(changes);
             console.log(changes);
             $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
             // location.reload();
-            return false;
+            return true;
         }
         function getaURL(name, url) {
             if (!url) {

@@ -228,13 +228,14 @@ def coactivation(coordinate): # Yields around 11,000 coordinates
 def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
     target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
     target = next(target)
-    experiments = eval(target)
-    for key,value in values:
-        position = experiments[int(key[0])]
+    experiments = eval(target.experiments)
+    for key,value in values.items():
+        table,row = key.split(',')[0],key.split(',')[1]
+        position = experiments[int(table)]
         location_set = position['locations'][int(key[1])]
         location_set = location_set + ',' + str(value)
         experiments[int(key[0])]['locations'][int(key[1])] = location_set
-        query = Articles.update(experiments=experiments).where(Articles.pmid == 3290).execute()
+        query = Articles.update(experiments=experiments).where(Articles.pmid == id).execute()
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
     target = Articles.select(Articles.metadata).where(Articles.pmid == id).execute()

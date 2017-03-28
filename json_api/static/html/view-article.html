@@ -276,11 +276,13 @@
             }
 
             //Generate BrainSprite Images
+
             $("#articleContents").append("<div>" +
                     "<canvas id='3Dviewer'>'" +
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
 //                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
                     "</div>");
+            startloader();
 
 
             //if(!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
@@ -446,10 +448,8 @@
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
-    </script>
-    <script>
-        // start brain widget generation
-            $(window).load(function() {
+        function startloader() {
+            $(window).load(function () {
                 var brain = brainsprite({
                     canvas: "3Dviewer",
                     sprite: "spriteImg",
@@ -457,9 +457,10 @@
 //                        sprite: "overlayImg",
 //                        nbSlice: {"Y":79,'Z':63}
 //                    },
-                    nbSlice: {"Y":233,"Z":189}
+                    nbSlice: {"Y": 233, "Z": 189}
                 });
             });
+        }
     </script>
 </body>
 </html>

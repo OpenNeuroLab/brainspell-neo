@@ -17,6 +17,7 @@
     <link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">
     <link href="/static/css/view-article.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/definitions.js"></script>
+    <script type="text/javascript" src="/static/js/brainsprite.min.js"></script>
 
     <!-- Custom CSS -->
     <style>
@@ -273,8 +274,13 @@
                     count++;
                 }
             }
+            //Generate BrainSprite Images
 
-            // start brain widget generation
+            $("#articleContents").append("<div>" +
+                    "<canvas id='3Dviewer'>'" +
+                    "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
+//                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
+                    "</div>");
 
 
             //if(!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
@@ -413,7 +419,6 @@
             // location.reload();
             return false;
         }
-
         function getaURL(name, url) {
             if (!url) {
               url = window.location.href;
@@ -441,6 +446,20 @@
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
+    </script>
+    <script>
+        // start brain widget generation
+            $(window).load(function() {
+                var brain = brainsprite({
+                    canvas: "3Dviewer",
+                    sprite: "spriteImg",
+//                    overlay: {
+//                        sprite: "overlayImg",
+//                        nbSlice: {"Y":79,'Z':63}
+//                    },
+                    nbSlice: {"Y":233,"Z":189}
+                });
+            });
     </script>
 </body>
 </html>

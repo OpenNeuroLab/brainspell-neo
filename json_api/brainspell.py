@@ -111,6 +111,7 @@ class ArticleHandler(BaseHandler):
             pass
         if values:
             update_z_scores(id,user,values)
+            self.redirect("/view-article?id=" + str(id))
 
         topic = ""
         direction = ""

@@ -274,9 +274,7 @@
                     count++;
                 }
             }
-
             //Generate BrainSprite Images
-
             $("#articleContents").append("<div>" +
                     "<canvas id='3Dviewer'>'" +
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
@@ -364,7 +362,8 @@
             for (var i = 0; i < array.length; i++) {
                 var row = $("<tr>", {"class": "experiment-table-row"}).attr("onclick", "rowClicked(this, " + experimentNumber + ")");
                 array[i] = array[i].split(",");
-                for (var j in array[i]) {
+                var z_score = array[i][3];
+                for (var j in array[i].slice(0,3)) {
                     row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
                         $(this).css("padding-top", "5px").css("padding-bottom", "5px");
                         let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
@@ -373,7 +372,17 @@
                         textInput.focus();
                     }).text(array[i][j]));
                 }
-                row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {"type": "number", "style":"width:60%;", "step":"0.01","id":"" + position + i})));
+                if (z_score == null) {
+                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {
+                        "type": "number",
+                        "style": "width:60%;",
+                        "step": "0.01",
+                        "id": "" + position + i
+                    })));
+                }
+                else {
+                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
+                }
                 contents.append(row);
             }
             contents.append($("<tr>").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add a Row").css("text-align","center")));

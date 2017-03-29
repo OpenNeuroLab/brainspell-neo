@@ -250,3 +250,4 @@ def update_vote(id,user,topic,direction): #TODO save the user that changed the v
     else:
         target[value]["vote"] = {"up":0,"down":1}
         target[value]["vote"][direction] += 1
+    Articles.update(metadata = target).where(Articles.pmid == id).exeucte()

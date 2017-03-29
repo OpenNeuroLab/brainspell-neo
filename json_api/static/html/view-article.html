@@ -446,7 +446,7 @@
             if (!url) {
               url = window.location.href;
             }
-            name = 'id'
+            name = 'id';
             name = name.replace(/[\[\]]/g, "\\$&");
             var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
                 results = regex.exec(url);

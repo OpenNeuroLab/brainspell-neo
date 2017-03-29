@@ -418,6 +418,7 @@
             changes = JSON.stringify(changes);
             console.log(changes);
             $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
+            $("#locations").append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
             // location.reload();
             return true;
         }
@@ -432,6 +433,18 @@
             if (!results[2]) return '';
             return "/save-article" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
+        function getID(url) {
+            if (!url) {
+              url = window.location.href;
+            }
+            name = 'id'
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
 
         // TODO Send this information to the database, change schema to allow this
         function updateVote(topic,direction) {
@@ -440,10 +453,13 @@
             }
             console.log("Topic is: " + topic);
             console.log("Direction is: " + direction);
-            var form = $("<form>", {"method":"post","id":"voterselector"});
+            var form = $("<form>", {"method":"post","action":"/view-article","id":"voterselector"});
             form.append($("<input>", {"type":"hidden","name":"topicChange","id":"topicChange","value":"" + topic}));
             form.append($("<input>", {"type":"hidden","name":"directionChange","id":"directionChange","value":"" + direction}));
+            form.append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
+            $("#articleContents").append(form);
             document.getElementById("voterselector").submit();
+            console.log("SUBMITTED");
         }
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -460,7 +476,7 @@
                     nbSlice: {"Y": 233, "Z": 189}
                 });
             });
-            console.log("3D GRAPHICS LOADED");
+            console.log("GRAPHICS LOADED");
         }
     </script>
 </body>

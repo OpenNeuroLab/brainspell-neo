@@ -99,7 +99,8 @@ class ArticleHandler(BaseHandler):
         self.render("static/html/view-article.html", id=articleId,
             title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
-        id = self.get_query_argument("id")
+        print("I GOT HERE")
+        id = self.get_body_argument("id")
         print(id)
         user = self.get_current_user()
         values = ""
@@ -108,7 +109,6 @@ class ArticleHandler(BaseHandler):
             values = json.loads(values) #z-values in dictionary
         except:
             pass
-
         if values:
             update_z_scores(id,user,values)
 
@@ -119,9 +119,13 @@ class ArticleHandler(BaseHandler):
             direction = self.get_body_argument("directionChange")
         except:
             pass
-
         if topic and direction:
             update_vote(id,user,topic,direction)
+            print("Vote updated")
+            self.redirect("/view-article?id=" + str(id))
+
+
+
 
 # API endpoint to handle search queries; returns 10 results at a time
 class SearchEndpointHandler(BaseHandler):

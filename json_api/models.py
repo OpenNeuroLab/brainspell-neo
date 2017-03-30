@@ -238,16 +238,21 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         query = Articles.update(experiments=experiments).where(Articles.pmid == id).execute()
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
-    target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
-    target = json.loads(target.metadata)['meshHeadings']
+    main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
+    target = json.loads(main_target.metadata)['meshHeadings']
     value = ""
     for i in range(len(target)):
         if target[i].get('name') == topic:
             value = i
             break
+    if not value:
+        target.append({"name":topic,"majorTopic":"N"})
+        value = len(target) - 1
+
     if target[value].get("vote"):
         target[value]["vote"][direction] += 1
     else:
         target[value]["vote"] = {"up":0,"down":1}
         target[value]["vote"][direction] += 1
-    Articles.update(metadata = target).where(Articles.pmid == id).exeucte()
+    eval(main_target)["meshHeadings"] = target
+    Articles.update(metadata = main_target).where(Articles.pmid == id).exeucte()

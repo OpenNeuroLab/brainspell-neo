@@ -132,7 +132,24 @@
     <script src="/static/js/brain-widget.js"></script>
 
     <script>
-        function popup(element) {
+        function popup(elements) {
+            elements = elements.split(",");
+            if (elements.length == 1) {
+                elements = elements[0];
+            }
+            console.log(elements);
+            console.log(typeof(elements));
+            var agreements = "";
+            var disagree = "";
+            if (typeof(elements) == "object") {
+                var element = elements[0];
+                var votes = elements[1];
+                if (votes != "na") {
+                    votes = eval(votes);
+                    agreements = votes["up"];
+                    disagree = votes["down"];
+                }
+            }
             value = "";
             if (definitions[element] == null) {
                 value = definitions[capitalize(element)]
@@ -149,9 +166,9 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(value)
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree")
+                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements)
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree"))
+                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree))
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
                                 $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
@@ -215,7 +232,6 @@
             });
             searcher();
         }
-
         var count = 1;
         var experimentsObj;
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
@@ -225,6 +241,7 @@
             url: "/json/article?pmid={{id}}"
         }).complete(function(o) {
             j = o.responseText;
+            console.log(j);
             obj = JSON.parse(j);
             metadata = JSON.parse(obj["metadata"])["meshHeadings"];
             $("#articleContents").html("");
@@ -241,15 +258,22 @@
                 }
             }
             var metadatalst = [];
+            metadata = eval(metadata);
             for (var j = 0; j < metadata.length; j++) {
-                metadatalst.push(metadata[j]["name"]);
+                if (metadata[j]["vote"] != null) {
+                    metadatalst.push([metadata[j]["name"],metadata[j]["vote"]])
+                }
+                else {
+                    metadatalst.push([metadata[j]["name"],"na"]);
+                }
             }
             // Create a modal for each term (approve or reject)
             var dropper = $("<div/>");
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
                 var temp = metadatalst[i];
-                dropper.append($("<button>").text(metadatalst[i]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+                console.log(temp);
+                dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
             }
 
             $("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -278,7 +302,7 @@
             $("#articleContents").append("<div>" +
                     "<canvas style='max-width:100%;width:500px;' id='3Dviewer'>" +
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
-//                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
+                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
                     "</div>");
             startloader();
 
@@ -483,6 +507,7 @@
 //                        sprite: "overlayImg",
 //                        nbSlice: {"Y":79,'Z':63}
 //                    },
+                    flagCoordinates: true,
                     nbSlice: {"Y": 233, "Z": 189}
                 });
             });

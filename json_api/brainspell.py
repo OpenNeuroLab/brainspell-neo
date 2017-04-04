@@ -122,7 +122,6 @@ class ArticleHandler(BaseHandler):
             pass
         if topic and direction:
             update_vote(id,user,topic,direction)
-            print("Vote updated")
             self.redirect("/view-article?id=" + str(id))
 
 

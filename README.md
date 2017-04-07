@@ -19,7 +19,7 @@ Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell sho
 `json_api/test_tornado.py` is our suite of continuous integration tests.  
 `json_api/static/` contains the HTML, CSS, images, fonts, and Javascript code for the website.
 
-Our official Postgres database is hosted on AWS, but we have a static database available on Heroku. The full database is available in the `database_dumps` folder.
+Our Postgres database is hosted on Heroku. The full database is available in the `database_dumps` folder.
 
 ---
 

@@ -133,7 +133,6 @@
 
     <script>
         function popup(elements) {
-            console.log(elements);
             elements = elements.split(",");
             if (elements.length == 1) {
                 elements = elements[0];
@@ -144,8 +143,6 @@
                 var element = elements[0];
                 var votes = elements[1] + ',' + elements[2];
                 if (votes != "na") {
-                    console.log("Votes is: ");
-                    console.log(votes);
                     votes = JSON.parse(votes);
                     agreements = votes["up"];
                     disagree = votes["down"];
@@ -274,7 +271,6 @@
             for (var i = 0; i < metadatalst.length; i++) {
                 var temp = metadatalst[i];
                 temp[1] = JSON.stringify(temp[1]);
-                console.log(temp);
                 dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
             }
 
@@ -486,8 +482,6 @@
             if (`{{ title }}` == "") {
                 window.location.replace("/login");
             }
-            console.log("Topic is: " + topic);
-            console.log("Direction is: " + direction);
             var form = $("<form>", {"method":"post","action":"/view-article","id":"voterselector"});
             form.append($("<input>", {"type":"hidden","name":"topicChange","id":"topicChange","value":"" + topic}));
             form.append($("<input>", {"type":"hidden","name":"directionChange","id":"directionChange","value":"" + direction}));

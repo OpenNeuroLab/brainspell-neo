@@ -239,9 +239,6 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
     main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
-    print("\n\n\n\n\n\n\n\n")
-    print("MAIN TARGET IS: ",main_target.metadata)
-    print("\n\n\n\n\n\n\n\n\n\n")
 
     target = eval(main_target.metadata)['meshHeadings']
     value = ""

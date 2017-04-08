@@ -133,19 +133,20 @@
 
     <script>
         function popup(elements) {
+            console.log(elements);
             elements = elements.split(",");
             if (elements.length == 1) {
                 elements = elements[0];
             }
-            console.log(elements);
-            console.log(typeof(elements));
             var agreements = "";
             var disagree = "";
             if (typeof(elements) == "object") {
                 var element = elements[0];
-                var votes = elements[1];
+                var votes = elements[1] + ',' + elements[2];
                 if (votes != "na") {
-                    votes = eval(votes);
+                    console.log("Votes is: ");
+                    console.log(votes);
+                    votes = JSON.parse(votes);
                     agreements = votes["up"];
                     disagree = votes["down"];
                 }
@@ -243,7 +244,7 @@
             j = o.responseText;
             console.log(j);
             obj = JSON.parse(j);
-            metadata = JSON.parse(obj["metadata"])["meshHeadings"];
+            metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -272,6 +273,7 @@
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
                 var temp = metadatalst[i];
+                temp[1] = JSON.stringify(temp[1]);
                 console.log(temp);
                 dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
             }

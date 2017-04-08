@@ -133,17 +133,15 @@
 
     <script>
         function popup(elements) {
-            elements = elements.split(",");
-            if (elements.length == 1) {
-                elements = elements[0];
-            }
+            var targets = JSON.parse(elements);
             var agreements = "";
             var disagree = "";
-            if (typeof(elements) == "object") {
-                var element = elements[0];
-                var votes = elements[1] + ',' + elements[2];
-                if (votes != "na") {
-                    votes = JSON.parse(votes);
+            var element = targets;
+            if (typeof(targets) == "object") { // Specifies votes were provided
+                element = targets[0];
+                var votes = targets[1];
+                if (votes != "NOVOTES") {
+                    console.log(votes);
                     agreements = votes["up"];
                     disagree = votes["down"];
                 }
@@ -199,8 +197,8 @@
         function meshAdder() {
             var items = $("<ul>", {"class":"list-group"});
             for (var i = 0; i < descriptors.length; i++) {
-                var temp = descriptors[i]["name"];
-                var single = $("<li>", {"class":"list-group-item"}).text(temp).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                var temp = JSON.stringify(descriptors[i]["name"]);
+                var single = $("<li>", {"class":"list-group-item"}).text(descriptors[i]["name"]).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
                 items.append(single);
             }
             var descriptor = $("<div>", {"class": "container"}).append(
@@ -262,7 +260,7 @@
                     metadatalst.push([metadata[j]["name"],metadata[j]["vote"]])
                 }
                 else {
-                    metadatalst.push([metadata[j]["name"],"na"]);
+                    metadatalst.push([metadata[j]["name"],"NOVOTES"]);
                 }
             }
             // Create a modal for each term (approve or reject)
@@ -270,7 +268,7 @@
             dropper.addClass("dropdown");
             for (var i = 0; i < metadatalst.length; i++) {
                 var temp = metadatalst[i];
-                temp[1] = JSON.stringify(temp[1]);
+                temp = JSON.stringify(temp);
                 dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
             }
 

@@ -105,6 +105,14 @@ class User(BaseModel):
 
     class Meta:
         db_table = 'users'
+class User_metadata(BaseModel):
+    metadata_id = peewee.PrimaryKeyField()
+    user_id = CharField()
+    article_pmid = CharField()
+
+    class Meta:
+        db_table = 'user_metadata'
+
 
 """
 Returns a list of relevant columns user wishes to search

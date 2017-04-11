@@ -297,6 +297,23 @@ class SaveArticleHandler(BaseHandler):
         value = self.get_query_argument("id")
         print(value) #THE PMID OF THE ARTICLE THEY WISH TO ADD
         #TODO Update the database to reflect the added value
+        user_data = User_metadata.select().where(User_metadata.user_id == self.get_current_user())
+        if user_data.count == 0:
+            request = User_metadata.insert(
+                user_id = self.get_current_user(),
+                article_pmid = value
+            )
+            request.execute()
+        else:
+            data = next(user_data)
+            if not (data.article_pmid):
+                saved = json.dumps([value])
+            else:
+                vals = json.loads(data.article_pmid)
+                saved = vals.append(value)
+
+            q = User_metadata.update(user_data = saved).where(User_metadata.user_id == self.get_current_user())
+            q.execute()
         self.redirect("/account")
 
 public_key = "private-key"

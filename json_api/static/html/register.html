@@ -78,6 +78,12 @@
             <p id="profile-name" class="profile-name-card"></p>
             <form method="post" action="/register" class="form-signin">
                 <span id="reauth-email" class="reauth-email">Register</span>
+                <div class="alert alert-danger"
+                        {% if failure!=1 %}
+                        style="display: none;"
+                        {% end %}>
+                    <strong>Oh snap!</strong> That email is already in use.
+                </div>
                 <input name="name" type="text" id="inputName" class="form-control" placeholder="Username" required autofocus>
                 <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
                 <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>

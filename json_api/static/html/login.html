@@ -43,9 +43,6 @@
 
     </script>
 </head>
-    {% if message == "Invalid" %}
-        <script>alert("No such user")</script>
-    {% end %}
 
 
 
@@ -102,6 +99,12 @@
             <p id="profile-name" class="profile-name-card"></p>
             <form method="post" action="/login" class="form-signin">
                 <span id="reauth-email" class="reauth-email">Enter Login Credentials</span>
+                <div class="alert alert-danger"
+                        {% if failure!=1 %}
+                        style="display: none;"
+                        {% end %}>
+                    <strong>Oh snap!</strong> Those login credentials were invalid.
+                </div>
                 <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
                 <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
                 <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">Sign in</button>

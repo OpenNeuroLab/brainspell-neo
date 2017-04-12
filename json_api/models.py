@@ -196,18 +196,25 @@ def add_bulk(papers, limit=100): # Papers is the entire formatted data set
         for article in range(0,len(papers), limit): # Inserts limit at a time
             Articles.insert_many(papers[article:article+limit]).execute()
 
-def user_login(email,password):
-        hasher=hashlib.sha1()
-        hasher.update(password)
-        password = hasher.hexdigest()[:52]
-        user = User.select().where((User.emailaddress == email) & (User.password == password))
-        return user.execute()
+def get_saved_articles(email):
+    return User_metadata.select().where(User_metadata.user_id==email).execute()
+
+def user_login(email, password):
+    hasher=hashlib.sha1()
+    hasher.update(password)
+    password = hasher.hexdigest()[:52]
+    user = User.select().where((User.emailaddress == email) & (User.password == password))
+    return user.execute().count == 1
 
 def register_user(username,email,password):
+    if (User.select().where((User.emailaddress == email)).execute().count == 0):
         hasher=hashlib.sha1()
         hasher.update(password)
         password = hasher.hexdigest()
         User.create(username = username, emailaddress = email, password = password)
+        return True
+    else:
+        return False
 
 def generate_circle(coordinate): #Coordinate of form "-26,54,14"
     ordered = [int(x) for x in coordinate.split(",")][0:3] #Ignore z-score

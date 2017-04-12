@@ -14,15 +14,26 @@ import hashlib
 
 from helper_functions import *
 
-# adds function to self; TODO: consider removing
+# adds function to self
 class BaseHandler(tornado.web.RequestHandler):
+    def get_current_email(self): # TODO: add password checking (currently not actually logged in)
+        value = self.get_secure_cookie("email")
+        if value:
+            return value
+        return ""
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        for user in get_user(self.get_current_email()):
+            return user.username
+        return ""
+    def get_current_password(self):
+        return self.get_secure_cookie("password")
+    def is_logged_in(self):
+        return user_login(self.get_current_email(), self.get_current_password())
 
 # front page
 class MainHandler(BaseHandler):
     def get(self):
-        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        email = self.get_current_email()
         try: # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
@@ -31,41 +42,46 @@ class MainHandler(BaseHandler):
             failure = int(self.get_argument("failure", 0))
         except:
             failure = 0
-        self.render("static/html/index.html", title=name, 
+        self.render("static/html/index.html", title=email, 
             queries=Articles.select().wrapped_count(), success=submitted,
             failure=failure)
 
 # login page
 class LoginHandler(BaseHandler):
     def get(self):
-        self.render("static/html/login.html", message="None", title="")
+        self.render("static/html/login.html", message="None", title="", failure=0)
 
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password").encode("utf-8")
-        user = user_login(email,password)
-        if user.count == 0:
-            self.render("static/html/login.html", message="Invalid", title="")
-        else:
-            self.set_secure_cookie("user", email)
+        if user_login(email,password):
+            self.set_secure_cookie("email", email)
+            self.set_secure_cookie("password", password)
             self.redirect("/")
+        else:
+            self.render("static/html/login.html", message="Invalid", title="", failure=1)
 
 # log out the user
 class LogoutHandler(BaseHandler):
     def get(self):
-        self.clear_cookie("user")
+        self.clear_cookie("email")
+        self.clear_cookie("password")
         self.redirect("/")
 
 # registration page
 class RegisterHandler(BaseHandler):
     def get(self):
-        self.render("static/html/register.html", title="")
+        self.render("static/html/register.html", title="", failure=0)
     def post(self):
         username = self.get_body_argument("name").encode('utf-8')
         email = self.get_body_argument("email").encode('utf-8')
         password = self.get_body_argument("password").encode('utf-8')
-        register_user(username,email,password)
-        self.redirect("/login")
+        if register_user(username,email,password):
+            self.set_secure_cookie("email", email)
+            self.set_secure_cookie("password", password)
+            self.redirect("/")
+        else:
+            self.render("static/html/register.html", title="", failure=1)
 
 # search page
 class SearchHandler(BaseHandler):
@@ -73,9 +89,9 @@ class SearchHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         req = self.get_query_argument("req", "t")
-        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        email = self.get_current_email()
         self.render("static/html/search.html", query=q, start=start,
-            title=name, req=req)
+            title=email, req=req)
 
 # API endpoint to fetch PubMed and Neurosynth data using a user specified PMID, and add the article to our database
 class AddArticleEndpointHandler(BaseHandler):
@@ -97,12 +113,11 @@ class ArticleHandler(BaseHandler):
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
         self.render("static/html/view-article.html", id=articleId,
-            title=tornado.escape.xhtml_escape(self.current_user) if self.current_user else "")
+            title=self.get_current_email())
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
-        print("I GOT HERE")
         id = self.get_body_argument("id")
         print(id)
-        user = self.get_current_user()
+        email = self.get_current_email()
         values = ""
         try:
             values = self.get_body_argument("dbChanges")
@@ -110,7 +125,7 @@ class ArticleHandler(BaseHandler):
         except:
             pass
         if values:
-            update_z_scores(id,user,values)
+            update_z_scores(id,email,values)
             self.redirect("/view-article?id=" + str(id))
 
         topic = ""
@@ -121,7 +136,7 @@ class ArticleHandler(BaseHandler):
         except:
             pass
         if topic and direction:
-            update_vote(id,user,topic,direction)
+            update_vote(id,email,topic,direction)
             self.redirect("/view-article?id=" + str(id))
 
 
@@ -202,10 +217,12 @@ class RandomEndpointHandler(BaseHandler):
 # account page
 class AccountHandler(BaseHandler):
     def get(self):
-        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
-        user = next(get_user(name))
-        username = user.username
-        self.render('static/html/account.html', title=name, username=username, message="")
+        if self.is_logged_in():
+            email = self.get_current_email()
+            user = self.get_current_user()
+            self.render('static/html/account.html', title=self.get_current_email(), username=user, message="", password=self.get_current_password())
+        else:
+            self.redirect("/register")
 
     def post(self):
         hasher=hashlib.sha1()
@@ -214,9 +231,8 @@ class AccountHandler(BaseHandler):
         currPassword = self.get_argument("currentPassword").encode('utf-8')
         newPass = self.get_argument("newPassword").encode('utf-8')
         confirmPass = self.get_argument("confirmedPassword")
-        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
-        user = next(get_user(name))
-        username = user.username
+        name = self.get_current_email()
+        user = self.get_current_user()
         hasher.update(currPassword)
         currPassword = hasher.hexdigest()
 
@@ -241,7 +257,7 @@ class AccountHandler(BaseHandler):
 # contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
-        name = tornado.escape.xhtml_escape(self.current_user) if self.current_user else ""
+        name = self.get_current_email()
         self.render('static/html/contribute.html',title=name)
 
 # API endpoint to get the contents of an article (called by the view-article page)
@@ -294,27 +310,34 @@ class BulkAddEndpointHandler(BaseHandler):
 # save an article to a user's account
 class SaveArticleHandler(BaseHandler):
     def get(self):
-        value = self.get_query_argument("id")
-        print(value) #THE PMID OF THE ARTICLE THEY WISH TO ADD
-        #TODO Update the database to reflect the added value
-        user_data = User_metadata.select().where(User_metadata.user_id == self.get_current_user())
-        if user_data.count == 0:
-            request = User_metadata.insert(
-                user_id = self.get_current_user(),
-                article_pmid = value
-            )
-            request.execute()
+        if self.is_logged_in():
+            value = self.get_query_argument("id")
+            User_metadata.insert(user_id = self.get_current_email(), article_pmid = value).execute()
+            self.redirect("/account")
         else:
-            data = next(user_data)
-            if not (data.article_pmid):
-                saved = json.dumps([value])
-            else:
-                vals = json.loads(data.article_pmid)
-                saved = vals.append(value)
+            self.redirect("/view-article?id=" + str(value))
 
-            q = User_metadata.update(user_data = saved).where(User_metadata.user_id == self.get_current_user())
-            q.execute()
-        self.redirect("/account")
+# access a user's saved articles
+class SavedArticlesEndpointHandler(BaseHandler):
+    def post(self):
+        email = self.get_argument("email").encode("utf-8")
+        password = self.get_argument("password").encode("utf-8")
+        if user_login(email, password):
+            articles = get_saved_articles(email)
+            response = {}
+            output_list = []
+            for a in articles:
+                pmid = a.article_pmid
+                info = next(get_article(pmid))
+                articleDict = {}
+                articleDict["pmid"] = pmid
+                articleDict["title"] = info.title
+                output_list.append(articleDict)
+            response["articles"] = output_list
+            self.write(json.dumps(response))
+        else:
+            self.write(json.dumps({"success": 0}))
+
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
@@ -339,6 +362,7 @@ def make_app():
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
+        (r"/json/saved-articles", SavedArticlesEndpointHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),

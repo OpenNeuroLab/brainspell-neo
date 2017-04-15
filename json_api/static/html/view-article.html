@@ -285,7 +285,7 @@
             // TODO: add "action" once that endpoint is finished
             var form = $('<div>', {'id':"locations"});
             // generate experiment tables
-            experimentsObj = jQuery.parseJSON(obj["experiments"]);
+            experimentsObj = jQuery.parseJSON(obj["experiments"].replace(/'/g, '"'));
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
                     var expContainer = $("<div>", {"id": "container" + experimentsObj[i]["id"], "class": "experimentContainer"});
@@ -403,7 +403,14 @@
                     })));
                 }
                 else {
-                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
+//                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
+                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
+                        $(this).css("padding-top", "5px").css("padding-bottom", "5px");
+                        let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
+                        $(this).html("");
+                        $(this).append(textInput);
+                        textInput.focus();
+                    }).text(z_score));
                 }
                 contents.append(row);
             }

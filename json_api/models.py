@@ -248,7 +248,9 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
     target = next(target)
     experiments = eval(target.experiments)
     for key,value in values.items():
-        table,row = key.split(',')[0],key.split(',')[1]
+        table, row = key.split(',')[0],key.split(',')[1]
+        table = eval(table)
+        row = eval(row)
         target = 0
         for i in range(len(experiments)):
             if experiments[i].get('id') == table:

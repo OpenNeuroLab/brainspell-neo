@@ -459,7 +459,7 @@ def make_app():
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
         (r"/oauth", GithubLoginHandler),
-        (r"/github_logout", GithubLogoutHandler)
+        (r"/github_logout", GithubLogoutHandler),
         (r"/save-collection", SaveCollectionHandler)
     ], debug=True, **settings)
 

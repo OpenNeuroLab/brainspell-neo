@@ -11,6 +11,9 @@ import tornado.escape
 from models import *
 import subprocess
 import hashlib
+import torngithub
+from torngithub import json_encode, json_decode
+from tornado.httputil import url_concat
 
 from helper_functions import *
 
@@ -25,6 +28,13 @@ class BaseHandler(tornado.web.RequestHandler):
         for user in get_user(self.get_current_email()):
             return user.username
         return ""
+
+    def get_current_github_user(self):
+        user_json = self.get_secure_cookie("user")
+        if not user_json:
+            return {"name": None, "avatar_url":None}
+        return json_decode(user_json)
+
     def get_current_password(self):
         return self.get_secure_cookie("password")
     def is_logged_in(self):
@@ -34,6 +44,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         email = self.get_current_email()
+        gh_user = self.get_current_github_user()
         try: # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
@@ -42,7 +53,8 @@ class MainHandler(BaseHandler):
             failure = int(self.get_argument("failure", 0))
         except:
             failure = 0
-        self.render("static/html/index.html", title=email, 
+        self.render("static/html/index.html", title=email,
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
             queries=Articles.select().wrapped_count(), success=submitted,
             failure=failure)
 
@@ -339,15 +351,56 @@ class SavedArticlesEndpointHandler(BaseHandler):
             self.write(json.dumps({"success": 0}))
 
 
+class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
+    @tornado.gen.coroutine
+    def get(self):
+        # we can append next to the redirect uri, so the user gets the
+        # correct URL on login
+        redirect_uri = url_concat(self.request.protocol
+                                  + "://" + self.request.host
+                                  + "/oauth",
+                                  {"next": self.get_argument('next', '/')})
+
+        # if we have a code, we have been authorized so we can log in
+        if self.get_argument("code", False):
+            user = yield self.get_authenticated_user(
+                redirect_uri=redirect_uri,
+                client_id= settings["github_client_id"],
+                client_secret= settings["github_client_secret"],
+                code=self.get_argument("code"))
+            if user:
+                self.set_secure_cookie("user", json_encode(user))
+            else:
+                self.clear_cookie("user")
+            self.redirect(self.get_argument("next","/"))
+            return
+
+        # otherwise we need to request an authorization code
+        yield self.authorize_redirect(
+            redirect_uri=redirect_uri,
+            client_id=self.settings["github_client_id"])#,
+            #extra_params={"scope": self.settings['github_scope'], "foo":1})
+
+class GithubLogoutHandler(BaseHandler):
+    def get(self):
+        self.clear_cookie("user")
+        self.redirect(self.get_argument("next", "/"))
+
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
+assert "github_client_id" in os.environ, "set your github_client_id env variable, and register your app at https://github.com/settings/developers"
+assert "github_client_secret" in os.environ, "set your github_client_secret env variable, and register your app at https://github.com/settings/developers"
+
+
 settings = {
     "cookie_secret": public_key,
     "login_url": "/login",
-    "compress_response":True
+    "compress_response":True,
+    "github_client_id": os.environ["github_client_id"],
+    "github_client_secret": os.environ["github_client_secret"]
 }
 
 def make_app():
@@ -371,14 +424,16 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
-        (r"/save-article", SaveArticleHandler)
+        (r"/save-article", SaveArticleHandler),
+        (r"/oauth", GithubLoginHandler),
+        (r"/github_logout", GithubLogoutHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":
+    tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))
     http_server.listen(port) # runs at localhost:5000
     print("Running Brainspell at http://localhost:5000...")
     tornado.ioloop.IOLoop.current().start()
-

@@ -391,8 +391,13 @@ if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
-assert "github_client_id" in os.environ, "set your github_client_id env variable, and register your app at https://github.com/settings/developers"
-assert "github_client_secret" in os.environ, "set your github_client_secret env variable, and register your app at https://github.com/settings/developers"
+
+if not "github_client_id" in os.environ:
+    print("set your github_client_id env variable, and register your app at https://github.com/settings/developers")
+    os.environ["github_client_id"] = "gh_client_id"
+if not "github_client_secret" in os.environ:
+    print("set your github_client_secret env variable, and register your app at https://github.com/settings/developers")
+    os.environ["github_client_secret"] = "github_client_secret"
 
 
 settings = {

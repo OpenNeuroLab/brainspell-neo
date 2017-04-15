@@ -111,6 +111,7 @@ class User_metadata(BaseModel):
     metadata_id = peewee.PrimaryKeyField()
     user_id = CharField()
     article_pmid = CharField()
+    collection = CharField()
 
     class Meta:
         db_table = 'user_metadata'

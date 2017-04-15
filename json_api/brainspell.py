@@ -407,13 +407,99 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
         # otherwise we need to request an authorization code
         yield self.authorize_redirect(
             redirect_uri=redirect_uri,
-            client_id=self.settings["github_client_id"])#,
-            #extra_params={"scope": self.settings['github_scope'], "foo":1})
+            client_id=self.settings["github_client_id"],
+            extra_params={"scope": "repo"})
 
 class GithubLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
         self.redirect(self.get_argument("next", "/"))
+
+def parse_link(link):
+    linkmap = {}
+    for s in link.split(","):
+        s = s.strip();
+        linkmap[s[-5:-1]] = s.split(";")[0].rstrip()[1:-1]
+    return linkmap
+
+def get_last_page_num(link):
+    if not link:
+        return 0
+    linkmap = parse_link(link)
+    matches = re.search(r"[?&]page=(\d+)", linkmap["last"])
+    return int(matches.group(1))
+
+@tornado.gen.coroutine
+def get_my_repos(http_client, access_token):
+    data = []
+    first_page = yield torngithub.github_request(
+        http_client, '/user/repos?page=1&per_page=100',
+        access_token=access_token)
+    #log.info(first_page.headers.get('Link', ''))
+    data.extend(first_page.body)
+    max_pages = get_last_page_num(first_page.headers.get('Link', ''))
+
+    ress = yield [torngithub.github_request(
+        http_client, '/user/repos?per_page=100&page=' + str(i),
+        access_token=access_token) for i in range(2, max_pages + 1)]
+
+    for res in ress:
+        data.extend(res.body)
+
+    raise tornado.gen.Return(data)
+
+
+
+class ReposHandler(BaseHandler, torngithub.GithubMixin):
+    #@tornado.web.authenticated
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+        starttime = time.time()
+
+        gh_user = self.get_current_github_user()
+
+        data = yield get_my_repos(self.get_auth_http_client(),
+                                  gh_user['access_token'])
+
+        endtime = time.time()
+        self.render("static/html/github_account.html",
+            info=[d for d in data if d["name"].startswith("brainspell-collection")],
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
+
+class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        name = self.get_argument("name")
+        desc = self.get_argument("description")
+        if not name:
+            self.write("")
+        else:
+            gh_user = self.get_current_github_user()
+            body = {
+              "name": "brainspell-collection-{}".format(name),
+              "description": desc,
+              "homepage": "https://brainspell-neo.herokuapp.com",
+              "private": False,
+              "has_issues": True,
+              "has_projects": True,
+              "has_wiki": True
+            }
+            ress = yield [torngithub.github_request(
+                self.get_auth_http_client(), '/user/repos',
+                access_token=gh_user['access_token'],
+                method="POST",
+                body=body)]
+            data = []
+            for res in ress:
+                data.extend(res.body)
+
+            endtime = time.time()
+            #print(data)
+            return self.redirect("/repos")
+
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
@@ -462,7 +548,9 @@ def make_app():
         (r"/save-article", SaveArticleHandler),
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
-        (r"/save-collection", SaveCollectionHandler)
+        (r"/save-collection", SaveCollectionHandler),
+        (r"/repos", ReposHandler),
+        (r"/create_repo", NewRepoHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

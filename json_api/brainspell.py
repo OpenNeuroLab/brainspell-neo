@@ -116,7 +116,7 @@ class ArticleHandler(BaseHandler):
             title=self.get_current_email())
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
-        print("The ID I saw is ",id)
+        print("The ID I saw is", id)
         email = self.get_current_email()
         values = ""
 
@@ -124,6 +124,7 @@ class ArticleHandler(BaseHandler):
             values = self.get_body_argument("dbChanges")
             values = json.loads(values) #z-values in dictionary
             print("I got values")
+            print(values)
         except:
             pass
         if values:

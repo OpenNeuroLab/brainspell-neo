@@ -21,6 +21,12 @@
         padding-top: 70px;
         /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
     }
+
+    {% if title=="" %}
+    .must-login {
+        display: none;
+    }
+    {% end %}
     </style>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -218,7 +224,7 @@
                     $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results "
                             + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"])
                             + obj["articles"].length) + "."));
-                    $("#searchResults").append("<input type='submit' onclick='saveCollection()' class='btn btn-default' value='Save collection'>"); // TODO: make this correct DOM generation
+                    $("#searchResults").append("<input type='submit' onclick='saveCollection()' class='must-login btn btn-default' value='Save collection'>"); // TODO: make this correct DOM generation
 
                 } else {
                     document.getElementById("add-article-form").style.display = "block";
@@ -227,7 +233,7 @@
                 for (var i = 0; i < obj.length; i++) {
                     var article = obj[i];
                     var $result = $resultClone.clone();
-                    $result.append($("<span style='padding-right:6px;'><input name='collection' value='" + article["id"] + "' type='checkbox'></span>")); // TODO: make this correct DOM generation
+                    $result.append($("<span class='must-login' style='padding-right:6px;'><input name='collection' value='" + article["id"] + "' type='checkbox'></span>")); // TODO: make this correct DOM generation
                     $result.append($("<a>", {"href": "view-article?id=" + article["id"]}).text(article["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
                     $result.append($("<p>").text(article["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
                     $("#searchResults").append($result);

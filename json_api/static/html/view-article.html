@@ -283,7 +283,7 @@
             $("#articleContents").append(dropper);
 
             // TODO: add "action" once that endpoint is finished
-            var form = $('<form>', {"method":"post","action":"/view-article",'id':"locations", "onsubmit": "submitHandler();"});
+            var form = $('<div>', {'id':"locations"});
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"]);
             for (var i = 0; i < experimentsObj.length; i++) {
@@ -332,7 +332,7 @@
             form.append($("<div>").css("clear", "both"));
 
             if (experimentsObj.length > 0) {
-                form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":`submitHandler()`}).css("margin-top", "30px").text("Save Scores"));
+                form.append($("<button>", {"id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).css("margin-top", "30px").text("Save Scores"));
                 $("#articleContents").append(form);
             }
             $(".experimentContainer").each(function() {
@@ -450,12 +450,21 @@
             }
             changes = JSON.stringify(changes);
             console.log(changes);
-            var form = $("<form>", {"method":"post","action":"/view-article","id":"locator"});
-            form.append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
-            form.append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
-            document.getElementById("locator").submit();
-//             location.reload();
-            return true;
+
+
+            $.ajax({
+                type: "POST", 
+                url: "/view-article",
+                data: {
+                    "dbChanges": changes,
+                    "id": getID()
+                }
+            }).complete(function(o) {
+                //console.log(o);
+                location.reload();
+            });
+            //location.reload();
+            //return true;
         }
 
         function getaURL(name, url) {

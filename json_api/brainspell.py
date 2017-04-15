@@ -308,7 +308,7 @@ class BulkAddEndpointHandler(BaseHandler):
         self.write(json.dumps(response))
 
 # save an article to a user's account
-class SaveArticleHandler(BaseHandler):
+class SaveArticleHandler(BaseHandler): # TODO: change to a JSON endpoint
     def get(self):
         if self.is_logged_in():
             value = self.get_query_argument("id")
@@ -316,6 +316,16 @@ class SaveArticleHandler(BaseHandler):
             self.redirect("/account")
         else:
             self.redirect("/view-article?id=" + str(value))
+
+# delete a saved article
+class DeleteArticleEndpointHandler(BaseHandler):
+    def get(self):
+        if self.is_logged_in():
+            value = self.get_query_argument("article")
+            User_metadata.delete().where(User_metadata.user_id == self.get_current_email(), User_metadata.metadata_id == value).execute()
+            self.write(json.dumps({"success": 1}))
+        else:
+            self.write(json.dumps({"success": 0}))
 
 # access a user's saved articles
 class SavedArticlesEndpointHandler(BaseHandler):
@@ -330,14 +340,30 @@ class SavedArticlesEndpointHandler(BaseHandler):
                 pmid = a.article_pmid
                 info = next(get_article(pmid))
                 articleDict = {}
+                articleDict["id"] = a.metadata_id
                 articleDict["pmid"] = pmid
                 articleDict["title"] = info.title
+                articleDict["collection"] = a.collection
                 output_list.append(articleDict)
             response["articles"] = output_list
             self.write(json.dumps(response))
         else:
             self.write(json.dumps({"success": 0}))
 
+# save an article to a user's account
+class SaveCollectionHandler(BaseHandler):
+    def post(self):
+        if self.is_logged_in():
+            articles_encoded = self.request.arguments["articles[]"] # TODO: look into "get_arguments" function
+            collection_name = self.request.arguments["collection"][0].decode("utf-8")
+            articles_decoded = []
+            for a in articles_encoded:
+                article = a.decode('utf-8') # TODO: move save article operations to models.py
+                User_metadata.insert(user_id = self.get_current_email(), 
+                    article_pmid = article, collection = collection_name).execute()
+        else:
+            pass
+            # self.redirect("/view-article?id=" + str(value))
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
@@ -363,6 +389,7 @@ def make_app():
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),
+        (r"/json/delete-article", DeleteArticleEndpointHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),
@@ -371,7 +398,8 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
-        (r"/save-article", SaveArticleHandler)
+        (r"/save-article", SaveArticleHandler),
+        (r"/save-collection", SaveCollectionHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":

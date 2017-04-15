@@ -218,6 +218,7 @@
                     $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results "
                             + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"])
                             + obj["articles"].length) + "."));
+                    $("#searchResults").append("<input type='submit' onclick='saveCollection()' class='btn btn-default' value='Save collection'>"); // TODO: make this correct DOM generation
 
                 } else {
                     document.getElementById("add-article-form").style.display = "block";
@@ -226,6 +227,7 @@
                 for (var i = 0; i < obj.length; i++) {
                     var article = obj[i];
                     var $result = $resultClone.clone();
+                    $result.append($("<span style='padding-right:6px;'><input name='collection' value='" + article["id"] + "' type='checkbox'></span>")); // TODO: make this correct DOM generation
                     $result.append($("<a>", {"href": "view-article?id=" + article["id"]}).text(article["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
                     $result.append($("<p>").text(article["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
                     $("#searchResults").append($result);
@@ -243,6 +245,31 @@
             } else {
                 document.getElementById("pmid-warning").style.display = "block";
             }
+        }
+        
+
+        function saveCollection() {
+            var articles = [];
+            $.each($("input[name='collection']:checked"), function(){            
+                articles.push($(this).val());
+            });
+
+            collectionName = prompt("Enter the collection name:", "");
+
+            //alert("Articles to save: " + articles.join(", "));
+
+            $.ajax({
+                type: "POST", 
+                url: "/save-collection",
+                data: {
+                    "articles": articles,
+                    "collection": collectionName
+                }
+            }).complete(function(o) {
+                // window.location("/account")
+                console.log(o);
+                //alert("Feature not implemented yet.");
+            });
         }
 
         // brain widgets

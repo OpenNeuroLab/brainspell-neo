@@ -14,7 +14,7 @@ import hashlib
 import torngithub
 from torngithub import json_encode, json_decode
 from tornado.httputil import url_concat
-
+from base64 import b64encode
 from helper_functions import *
 
 # adds function to self
@@ -455,16 +455,47 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-        starttime = time.time()
+
+        try:
+            return_list = self.get_argument("list")
+        except tornado.web.MissingArgumentError: #AK: This is hacky.
+            return_list = False
+        try:
+            pmid = self.get_argument("pmid")
+        except tornado.web.MissingArgumentError: #AK: This is again hacky.
+            pmid = False
 
         gh_user = self.get_current_github_user()
 
         data = yield get_my_repos(self.get_auth_http_client(),
                                   gh_user['access_token'])
+        repos = [d for d in data if d["name"].startswith("brainspell-collection")]
 
-        endtime = time.time()
-        self.render("static/html/github_account.html",
-            info=[d for d in data if d["name"].startswith("brainspell-collection")],
+        if pmid:
+            #TODO: Ideally this information would be store in the database
+            #this is pretty hacky. I'm checking each collection for this pmid
+            for repo in repos:
+                try:
+                    sha_data = yield [torngithub.github_request(
+                            self.get_auth_http_client(),
+                                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                  repo=repo["name"],
+                                                                  path="{}.json".format(pmid)),
+                            access_token=gh_user['access_token'],
+                            method="GET")]
+
+                    sha = [s["body"]["sha"] for s in sha_data]
+                    if sha:
+                        repo["in_collection"] = True
+                except tornado.auth.AuthError:
+                    repo["in_collection"] = False
+
+
+        if return_list:
+            self.write(json_encode(repos))
+        else:
+            self.render("static/html/github_account.html",
+            info=repos,
             github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
@@ -499,6 +530,73 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
             endtime = time.time()
             #print(data)
             return self.redirect("/repos")
+
+class NewFileHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        collection = self.get_argument("collection")
+        pmid = self.get_argument("pmid")
+        entry = {"pmid": pmid,
+                 "notes": "Here are my notes on this article"}
+        content = b64encode(json_encode(entry).encode("utf=8"))
+        gh_user = self.get_current_github_user()
+
+        body = {
+              "message": "adding {} to collection".format(pmid),
+              "content": content
+            }
+        ress = yield [torngithub.github_request(
+            self.get_auth_http_client(),
+                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                  repo=collection,
+                                                  path="{}.json".format(pmid)),
+            access_token=gh_user['access_token'],
+            method="PUT",
+            body=body)]
+        data = []
+        for res in ress:
+            data.extend(res.body)
+
+        endtime = time.time()
+
+
+class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        collection = self.get_argument("collection")
+        pmid = self.get_argument("pmid")
+        entry = {"pmid": pmid,
+                 "notes": "Here are my notes on this article"}
+        content = b64encode(json_encode(entry).encode("utf=8"))
+        gh_user = self.get_current_github_user()
+
+        body = {
+              "message": "deleting {} to collection".format(pmid),
+            }
+
+        sha_data = yield [torngithub.github_request(
+                    self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                          repo=collection,
+                                                          path="{}.json".format(pmid)),
+                    access_token=gh_user['access_token'],
+                    method="GET")]
+
+        sha = [s["body"]["sha"] for s in sha_data][0]
+
+        ress = yield [torngithub.github_request(
+            self.get_auth_http_client(),
+                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                  repo=collection,
+                                                  path="{}.json".format(pmid)),
+            access_token=gh_user['access_token'],
+            method="DELETE",
+            body={"sha":sha,"message":"removing {} from collection".format(pmid)})]
+
 
 
 public_key = "private-key"
@@ -550,11 +648,14 @@ def make_app():
         (r"/github_logout", GithubLogoutHandler),
         (r"/save-collection", SaveCollectionHandler),
         (r"/repos", ReposHandler),
-        (r"/create_repo", NewRepoHandler)
+        (r"/create_repo", NewRepoHandler),
+        (r"/add-to-collection", NewFileHandler),
+        (r"/remove-from-collection", DeleteFileHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":
-    tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+    tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient",
+        defaults={"allow_nonstandard_methods":True})
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))

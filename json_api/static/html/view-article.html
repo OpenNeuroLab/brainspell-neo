@@ -13,11 +13,16 @@
 
     <!-- Bootstrap Core CSS -->
     <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/location-table.css" rel="stylesheet">
+
     <link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">
+    <link href="/static/css/view-article.css" rel="stylesheet">
     <link href="/static/css/view-article.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/definitions.js"></script>
     <script type="text/javascript" src="/static/js/brainsprite.min.js"></script>
+    <link href="/static/css/select2.min.css" rel="stylesheet">
+    <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="http://spin.js.org/spin.min.js"></script>
+
 
     <!-- Custom CSS -->
     <style>
@@ -115,6 +120,14 @@
             <div class="col-lg-12 text-center">
                 <h1>Brainspell</h1>
                 <p class="lead">An open, human-curated classification of neuroimaging literature.</p>
+                {% if github_user %}
+                <div id="github_collections_div">
+                  <label for="id_label_multiple">
+                    Add to Github Collections:
+                  </label>
+                  <select class="js-example-basic-multiple js-states form-control" id="github_collections" multiple="multiple"></select>
+                  {% end %}
+                </div>
             </div>
         </div>
         <!-- /.row -->
@@ -130,18 +143,71 @@
 
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
-
+    <script type="text/javascript" src="/static/js/select2.full.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
-
+    <link href="/static/css/location-table.css" rel="stylesheet">
     <script src="/static/js/three.min.js"></script>
     <script src="/static/js/detector.js"></script>
     <script src='/static/js/subdivision-modifier.js'></script>
     <script src="/static/js/PLYLoader.js"></script>
     <script src="/static/js/trackball-controls.js"></script>
     <script src="/static/js/brain-widget.js"></script>
+    <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 
     <script>
+    var opts = {
+      lines: 13 // The number of lines to draw
+      , length: 28 // The length of each line
+      , width: 14 // The line thickness
+      , radius: 42 // The radius of the inner circle
+      , scale: 0.25 // Scales overall size of the spinner
+      , corners: 1 // Corner roundness (0..1)
+      , color: '#000' // #rgb or #rrggbb or array of colors
+      , opacity: 0.25 // Opacity of the lines
+      , rotate: 0 // The rotation offset
+      , direction: 1 // 1: clockwise, -1: counterclockwise
+      , speed: 1 // Rounds per second
+      , trail: 60 // Afterglow percentage
+      , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+      , zIndex: 2e9 // The z-index (defaults to 2000000000)
+      , className: 'spinner' // The CSS class to assign to the spinner
+      , top: '82%' // Top position relative to parent
+      , left: '50%' // Left position relative to parent
+      , shadow: false // Whether to render a shadow
+      , hwaccel: false // Whether to use hardware acceleration
+      , position: 'absolute' // Element positioning
+      }
+      var target = document.getElementById('github_collections_div')
+      var spinner = new Spinner(opts).spin(target);
+      console.log(spinner)
+      $.get("/repos?list=1&pmid={{id}}", function(data, err){
+        var data = JSON.parse(data)
+        var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
+        var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
+                                  function(d){return d.name.replace("brainspell-collection-","")})
+        $("#github_collections").select2({data: coll_names, theme: "bootstrap"});
+        $("#github_collections").val(in_collection).trigger("change")
+        spinner.stop(target)
+        $("#github_collections").on("select2:select", function (e) {
+          console.log("You want to add this pmid {{id}} to collection:", e.params.data.id)
+          $.post("/add-to-collection?"+$.param({pmid: {{id}},
+           collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
+             console.log(err)
+           })
+
+        });
+        $("#github_collections").on("select2:unselect", function (e) {
+          console.log("You want to remove this pmid {{id}} from collection:", e.params.data.id)
+          $.post("/remove-from-collection?"+$.param({pmid: {{id}},
+           collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
+             console.log(err)
+           })
+        });
+      })
+
+
+
         function popup(elements) {
             var targets = JSON.parse(elements);
             var agreements = "";

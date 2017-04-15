@@ -176,6 +176,15 @@
 
     <script>
 
+    function deleteArticle(id) {
+      $.ajax({
+          type: "GET", 
+          url: "/json/delete-article?article=" + id,
+      }).complete(function(o) {
+        location.reload();
+      });
+    }
+
     $(
       $.ajax({
           type: "POST", 
@@ -188,14 +197,35 @@
           j = o.responseText;
           console.log(j);
           obj = JSON.parse(j);
-          var articlesUl = $("<ul>")
+
+          var collections = {};
+
           for (var i = 0; i < obj["articles"].length; i++) {
-            console.log(obj["articles"][i])
-            articlesUl.append($("<li>").append($("<a>").attr("href", 
-              "/view-article?id=" + obj["articles"][i]["pmid"]).text(obj["articles"][i]["title"])))
+            //console.log(obj["articles"][i])
+            article = obj["articles"][i]
+            if (obj["articles"][i]["collection"] in collections) {
+              collections[obj["articles"][i]["collection"]].push(article);
+            } else {
+              collections[obj["articles"][i]["collection"]] = [article];
+            }
           }
+
           $("#saved-articles").html("")
-          $("#saved-articles").append(articlesUl)
+
+          for (var c in collections) {
+            var tempTitle = c;
+            if (tempTitle == "null") {
+              tempTitle = "(No collection)";
+            }
+            $("#saved-articles").append($("<h5>").text(tempTitle));
+            var articlesUl = $("<ul>")
+            for (var i = 0; i < collections[c].length; i++) {
+              article = collections[c][i];
+              articlesUl.append($("<li>").append($("<a>").attr("href", 
+                "/view-article?id=" + article["pmid"]).text(article["title"])).append($("<span>").css("padding-left", "3px").append("(").append($("<a>").text("X").attr("href", "#!").attr("onclick", "deleteArticle(" + article["id"] + ")")).append(")")))
+            }
+            $("#saved-articles").append(articlesUl)
+          }
       })
     );
 

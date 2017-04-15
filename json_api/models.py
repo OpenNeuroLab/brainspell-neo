@@ -105,6 +105,8 @@ class User(BaseModel):
 
     class Meta:
         db_table = 'users'
+
+
 class User_metadata(BaseModel):
     metadata_id = peewee.PrimaryKeyField()
     user_id = CharField()
@@ -155,7 +157,7 @@ def parse(query): # TODO: needs to be commented
 # used by the search page; an overloaded function that returns either the results of a search, or the experiments that correspond to the articles
 def formatted_search(query, start, param=None, experiments=False): # param specifies dropdown value from search bar; experiments specifies whether to only return the experiments
     (columns,term,formatted_query) = parse(query)
-    query = formatted_query.replace(" ", "%")
+
     if columns:
         search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(term).limit(10).offset(start)
         return search.execute()
@@ -246,11 +248,18 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
     experiments = eval(target.experiments)
     for key,value in values.items():
         table,row = key.split(',')[0],key.split(',')[1]
-        position = experiments[int(table)]
-        location_set = position['locations'][int(key[1])]
+        target = 0
+        for i in range(len(experiments)):
+            if experiments[i].get('id') == table:
+                target = i
+                break
+        position = experiments[target]
+        location_set = position['locations'][row]
         location_set = location_set + ',' + str(value)
-        experiments[int(key[0])]['locations'][int(key[1])] = location_set
+        experiments[target]['locations'][row] = location_set
         query = Articles.update(experiments=experiments).where(Articles.pmid == id)
+        query.execute()
+
 
 def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
     main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
@@ -267,7 +276,7 @@ def update_vote(id,user,topic,direction): #TODO save the user that changed the v
     if target[value].get("vote"):
         target[value]["vote"][direction] += 1
     else:
-        target[value]["vote"] = {"up":0,"down":1}
+        target[value]["vote"] = {"up":0,"down":0}
         target[value]["vote"][direction] += 1
     new = {}
     new['meshHeadings'] = target

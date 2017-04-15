@@ -289,7 +289,8 @@
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
                     var expContainer = $("<div>", {"id": "container" + experimentsObj[i]["id"], "class": "experimentContainer"});
-                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], count, i));
+
+                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i));
                     form.append(expContainer);
                     count++;
                 }
@@ -331,7 +332,7 @@
             form.append($("<div>").css("clear", "both"));
 
             if (experimentsObj.length > 0) {
-                form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).css("margin-top", "30px").text("Save Scores"));
+                form.append($("<button>", {"type":"submit","id":"scorer","class":"btn btn-default","onclick":`submitHandler()`}).css("margin-top", "30px").text("Save Scores"));
                 $("#articleContents").append(form);
             }
             $(".experimentContainer").each(function() {
@@ -436,22 +437,27 @@
 
         // Add altered values to database
         function submitHandler() {
+            console.log(getID());
+
             var changes = {};
-            for (var table = count-2; table >= 0; table--) {
-                for (var row = 0; row < experimentsObj[table]["locations"].length;row++) {
+            for (var t = 0; t < experimentsObj.length; t++) {
+                for (var row = 0; row < experimentsObj[t]["locations"].length; row++) {
+                    var table = experimentsObj[t]["id"];
                     if ($("#" + table + row).val() != "") {
-                        changes["" + table - 1 +','+ row] = $("#" + table + row).val()
+                        changes["" + table +','+ row] = $("#" + table + row).val()
                     }
                 }
             }
-
             changes = JSON.stringify(changes);
             console.log(changes);
-            $("#locations").append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
-            $("#locations").append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
-            // location.reload();
+            var form = $("<form>", {"method":"post","action":"/view-article","id":"locator"});
+            form.append("<input type='hidden' name='dbChanges' id='dbChanges' value='" + changes + "'/>");
+            form.append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
+            document.getElementById("locator").submit();
+//             location.reload();
             return true;
         }
+
         function getaURL(name, url) {
             if (!url) {
               url = window.location.href;

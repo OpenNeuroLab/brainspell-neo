@@ -115,13 +115,15 @@ class ArticleHandler(BaseHandler):
         self.render("static/html/view-article.html", id=articleId,
             title=self.get_current_email())
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
-        id = self.get_body_argument("id")
-        print(id)
+        id = self.get_body_argument('id')
+        print("The ID I saw is ",id)
         email = self.get_current_email()
         values = ""
+
         try:
             values = self.get_body_argument("dbChanges")
             values = json.loads(values) #z-values in dictionary
+            print("I got values")
         except:
             pass
         if values:
@@ -310,8 +312,8 @@ class BulkAddEndpointHandler(BaseHandler):
 # save an article to a user's account
 class SaveArticleHandler(BaseHandler):
     def get(self):
+        value = self.get_query_argument("id")
         if self.is_logged_in():
-            value = self.get_query_argument("id")
             User_metadata.insert(user_id = self.get_current_email(), article_pmid = value).execute()
             self.redirect("/account")
         else:

@@ -1,9 +1,6 @@
 import nltk
 
-text = """The Buddha, the Godhead, resides quite as comfortably in the circuits of a digital
-computer or the gears of a cycle transmission as he does at the top of a mountain
-or in the petals of a flower. To think otherwise is to demean the Buddha...which is
-to demean oneself."""
+text = "" # TO be included from the Article Abstract 
 
 # Used when tokenizing words
 sentence_re = r'''(?x)      # set flag to allow verbose regexps

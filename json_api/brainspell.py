@@ -124,7 +124,9 @@ class ArticleHandler(BaseHandler):
             articleId = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
+        gh_user = self.get_current_github_user()
         self.render("static/html/view-article.html", id=articleId,
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
             title=self.get_current_email())
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
@@ -372,7 +374,7 @@ class SaveCollectionHandler(BaseHandler):
             articles_decoded = []
             for a in articles_encoded:
                 article = a.decode('utf-8') # TODO: move save article operations to models.py
-                User_metadata.insert(user_id = self.get_current_email(), 
+                User_metadata.insert(user_id = self.get_current_email(),
                     article_pmid = article, collection = collection_name).execute()
         else:
             pass

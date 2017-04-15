@@ -92,6 +92,16 @@
                 {% if title!="" %}
                     <a href="./account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
                 {% end %}
+                {% if github_user %}
+                <img class="navbar-brand navbar-right img-circle" src="{{github_avatar}}"/>
+                <div class="navbar-brand navbar-right" style="font-size:1em;">
+                  Welcome {{ github_user }}, <a href="/github_logout">logout</a>
+                </div>
+                {% else %}
+                <div class="navbar-brand navbar-right" style="font-size:1em;">
+                  <a href="/oauth">login with GitHub</a>
+                </div>
+                {% end %}
             </div>
             <!-- /.navbar-collapse -->
         </div>
@@ -460,7 +470,7 @@
 
 
             $.ajax({
-                type: "POST", 
+                type: "POST",
                 url: "/view-article",
                 data: {
                     "dbChanges": changes,

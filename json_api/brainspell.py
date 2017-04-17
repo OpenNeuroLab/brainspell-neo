@@ -17,13 +17,15 @@ from tornado.httputil import url_concat
 from base64 import b64encode
 from helper_functions import *
 
+
 # adds function to self
 class BaseHandler(tornado.web.RequestHandler):
-    def get_current_email(self): # TODO: add password checking (currently not actually logged in)
+    def get_current_email(self):  # TODO: add password checking (currently not actually logged in)
         value = self.get_secure_cookie("email")
         if value:
             return value
         return ""
+
     def get_current_user(self):
         for user in get_user(self.get_current_email()):
             return user.username
@@ -32,20 +34,22 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_github_user(self):
         user_json = self.get_secure_cookie("user")
         if not user_json:
-            return {"name": None, "avatar_url":None}
+            return {"name": None, "avatar_url": None}
         return json_decode(user_json)
 
     def get_current_password(self):
         return self.get_secure_cookie("password")
+
     def is_logged_in(self):
         return user_login(self.get_current_email(), self.get_current_password())
+
 
 # front page
 class MainHandler(BaseHandler):
     def get(self):
         email = self.get_current_email()
         gh_user = self.get_current_github_user()
-        try: # handle failures in bulk_add
+        try:  # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
             submitted = 0
@@ -54,9 +58,10 @@ class MainHandler(BaseHandler):
         except:
             failure = 0
         self.render("static/html/index.html", title=email,
-            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-            queries=Articles.select().wrapped_count(), success=submitted,
-            failure=failure)
+                    github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
+                    queries=Articles.select().wrapped_count(), success=submitted,
+                    failure=failure)
+
 
 # login page
 class LoginHandler(BaseHandler):
@@ -66,12 +71,13 @@ class LoginHandler(BaseHandler):
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password").encode("utf-8")
-        if user_login(email,password):
+        if user_login(email, password):
             self.set_secure_cookie("email", email)
             self.set_secure_cookie("password", password)
             self.redirect("/")
         else:
             self.render("static/html/login.html", message="Invalid", title="", failure=1)
+
 
 # log out the user
 class LogoutHandler(BaseHandler):
@@ -80,20 +86,23 @@ class LogoutHandler(BaseHandler):
         self.clear_cookie("password")
         self.redirect("/")
 
+
 # registration page
 class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html", title="", failure=0)
+
     def post(self):
         username = self.get_body_argument("name").encode('utf-8')
         email = self.get_body_argument("email").encode('utf-8')
         password = self.get_body_argument("password").encode('utf-8')
-        if register_user(username,email,password):
+        if register_user(username, email, password):
             self.set_secure_cookie("email", email)
             self.set_secure_cookie("password", password)
             self.redirect("/")
         else:
             self.render("static/html/register.html", title="", failure=1)
+
 
 # search page
 class SearchHandler(BaseHandler):
@@ -103,18 +112,20 @@ class SearchHandler(BaseHandler):
         req = self.get_query_argument("req", "t")
         email = self.get_current_email()
         self.render("static/html/search.html", query=q, start=start,
-            title=email, req=req)
+                    title=email, req=req)
+
 
 # API endpoint to fetch PubMed and Neurosynth data using a user specified PMID, and add the article to our database
 class AddArticleEndpointHandler(BaseHandler):
     def get(self):
         pmid = self.get_query_argument("pmid", "")
         x = getArticleData(pmid)
-        request = Articles.insert(abstract=x["abstract"],doi=x["DOI"],authors=x["authors"],
-                                  experiments=x["coordinates"],title=x["title"])
+        request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
+                                  experiments=x["coordinates"], title=x["title"])
         request.execute()
         response = {"success": 1}
         self.write(json.dumps(response))
+
 
 # view-article page
 class ArticleHandler(BaseHandler):
@@ -123,24 +134,25 @@ class ArticleHandler(BaseHandler):
         try:
             articleId = self.get_query_argument("id")
         except:
-            self.redirect("/") # id wasn't passed; redirect to home page
+            self.redirect("/")  # id wasn't passed; redirect to home page
         gh_user = self.get_current_github_user()
         self.render("static/html/view-article.html", id=articleId,
-            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-            title=self.get_current_email())
-    def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
+                    github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
+                    title=self.get_current_email())
+
+    def post(self):  # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
         email = self.get_current_email()
         values = ""
 
         try:
             values = self.get_body_argument("dbChanges")
-            values = json.loads(values) #z-values in dictionary
+            values = json.loads(values)  # z-values in dictionary
             print(values)
         except:
             pass
         if values:
-            update_z_scores(id,email,values)
+            update_z_scores(id, email, values)
             self.redirect("/view-article?id=" + str(id))
 
         topic = ""
@@ -151,10 +163,8 @@ class ArticleHandler(BaseHandler):
         except:
             pass
         if topic and direction:
-            update_vote(id,email,topic,direction)
+            update_vote(id, email, topic, direction)
             self.redirect("/view-article?id=" + str(id))
-
-
 
 
 # API endpoint to handle search queries; returns 10 results at a time
@@ -187,6 +197,7 @@ class SearchEndpointHandler(BaseHandler):
             response["start_index"] = start
         self.write(json.dumps(response))
 
+
 # API endpoint to fetch coordinates from all articles that match a query; returns 200 sets of coordinates at a time
 class CoordinatesEndpointHandler(BaseHandler):
     def get(self):
@@ -202,12 +213,13 @@ class CoordinatesEndpointHandler(BaseHandler):
             try:
                 article_dict = {}
                 experiments = json.loads(article.experiments)
-                for c in experiments: # get the coordinates from the experiments
+                for c in experiments:  # get the coordinates from the experiments
                     output_list.extend(c["locations"])
             except:
                 pass
         response["coordinates"] = output_list
         self.write(json.dumps(response))
+
 
 # API endpoint that returns five random articles; used on the front page of Brainspell
 class RandomEndpointHandler(BaseHandler):
@@ -229,18 +241,20 @@ class RandomEndpointHandler(BaseHandler):
         response["articles"] = output_list
         self.write(json.dumps(response))
 
+
 # account page
 class AccountHandler(BaseHandler):
     def get(self):
         if self.is_logged_in():
             email = self.get_current_email()
             user = self.get_current_user()
-            self.render('static/html/account.html', title=self.get_current_email(), username=user, message="", password=self.get_current_password())
+            self.render('static/html/account.html', title=self.get_current_email(), username=user, message="",
+                        password=self.get_current_password())
         else:
             self.redirect("/register")
 
     def post(self):
-        hasher=hashlib.sha1()
+        hasher = hashlib.sha1()
         hasher2 = hashlib.sha1()
         newUsername = self.get_argument("newUserName")
         currPassword = self.get_argument("currentPassword").encode('utf-8')
@@ -250,9 +264,10 @@ class AccountHandler(BaseHandler):
         user = self.get_current_user()
         hasher.update(currPassword)
         currPassword = hasher.hexdigest()
+        username = self.get_current_email()
 
         """Checks for valid user entries"""
-        if newUsername == None and currPassword==None:
+        if newUsername == None and currPassword == None:
             self.render('static/html/account.html', title=name, username=username, message="NoInfo")
         if newPass != confirmPass:
             self.render('static/html/account.html', title=name, username=username, message="mismatch")
@@ -260,20 +275,22 @@ class AccountHandler(BaseHandler):
             self.render('static/html/account.html', title=name, username=username, message="badPass")
 
         if newUsername:
-            update = User.update(username = newUsername).where(User.emailaddress == name)
+            update = User.update(username=newUsername).where(User.emailaddress == name)
             update.execute()
         if newPass:
             hasher.update(newPass)
             newPass = hasher2.hexdigest()
-            update = User.update(password = newPass).where(User.emailaddress == name)
+            update = User.update(password=newPass).where(User.emailaddress == name)
             update.execute()
         self.redirect("/")
+
 
 # contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
         name = self.get_current_email()
-        self.render('static/html/contribute.html',title=name)
+        self.render('static/html/contribute.html', title=name)
+
 
 # API endpoint to get the contents of an article (called by the view-article page)
 class ArticleEndpointHandler(BaseHandler):
@@ -294,6 +311,7 @@ class ArticleEndpointHandler(BaseHandler):
         response["id"] = article.uniqueid
         self.write(json.dumps(response))
 
+
 # takes a file in JSON format and adds the articles to our database (called from the contribute page)
 class BulkAddHandler(BaseHandler):
     def post(self):
@@ -306,6 +324,7 @@ class BulkAddHandler(BaseHandler):
         else:
             # data is malformed
             self.redirect("/?failure=1")
+
 
 # API endpoint corresponding to BulkAddHandler
 class BulkAddEndpointHandler(BaseHandler):
@@ -322,25 +341,29 @@ class BulkAddEndpointHandler(BaseHandler):
             response["success"] = 0
         self.write(json.dumps(response))
 
+
 # save an article to a user's account
-class SaveArticleHandler(BaseHandler): # TODO: change to a JSON endpoint
+class SaveArticleHandler(BaseHandler):  # TODO: change to a JSON endpoint
     def get(self):
         value = self.get_query_argument("id")
         if self.is_logged_in():
-            User_metadata.insert(user_id = self.get_current_email(), article_pmid = value).execute()
+            User_metadata.insert(user_id=self.get_current_email(), article_pmid=value).execute()
             self.redirect("/account")
         else:
             self.redirect("/view-article?id=" + str(value))
+
 
 # delete a saved article
 class DeleteArticleEndpointHandler(BaseHandler):
     def get(self):
         if self.is_logged_in():
             value = self.get_query_argument("article")
-            User_metadata.delete().where(User_metadata.user_id == self.get_current_email(), User_metadata.metadata_id == value).execute()
+            User_metadata.delete().where(User_metadata.user_id == self.get_current_email(),
+                                         User_metadata.metadata_id == value).execute()
             self.write(json.dumps({"success": 1}))
         else:
             self.write(json.dumps({"success": 0}))
+
 
 # access a user's saved articles
 class SavedArticlesEndpointHandler(BaseHandler):
@@ -365,20 +388,22 @@ class SavedArticlesEndpointHandler(BaseHandler):
         else:
             self.write(json.dumps({"success": 0}))
 
+
 # save an article to a user's account
 class SaveCollectionHandler(BaseHandler):
     def post(self):
         if self.is_logged_in():
-            articles_encoded = self.request.arguments["articles[]"] # TODO: look into "get_arguments" function
+            articles_encoded = self.request.arguments["articles[]"]  # TODO: look into "get_arguments" function
             collection_name = self.request.arguments["collection"][0].decode("utf-8")
             articles_decoded = []
             for a in articles_encoded:
-                article = a.decode('utf-8') # TODO: move save article operations to models.py
-                User_metadata.insert(user_id = self.get_current_email(),
-                    article_pmid = article, collection = collection_name).execute()
+                article = a.decode('utf-8')  # TODO: move save article operations to models.py
+                User_metadata.insert(user_id=self.get_current_email(),
+                                     article_pmid=article, collection=collection_name).execute()
         else:
             pass
             # self.redirect("/view-article?id=" + str(value))
+
 
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     @tornado.gen.coroutine
@@ -394,14 +419,14 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
         if self.get_argument("code", False):
             user = yield self.get_authenticated_user(
                 redirect_uri=redirect_uri,
-                client_id= settings["github_client_id"],
-                client_secret= settings["github_client_secret"],
+                client_id=settings["github_client_id"],
+                client_secret=settings["github_client_secret"],
                 code=self.get_argument("code"))
             if user:
                 self.set_secure_cookie("user", json_encode(user))
             else:
                 self.clear_cookie("user")
-            self.redirect(self.get_argument("next","/"))
+            self.redirect(self.get_argument("next", "/"))
             return
 
         # otherwise we need to request an authorization code
@@ -410,10 +435,12 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             client_id=self.settings["github_client_id"],
             extra_params={"scope": "repo"})
 
+
 class GithubLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
         self.redirect(self.get_argument("next", "/"))
+
 
 def parse_link(link):
     linkmap = {}
@@ -422,6 +449,7 @@ def parse_link(link):
         linkmap[s[-5:-1]] = s.split(";")[0].rstrip()[1:-1]
     return linkmap
 
+
 def get_last_page_num(link):
     if not link:
         return 0
@@ -429,13 +457,14 @@ def get_last_page_num(link):
     matches = re.search(r"[?&]page=(\d+)", linkmap["last"])
     return int(matches.group(1))
 
+
 @tornado.gen.coroutine
 def get_my_repos(http_client, access_token):
     data = []
     first_page = yield torngithub.github_request(
         http_client, '/user/repos?page=1&per_page=100',
         access_token=access_token)
-    #log.info(first_page.headers.get('Link', ''))
+    # log.info(first_page.headers.get('Link', ''))
     data.extend(first_page.body)
     max_pages = get_last_page_num(first_page.headers.get('Link', ''))
 
@@ -449,20 +478,19 @@ def get_my_repos(http_client, access_token):
     raise tornado.gen.Return(data)
 
 
-
 class ReposHandler(BaseHandler, torngithub.GithubMixin):
-    #@tornado.web.authenticated
+    # @tornado.web.authenticated
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
 
         try:
             return_list = self.get_argument("list")
-        except tornado.web.MissingArgumentError: #AK: This is hacky.
+        except tornado.web.MissingArgumentError:  # AK: This is hacky.
             return_list = False
         try:
             pmid = self.get_argument("pmid")
-        except tornado.web.MissingArgumentError: #AK: This is again hacky.
+        except tornado.web.MissingArgumentError:  # AK: This is again hacky.
             pmid = False
 
         gh_user = self.get_current_github_user()
@@ -472,17 +500,17 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
         repos = [d for d in data if d["name"].startswith("brainspell-collection")]
 
         if pmid:
-            #TODO: Ideally this information would be store in the database
-            #this is pretty hacky. I'm checking each collection for this pmid
+            # TODO: Ideally this information would be store in the database
+            # this is pretty hacky. I'm checking each collection for this pmid
             for repo in repos:
                 try:
                     sha_data = yield [torngithub.github_request(
-                            self.get_auth_http_client(),
-                                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                                  repo=repo["name"],
-                                                                  path="{}.json".format(pmid)),
-                            access_token=gh_user['access_token'],
-                            method="GET")]
+                        self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                       repo=repo["name"],
+                                                                       path="{}.json".format(pmid)),
+                        access_token=gh_user['access_token'],
+                        method="GET")]
 
                     sha = [s["body"]["sha"] for s in sha_data]
                     if sha:
@@ -490,13 +518,13 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                 except tornado.auth.AuthError:
                     repo["in_collection"] = False
 
-
         if return_list:
             self.write(json_encode(repos))
         else:
             self.render("static/html/github_account.html",
-            info=repos,
-            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
+                        info=repos,
+                        github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
+
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
     @tornado.web.asynchronous
@@ -510,13 +538,13 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
         else:
             gh_user = self.get_current_github_user()
             body = {
-              "name": "brainspell-collection-{}".format(name),
-              "description": desc,
-              "homepage": "https://brainspell-neo.herokuapp.com",
-              "private": False,
-              "has_issues": True,
-              "has_projects": True,
-              "has_wiki": True
+                "name": "brainspell-collection-{}".format(name),
+                "description": desc,
+                "homepage": "https://brainspell-neo.herokuapp.com",
+                "private": False,
+                "has_issues": True,
+                "has_projects": True,
+                "has_wiki": True
             }
             ress = yield [torngithub.github_request(
                 self.get_auth_http_client(), '/user/repos',
@@ -528,8 +556,9 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
                 data.extend(res.body)
 
             endtime = time.time()
-            #print(data)
+            # print(data)
             return self.redirect("/repos")
+
 
 class NewFileHandler(BaseHandler, torngithub.GithubMixin):
     @tornado.web.asynchronous
@@ -544,14 +573,14 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
         gh_user = self.get_current_github_user()
 
         body = {
-              "message": "adding {} to collection".format(pmid),
-              "content": content
-            }
+            "message": "adding {} to collection".format(pmid),
+            "content": content
+        }
         ress = yield [torngithub.github_request(
             self.get_auth_http_client(),
-                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                  repo=collection,
-                                                  path="{}.json".format(pmid)),
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                           repo=collection,
+                                                           path="{}.json".format(pmid)),
             access_token=gh_user['access_token'],
             method="PUT",
             body=body)]
@@ -575,35 +604,33 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
         gh_user = self.get_current_github_user()
 
         body = {
-              "message": "deleting {} to collection".format(pmid),
-            }
+            "message": "deleting {} to collection".format(pmid),
+        }
 
         sha_data = yield [torngithub.github_request(
-                    self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                          repo=collection,
-                                                          path="{}.json".format(pmid)),
-                    access_token=gh_user['access_token'],
-                    method="GET")]
+            self.get_auth_http_client(),
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                           repo=collection,
+                                                           path="{}.json".format(pmid)),
+            access_token=gh_user['access_token'],
+            method="GET")]
 
         sha = [s["body"]["sha"] for s in sha_data][0]
 
         ress = yield [torngithub.github_request(
             self.get_auth_http_client(),
-                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                  repo=collection,
-                                                  path="{}.json".format(pmid)),
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                           repo=collection,
+                                                           path="{}.json".format(pmid)),
             access_token=gh_user['access_token'],
             method="DELETE",
-            body={"sha":sha,"message":"removing {} from collection".format(pmid)})]
-
+            body={"sha": sha, "message": "removing {} from collection".format(pmid)})]
 
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
-
 
 if not "github_client_id" in os.environ:
     print("set your github_client_id env variable, and register your app at https://github.com/settings/developers")
@@ -612,14 +639,14 @@ if not "github_client_secret" in os.environ:
     print("set your github_client_secret env variable, and register your app at https://github.com/settings/developers")
     os.environ["github_client_secret"] = "github_client_secret"
 
-
 settings = {
     "cookie_secret": public_key,
     "login_url": "/login",
-    "compress_response":True,
+    "compress_response": True,
     "github_client_id": os.environ["github_client_id"],
     "github_client_secret": os.environ["github_client_secret"]
 }
+
 
 def make_app():
     return tornado.web.Application([
@@ -628,7 +655,7 @@ def make_app():
                                'static')}),
         (r"/", MainHandler),
         (r"/json/query", SearchEndpointHandler),
-        (r"/json/coordinates", CoordinatesEndpointHandler), # TODO: add to API documentation on wiki
+        (r"/json/coordinates", CoordinatesEndpointHandler),  # TODO: add to API documentation on wiki
         (r"/json/random-query", RandomEndpointHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
@@ -653,12 +680,13 @@ def make_app():
         (r"/remove-from-collection", DeleteFileHandler)
     ], debug=True, **settings)
 
+
 if __name__ == "__main__":
     tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient",
-        defaults={"allow_nonstandard_methods":True})
+                                                 defaults={"allow_nonstandard_methods": True})
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))
-    http_server.listen(port) # runs at localhost:5000
+    http_server.listen(port)  # runs at localhost:5000
     print("Running Brainspell at http://localhost:5000...")
     tornado.ioloop.IOLoop.current().start()

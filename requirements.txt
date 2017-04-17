@@ -7,3 +7,4 @@ psycopg2==2.6.2
 pytest==3.0.3
 pytest-tornado==0.4.5
 lxml==3.3.6
+torngithub==0.2.0

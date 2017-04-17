@@ -11,7 +11,10 @@ import tornado.escape
 from models import *
 import subprocess
 import hashlib
-
+import torngithub
+from torngithub import json_encode, json_decode
+from tornado.httputil import url_concat
+from base64 import b64encode
 from helper_functions import *
 
 # adds function to self
@@ -25,6 +28,13 @@ class BaseHandler(tornado.web.RequestHandler):
         for user in get_user(self.get_current_email()):
             return user.username
         return ""
+
+    def get_current_github_user(self):
+        user_json = self.get_secure_cookie("user")
+        if not user_json:
+            return {"name": None, "avatar_url":None}
+        return json_decode(user_json)
+
     def get_current_password(self):
         return self.get_secure_cookie("password")
     def is_logged_in(self):
@@ -34,6 +44,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         email = self.get_current_email()
+        gh_user = self.get_current_github_user()
         try: # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
@@ -42,7 +53,8 @@ class MainHandler(BaseHandler):
             failure = int(self.get_argument("failure", 0))
         except:
             failure = 0
-        self.render("static/html/index.html", title=email, 
+        self.render("static/html/index.html", title=email,
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
             queries=Articles.select().wrapped_count(), success=submitted,
             failure=failure)
 
@@ -112,7 +124,9 @@ class ArticleHandler(BaseHandler):
             articleId = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
+        gh_user = self.get_current_github_user()
         self.render("static/html/view-article.html", id=articleId,
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
             title=self.get_current_email())
     def post(self): # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
@@ -360,21 +374,251 @@ class SaveCollectionHandler(BaseHandler):
             articles_decoded = []
             for a in articles_encoded:
                 article = a.decode('utf-8') # TODO: move save article operations to models.py
-                User_metadata.insert(user_id = self.get_current_email(), 
+                User_metadata.insert(user_id = self.get_current_email(),
                     article_pmid = article, collection = collection_name).execute()
         else:
             pass
             # self.redirect("/view-article?id=" + str(value))
+
+class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
+    @tornado.gen.coroutine
+    def get(self):
+        # we can append next to the redirect uri, so the user gets the
+        # correct URL on login
+        redirect_uri = url_concat(self.request.protocol
+                                  + "://" + self.request.host
+                                  + "/oauth",
+                                  {"next": self.get_argument('next', '/')})
+
+        # if we have a code, we have been authorized so we can log in
+        if self.get_argument("code", False):
+            user = yield self.get_authenticated_user(
+                redirect_uri=redirect_uri,
+                client_id= settings["github_client_id"],
+                client_secret= settings["github_client_secret"],
+                code=self.get_argument("code"))
+            if user:
+                self.set_secure_cookie("user", json_encode(user))
+            else:
+                self.clear_cookie("user")
+            self.redirect(self.get_argument("next","/"))
+            return
+
+        # otherwise we need to request an authorization code
+        yield self.authorize_redirect(
+            redirect_uri=redirect_uri,
+            client_id=self.settings["github_client_id"],
+            extra_params={"scope": "repo"})
+
+class GithubLogoutHandler(BaseHandler):
+    def get(self):
+        self.clear_cookie("user")
+        self.redirect(self.get_argument("next", "/"))
+
+def parse_link(link):
+    linkmap = {}
+    for s in link.split(","):
+        s = s.strip();
+        linkmap[s[-5:-1]] = s.split(";")[0].rstrip()[1:-1]
+    return linkmap
+
+def get_last_page_num(link):
+    if not link:
+        return 0
+    linkmap = parse_link(link)
+    matches = re.search(r"[?&]page=(\d+)", linkmap["last"])
+    return int(matches.group(1))
+
+@tornado.gen.coroutine
+def get_my_repos(http_client, access_token):
+    data = []
+    first_page = yield torngithub.github_request(
+        http_client, '/user/repos?page=1&per_page=100',
+        access_token=access_token)
+    #log.info(first_page.headers.get('Link', ''))
+    data.extend(first_page.body)
+    max_pages = get_last_page_num(first_page.headers.get('Link', ''))
+
+    ress = yield [torngithub.github_request(
+        http_client, '/user/repos?per_page=100&page=' + str(i),
+        access_token=access_token) for i in range(2, max_pages + 1)]
+
+    for res in ress:
+        data.extend(res.body)
+
+    raise tornado.gen.Return(data)
+
+
+
+class ReposHandler(BaseHandler, torngithub.GithubMixin):
+    #@tornado.web.authenticated
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def get(self):
+
+        try:
+            return_list = self.get_argument("list")
+        except tornado.web.MissingArgumentError: #AK: This is hacky.
+            return_list = False
+        try:
+            pmid = self.get_argument("pmid")
+        except tornado.web.MissingArgumentError: #AK: This is again hacky.
+            pmid = False
+
+        gh_user = self.get_current_github_user()
+
+        data = yield get_my_repos(self.get_auth_http_client(),
+                                  gh_user['access_token'])
+        repos = [d for d in data if d["name"].startswith("brainspell-collection")]
+
+        if pmid:
+            #TODO: Ideally this information would be store in the database
+            #this is pretty hacky. I'm checking each collection for this pmid
+            for repo in repos:
+                try:
+                    sha_data = yield [torngithub.github_request(
+                            self.get_auth_http_client(),
+                                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                  repo=repo["name"],
+                                                                  path="{}.json".format(pmid)),
+                            access_token=gh_user['access_token'],
+                            method="GET")]
+
+                    sha = [s["body"]["sha"] for s in sha_data]
+                    if sha:
+                        repo["in_collection"] = True
+                except tornado.auth.AuthError:
+                    repo["in_collection"] = False
+
+
+        if return_list:
+            self.write(json_encode(repos))
+        else:
+            self.render("static/html/github_account.html",
+            info=repos,
+            github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
+
+class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        name = self.get_argument("name")
+        desc = self.get_argument("description")
+        if not name:
+            self.write("")
+        else:
+            gh_user = self.get_current_github_user()
+            body = {
+              "name": "brainspell-collection-{}".format(name),
+              "description": desc,
+              "homepage": "https://brainspell-neo.herokuapp.com",
+              "private": False,
+              "has_issues": True,
+              "has_projects": True,
+              "has_wiki": True
+            }
+            ress = yield [torngithub.github_request(
+                self.get_auth_http_client(), '/user/repos',
+                access_token=gh_user['access_token'],
+                method="POST",
+                body=body)]
+            data = []
+            for res in ress:
+                data.extend(res.body)
+
+            endtime = time.time()
+            #print(data)
+            return self.redirect("/repos")
+
+class NewFileHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        collection = self.get_argument("collection")
+        pmid = self.get_argument("pmid")
+        entry = {"pmid": pmid,
+                 "notes": "Here are my notes on this article"}
+        content = b64encode(json_encode(entry).encode("utf=8"))
+        gh_user = self.get_current_github_user()
+
+        body = {
+              "message": "adding {} to collection".format(pmid),
+              "content": content
+            }
+        ress = yield [torngithub.github_request(
+            self.get_auth_http_client(),
+                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                  repo=collection,
+                                                  path="{}.json".format(pmid)),
+            access_token=gh_user['access_token'],
+            method="PUT",
+            body=body)]
+        data = []
+        for res in ress:
+            data.extend(res.body)
+
+        endtime = time.time()
+
+
+class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        starttime = time.time()
+        collection = self.get_argument("collection")
+        pmid = self.get_argument("pmid")
+        entry = {"pmid": pmid,
+                 "notes": "Here are my notes on this article"}
+        content = b64encode(json_encode(entry).encode("utf=8"))
+        gh_user = self.get_current_github_user()
+
+        body = {
+              "message": "deleting {} to collection".format(pmid),
+            }
+
+        sha_data = yield [torngithub.github_request(
+                    self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                          repo=collection,
+                                                          path="{}.json".format(pmid)),
+                    access_token=gh_user['access_token'],
+                    method="GET")]
+
+        sha = [s["body"]["sha"] for s in sha_data][0]
+
+        ress = yield [torngithub.github_request(
+            self.get_auth_http_client(),
+                '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                  repo=collection,
+                                                  path="{}.json".format(pmid)),
+            access_token=gh_user['access_token'],
+            method="DELETE",
+            body={"sha":sha,"message":"removing {} from collection".format(pmid)})]
+
+
 
 public_key = "private-key"
 if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
+
+if not "github_client_id" in os.environ:
+    print("set your github_client_id env variable, and register your app at https://github.com/settings/developers")
+    os.environ["github_client_id"] = "gh_client_id"
+if not "github_client_secret" in os.environ:
+    print("set your github_client_secret env variable, and register your app at https://github.com/settings/developers")
+    os.environ["github_client_secret"] = "github_client_secret"
+
+
 settings = {
     "cookie_secret": public_key,
     "login_url": "/login",
-    "compress_response":True
+    "compress_response":True,
+    "github_client_id": os.environ["github_client_id"],
+    "github_client_secret": os.environ["github_client_secret"]
 }
 
 def make_app():
@@ -400,14 +644,21 @@ def make_app():
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
-        (r"/save-collection", SaveCollectionHandler)
+        (r"/oauth", GithubLoginHandler),
+        (r"/github_logout", GithubLogoutHandler),
+        (r"/save-collection", SaveCollectionHandler),
+        (r"/repos", ReposHandler),
+        (r"/create_repo", NewRepoHandler),
+        (r"/add-to-collection", NewFileHandler),
+        (r"/remove-from-collection", DeleteFileHandler)
     ], debug=True, **settings)
 
 if __name__ == "__main__":
+    tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient",
+        defaults={"allow_nonstandard_methods":True})
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))
     http_server.listen(port) # runs at localhost:5000
     print("Running Brainspell at http://localhost:5000...")
     tornado.ioloop.IOLoop.current().start()
-

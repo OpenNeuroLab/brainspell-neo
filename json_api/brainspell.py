@@ -440,6 +440,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 class GithubLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
+        print("what is this next", self.get_argument("next", "/"))
         self.redirect(self.get_argument("next", "/"))
 
 
@@ -524,9 +525,9 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             else:
                 self.render("static/html/github_account.html",
                                 info=repos,
-                                github_user=gh_user["name"], 
+                                github_user=gh_user["name"],
                                 github_avatar=gh_user["avatar_url"])
-        self.redirect("/oauth") 
+        self.redirect("/oauth")
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):

@@ -315,45 +315,52 @@
             j = o.responseText;
             console.log(j);
             obj = JSON.parse(j);
-            metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
+            try {
+                metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
+            } catch (err) { //Specifies a !CDATA left behind as a remnant of old database
+                obj["metadata"] = obj["metadata"].slice(8,-2);
+                metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
+            }
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
-
-            var metadataStr = "";
-            for (var i = 0; i < metadata.length; i++) {
-                if (metadataStr != "") {
-                    metadataStr = metadataStr + ", " + metadata[i]["name"];
-                }
-                else {
-                    metadataStr = metadata[i]["name"];
-                }
-            }
-            var metadatalst = [];
-            metadata = eval(metadata);
-            for (var j = 0; j < metadata.length; j++) {
-                if (metadata[j]["vote"] != null) {
-                    metadatalst.push([metadata[j]["name"],metadata[j]["vote"]])
-                }
-                else {
-                    metadatalst.push([metadata[j]["name"],"NOVOTES"]);
-                }
-            }
-            // Create a modal for each term (approve or reject)
-            var dropper = $("<div/>");
-            dropper.addClass("dropdown");
-            for (var i = 0; i < metadatalst.length; i++) {
-                var temp = metadatalst[i];
-                temp = JSON.stringify(temp);
-                dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
-            }
-
             $("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
             $("#articleContents").append(linkParagraph);
-            $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
+            var dropper = $("<div/>");
+            if (metadata != undefined) {
+                var metadataStr = "";
+                for (var i = 0; i < metadata.length; i++) {
+                    if (metadataStr != "") {
+                        metadataStr = metadataStr + ", " + metadata[i]["name"];
+                    }
+                    else {
+                        metadataStr = metadata[i]["name"];
+                    }
+                }
+                var metadatalst = [];
+                metadata = eval(metadata);
+                for (var j = 0; j < metadata.length; j++) {
+                    if (metadata[j]["vote"] != null) {
+                        metadatalst.push([metadata[j]["name"], metadata[j]["vote"]])
+                    }
+                    else {
+                        metadatalst.push([metadata[j]["name"], "NOVOTES"]);
+                    }
+                }
+                // Create a modal for each term (approve or reject)
 
+                dropper.addClass("dropdown");
+                for (var i = 0; i < metadatalst.length; i++) {
+                    var temp = metadatalst[i];
+                    temp = JSON.stringify(temp);
+                    dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+                }
+
+
+                $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
+            }
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
 
             $("#articleContents").append(dropper);

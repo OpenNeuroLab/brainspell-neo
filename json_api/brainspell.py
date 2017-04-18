@@ -35,7 +35,10 @@ class BaseHandler(tornado.web.RequestHandler):
         user_json = self.get_secure_cookie("user")
         if not user_json:
             return {"name": None, "avatar_url": None}
-        return json_decode(user_json)
+        try:
+            return json_decode(user_json)
+        except:
+            return {"name": None, "avatar_url": None}
 
     def get_current_password(self):
         return self.get_secure_cookie("password")

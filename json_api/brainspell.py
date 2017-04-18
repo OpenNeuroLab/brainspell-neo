@@ -34,11 +34,9 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_current_github_user(self):
         user_json = self.get_secure_cookie("user")
         if not user_json:
-            return {"name": None, "avatar_url": None}
-        try:
+            return {"name": None, "avatar_url": None, "access_token":None}
+        else:
             return json_decode(user_json)
-        except:
-            return {"name": None, "avatar_url": None}
 
     def get_current_password(self):
         return self.get_secure_cookie("password")
@@ -497,36 +495,38 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             pmid = False
 
         gh_user = self.get_current_github_user()
-
-        data = yield get_my_repos(self.get_auth_http_client(),
+        if gh_user["access_token"]:
+            data = yield get_my_repos(self.get_auth_http_client(),
                                   gh_user['access_token'])
-        repos = [d for d in data if d["name"].startswith("brainspell-collection")]
+            repos = [d for d in data if d["name"].startswith("brainspell-collection")]
 
-        if pmid:
-            # TODO: Ideally this information would be store in the database
-            # this is pretty hacky. I'm checking each collection for this pmid
-            for repo in repos:
-                try:
-                    sha_data = yield [torngithub.github_request(
-                        self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                                       repo=repo["name"],
-                                                                       path="{}.json".format(pmid)),
+            if pmid:
+                # TODO: Ideally this information would be store in the database
+                # this is pretty hacky. I'm checking each collection for this pmid
+                for repo in repos:
+                    try:
+                        sha_data = yield [torngithub.github_request(
+                                          self.get_auth_http_client(),
+                                          '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                          repo=repo["name"],
+                                          path="{}.json".format(pmid)),
                         access_token=gh_user['access_token'],
                         method="GET")]
 
-                    sha = [s["body"]["sha"] for s in sha_data]
-                    if sha:
-                        repo["in_collection"] = True
-                except tornado.auth.AuthError:
-                    repo["in_collection"] = False
+                        sha = [s["body"]["sha"] for s in sha_data]
+                        if sha:
+                            repo["in_collection"] = True
+                    except tornado.auth.AuthError:
+                        repo["in_collection"] = False
 
-        if return_list:
-            self.write(json_encode(repos))
-        else:
-            self.render("static/html/github_account.html",
-                        info=repos,
-                        github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
+            if return_list:
+                self.write(json_encode(repos))
+            else:
+                self.render("static/html/github_account.html",
+                                info=repos,
+                                github_user=gh_user["name"], 
+                                github_avatar=gh_user["avatar_url"])
+        self.redirect("/oauth") 
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):

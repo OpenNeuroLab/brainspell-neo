@@ -112,8 +112,11 @@ class SearchHandler(BaseHandler):
         start = self.get_query_argument("start", 0)
         req = self.get_query_argument("req", "t")
         email = self.get_current_email()
+        gh_user = self.get_current_github_user()
         self.render("static/html/search.html", query=q, start=start,
-                    title=email, req=req)
+                    title=email, req=req,
+                    github_user=gh_user["name"],
+                    github_avatar=gh_user["avatar_url"])
 
 
 # API endpoint to fetch PubMed and Neurosynth data using a user specified PMID, and add the article to our database

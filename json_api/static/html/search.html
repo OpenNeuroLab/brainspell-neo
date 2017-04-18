@@ -89,6 +89,17 @@
                 {% if title!="" %}
                     <a href="./account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
                 {% end %}
+                {% if github_user %}
+                <img class="navbar-brand navbar-right img-circle" src="{{github_avatar}}"/>
+                <div class="navbar-brand navbar-right" style="font-size:1em;">
+                  Welcome <a href="/repos">{{ github_user }}</a>, <a href="/github_logout?next=search?q={{query}}&req={{req}}">logout</a>
+                </div>
+                {% else %}
+                <div class="navbar-brand navbar-right" style="font-size:1em;">
+                  <a href="/oauth?next=search?q={{query}}&req={{req}}">login with GitHub</a>
+
+                </div>
+                {% end %}
             </div>
             <!-- /.navbar-collapse -->
         </div>
@@ -142,9 +153,9 @@
                 </table>
             </span>
             <!-- /StereotaxicViewer -->
-            
+
             &nbsp;
-            
+
             <!-- MeshViewer -->
             <span style="position: absolute; display:inline-block">
                 <table style="margin: 0; border:1px solid lightGrey;padding:5px">
@@ -207,7 +218,7 @@
         $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $(
             $.ajax({
-                type: "GET", 
+                type: "GET",
                 url: "/json/query?q={{query}}&start={{start}}&req={{req}}"
             }).complete(function(o) {
                 j = o.responseText;
@@ -252,11 +263,11 @@
                 document.getElementById("pmid-warning").style.display = "block";
             }
         }
-        
+
 
         function saveCollection() {
             var articles = [];
-            $.each($("input[name='collection']:checked"), function(){            
+            $.each($("input[name='collection']:checked"), function(){
                 articles.push($(this).val());
             });
 
@@ -265,7 +276,7 @@
             //alert("Articles to save: " + articles.join(", "));
 
             $.ajax({
-                type: "POST", 
+                type: "POST",
                 url: "/save-collection",
                 data: {
                     "articles": articles,

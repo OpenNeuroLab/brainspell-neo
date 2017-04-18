@@ -159,6 +159,7 @@ def parse(query): # TODO: needs to be commented
 def formatted_search(query, start, param=None, experiments=False): # param specifies dropdown value from search bar; experiments specifies whether to only return the experiments
     (columns,term,formatted_query) = parse(query)
     query = query.replace(" ","%")
+    print(query) 
     if columns:
         search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(term).limit(10).offset(start)
         return search.execute()

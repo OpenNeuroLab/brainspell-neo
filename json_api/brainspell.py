@@ -572,7 +572,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
         pmid = self.get_argument("pmid")
         entry = {"pmid": pmid,
                  "notes": "Here are my notes on this article"}
-        content = b64encode(json_encode(entry).encode("utf=8"))
+        content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
         gh_user = self.get_current_github_user()
 
         body = {

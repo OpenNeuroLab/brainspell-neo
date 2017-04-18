@@ -484,7 +484,6 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def get(self):
-
         try:
             return_list = self.get_argument("list")
         except tornado.web.MissingArgumentError:  # AK: This is hacky.
@@ -524,9 +523,10 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             else:
                 self.render("static/html/github_account.html",
                                 info=repos,
-                                github_user=gh_user["name"], 
+                                github_user=gh_user["name"],
                                 github_avatar=gh_user["avatar_url"])
-        self.redirect("/oauth") 
+        else:
+            self.redirect("/oauth?next=/repos")
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):

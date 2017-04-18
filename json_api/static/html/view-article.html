@@ -100,11 +100,11 @@
                 {% if github_user %}
                 <img class="navbar-brand navbar-right img-circle" src="{{github_avatar}}"/>
                 <div class="navbar-brand navbar-right" style="font-size:1em;">
-                  Welcome {{ github_user }}, <a href="/github_logout">logout</a>
+                  Welcome {{ github_user }}, <a href="/github_logout?next=/view-article?id={{id}}">logout</a>
                 </div>
                 {% else %}
                 <div class="navbar-brand navbar-right" style="font-size:1em;">
-                  <a href="/oauth">login with GitHub</a>
+                  <a href="/oauth?next=view-article?id={{id}}">login with GitHub</a>
                 </div>
                 {% end %}
             </div>

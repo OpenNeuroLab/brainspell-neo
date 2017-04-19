@@ -16,7 +16,7 @@ from torngithub import json_encode, json_decode
 from tornado.httputil import url_concat
 from base64 import b64encode
 from helper_functions import *
-
+import simplejson
 
 # adds function to self
 class BaseHandler(tornado.web.RequestHandler):
@@ -36,7 +36,10 @@ class BaseHandler(tornado.web.RequestHandler):
         if not user_json:
             return {"name": None, "avatar_url": None, "access_token":None}
         else:
-            return json_decode(user_json)
+            try:
+                return json_decode(user_json)
+            except simplejson.scanner.JSONDecodeError:
+                return {"name": None, "avatar_url": None, "access_token":None}
 
     def get_current_password(self):
         return self.get_secure_cookie("password")
@@ -502,7 +505,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             data = yield get_my_repos(self.get_auth_http_client(),
                                   gh_user['access_token'])
             repos = [d for d in data if d["name"].startswith("brainspell-collection")]
-
+            print("repos are", [r["name"] for r in repos])
             if pmid:
                 # TODO: Ideally this information would be store in the database
                 # this is pretty hacky. I'm checking each collection for this pmid

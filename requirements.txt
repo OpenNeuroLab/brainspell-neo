@@ -9,4 +9,4 @@ pytest==3.0.3
 pytest-tornado==0.4.5
 lxml==3.3.6
 torngithub==0.2.0
-import simplejson
+simplejson==3.10.0

@@ -22,13 +22,14 @@ import simplejson
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_email(self):  # TODO: add password checking (currently not actually logged in)
         value = self.get_secure_cookie("email")
-        if value:
+        if value and self.is_logged_in():
             return value
         return ""
 
     def get_current_user(self):
-        for user in get_user(self.get_current_email()):
-            return user.username
+        if self.is_logged_in():
+            for user in get_user(self.get_current_email()):
+                return user.username
         return ""
 
     def get_current_github_user(self):
@@ -45,7 +46,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.get_secure_cookie("password")
 
     def is_logged_in(self):
-        return user_login(self.get_current_email(), self.get_current_password())
+        return user_login(self.get_secure_cookie("email"), self.get_current_password())
 
 
 # front page
@@ -60,11 +61,15 @@ class MainHandler(BaseHandler):
         try:
             failure = int(self.get_argument("failure", 0))
         except:
-            failure = 0
+            failure = 0   
+        try:  # handle registration
+            registered = int(self.get_argument("registered", 0))
+        except:
+            registered = 0
         self.render("static/html/index.html", title=email,
                     github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
                     queries=Articles.select().wrapped_count(), success=submitted,
-                    failure=failure)
+                    failure=failure, registered=registered, pw=self.get_current_password())
 
 
 # login page
@@ -75,6 +80,9 @@ class LoginHandler(BaseHandler):
     def post(self):
         email = self.get_argument("email")
         password = self.get_argument("password").encode("utf-8")
+        hasher=hashlib.sha1()
+        hasher.update(password)
+        password = hasher.hexdigest()[:52]
         if user_login(email, password):
             self.set_secure_cookie("email", email)
             self.set_secure_cookie("password", password)
@@ -102,8 +110,11 @@ class RegisterHandler(BaseHandler):
         password = self.get_body_argument("password").encode('utf-8')
         if register_user(username, email, password):
             self.set_secure_cookie("email", email)
+            hasher=hashlib.sha1()
+            hasher.update(password)
+            password = hasher.hexdigest()[:52]
             self.set_secure_cookie("password", password)
-            self.redirect("/")
+            self.redirect("/?registered=1")
         else:
             self.render("static/html/register.html", title="", failure=1)
 
@@ -126,11 +137,16 @@ class SearchHandler(BaseHandler):
 class AddArticleEndpointHandler(BaseHandler):
     def get(self):
         pmid = self.get_query_argument("pmid", "")
-        x = getArticleData(pmid)
-        request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
-                                  experiments=x["coordinates"], title=x["title"])
-        request.execute()
-        response = {"success": 1}
+        api_key = self.get_query_argument("key", "")
+        response = {}
+        if valid_api_key(api_key):
+            x = getArticleData(pmid)
+            request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
+                                      experiments=x["coordinates"], title=x["title"])
+            request.execute()
+            response = {"success": 1}
+        else:
+            response = {"success": 0}
         self.write(json.dumps(response))
 
 
@@ -361,7 +377,7 @@ class SaveArticleHandler(BaseHandler):  # TODO: change to a JSON endpoint
 
 
 # delete a saved article
-class DeleteArticleEndpointHandler(BaseHandler):
+class DeleteArticleHandler(BaseHandler):
     def get(self):
         if self.is_logged_in():
             value = self.get_query_argument("article")
@@ -528,7 +544,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             if return_list:
                 self.write(json_encode(repos))
             else:
-                self.render("static/html/github_account.html",
+                self.render("static/html/github-account.html",
                                 info=repos,
                                 github_user=gh_user["name"],
                                 github_avatar=gh_user["avatar_url"])
@@ -673,7 +689,7 @@ def make_app():
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),
-        (r"/json/delete-article", DeleteArticleEndpointHandler),
+        (r"/json/delete-article", DeleteArticleHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),

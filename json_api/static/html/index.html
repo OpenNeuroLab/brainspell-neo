@@ -129,6 +129,12 @@
     <!-- /.container -->
 
     <div class="container" style="padding-top:20px;padding-bottom:30px">
+        <div onclick="showAPIKey(this)" class="alert alert-success"
+                {% if registered!=1 %}
+                style="display: none;"
+                {% end %}>
+            <strong>You're registered!</strong> Click this box for your API key.
+        </div>
         <div class="alert alert-success"
                 {% if success!=1 %}
                 style="display: none;"
@@ -176,6 +182,11 @@
                 }
             })
         );
+
+        function showAPIKey(box) {
+            box.innerHTML = "Your API key is: {{pw}}";
+            box.onclick = function() { };
+        }
     </script>
 
 

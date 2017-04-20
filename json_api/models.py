@@ -204,11 +204,12 @@ def get_saved_articles(email):
     return User_metadata.select().where(User_metadata.user_id==email).execute()
 
 def user_login(email, password):
-    hasher=hashlib.sha1()
-    hasher.update(password)
-    password = hasher.hexdigest()[:52]
     user = User.select().where((User.emailaddress == email) & (User.password == password))
     return user.execute().count == 1
+
+def valid_api_key(api_key):
+    user = User.select().where((User.password == api_key)) # using password hashes as API keys for now; can change later
+    return user.execute().count >= 1
 
 def register_user(username,email,password):
     if (User.select().where((User.emailaddress == email)).execute().count == 0):

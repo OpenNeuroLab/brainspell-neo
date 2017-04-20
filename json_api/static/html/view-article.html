@@ -88,11 +88,6 @@
                     <li>
                         <a href="https://github.com/OpenNeuroLab/brainspell-neo">GitHub</a>
                     </li>
-                {% if title!="" %}
-                    <li>
-                        <a href="#!" onclick="document.location.href=getaURL('id')">Add Article to Docket</a>
-                    </li>
-                {% end %}
                 </ul>
                 {% if title!="" %}
                     <a href="./account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
@@ -328,6 +323,11 @@
             $("#articleContents").append($("<p>", {"class": "make-column"}).text(obj["abstract"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
+
+            {% if title!="" %}
+            linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
+            {% end %}
+                
             $("#articleContents").append(linkParagraph);
             var dropper = $("<div/>");
             if (metadata != undefined) {

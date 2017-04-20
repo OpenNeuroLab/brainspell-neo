@@ -432,7 +432,25 @@
                 }
                 $(this).append($("<div>").css("clear", "both"));
             });
+
     	}));
+    </script>
+    <div class="container">
+        <div class="row">
+            <h3>Discussion Section</h3>
+            <form id="comment_submitter" action="/view-article" method="post">
+                <textarea id="comment" style="width: 100%;height:100px; left:1em; right:1em;" placeholder="Any Questions or Concerns about this article?"></textarea>
+                <button id="discussion" class="btn btn-default">Submit</button>
+                <script>$("#comment_submitter").append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));</script>
+                <p><br></p>
+                <!--TODO Add option to add existing comments to the article JQUERY -->
+            </form>
+        </div>
+    </div>
+
+
+
+    <script>
 
         function configureExperiments(exp) {
             $("#experiments").html("");

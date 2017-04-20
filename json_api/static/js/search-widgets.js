@@ -368,13 +368,18 @@ function loadLocations()
 			}
 		}
 
-		$("#widgetOption").text("Show widgets");
-		document.getElementById("widgetOption").disabled = false;
-		
-		// refresh the image
-		drawImages();
-		updateTranslucent();
-		
+		if (exp.length > 0) {
+			$("#widgetOption").text("Show widgets");
+			document.getElementById("widgetOption").disabled = false;
+			
+			// refresh the image
+			drawImages();
+			updateTranslucent();
+		}
+		else {
+			$("#widgetOption").css("display", "none");
+		}
+			
 		/*
 		if((nrefs%10)==0)
 			updateTranslucent();

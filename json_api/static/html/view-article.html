@@ -438,13 +438,32 @@
     <div class="container">
         <div class="row">
             <h3>Discussion Section</h3>
+            <!--
             <form id="comment_submitter" action="/view-article" method="post">
                 <textarea id="comment" style="width: 100%;height:100px; left:1em; right:1em;" placeholder="Any Questions or Concerns about this article?"></textarea>
                 <button id="discussion" class="btn btn-default">Submit</button>
                 <script>$("#comment_submitter").append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));</script>
                 <p><br></p>
-                <!--TODO Add option to add existing comments to the article JQUERY -->
+                <!--TODO Add option to add existing comments to the article JQUERY
             </form>
+        -->
+        <div id="disqus_thread"></div>
+        <script>
+
+        var disqus_config = function () {
+        this.page.url = "https://brainspell.herokuapp.com/view-article?id={{id}}";
+        this.page.identifier = "{{id}}";
+        };
+        
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://brainspell.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                                        
         </div>
     </div>
 

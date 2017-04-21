@@ -373,8 +373,11 @@
             for (var i = 0; i < experimentsObj.length; i++) {
                 if (experimentsObj[i]["locations"].length > 0) {
                     var expContainer = $("<div>", {"id": "container" + experimentsObj[i]["id"], "class": "experimentContainer"});
-
-                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i));
+                    var flagged = 0;
+                    if ("flagged" in experimentsObj[i]) {
+                        flagged = experimentsObj[i]["flagged"];
+                    }
+                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
                     form.append(expContainer);
                     count++;
                 }
@@ -489,7 +492,7 @@
             }
         }
 
-        function experimentsTable(array, position, experimentNumber) {
+        function experimentsTable(array, position, experimentNumber, flagged) {
             var table = $("<table>").css("position", "relative");
             table.addClass("scroller");
             table.addClass("gradient-style");
@@ -539,8 +542,16 @@
             table.append(contents);
             {% if title != ""%}
             var footer = $("<tfoot>");
-            footer.append($("<tr>").css("background-color", "white").css("width", "50%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))))
-            footer.append($("<tr>").css("background-color", "white").css("width", "50%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))))
+            footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
+            footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));
+            var flagTableElem = $("<tr>").css("background-color", "white").css("width", "33%").css("float", "left");
+            var linkElem = $("<a>").attr("href", "#!").attr("onclick", "flagTable(this, " + experimentNumber + ")").text("Flag Table");
+            if (flagged == 1) {
+                linkElem.css("color", "red");
+                linkElem.text("Unflag Table");
+            }
+            flagTableElem.append($("<td>").append(linkElem));
+            footer.append(flagTableElem);
             table.append(footer);
             {% end %}
             return table;
@@ -637,9 +648,33 @@
                     j = o.responseText;
                     console.log(j);
                     obj = JSON.parse(j);
-                    //location.reload();
+                    location.reload();
                 });
             }
+        }
+
+        function flagTable(link, element) {
+            console.log(element);
+            //var x = exp[element].locations[r][0];
+            //var y = exp[element].locations[r][1];
+            //var z = exp[element].locations[r][2];
+
+            $.ajax({
+                type: "GET",
+                url: "/json/flag-table?pmid={{id}}&key={{key}}&experiment=" + element
+            }).complete(function(o) {
+                j = o.responseText;
+                console.log(j);
+                obj = JSON.parse(j);
+                if (link.innerHTML == "Flag Table") {
+                    link.innerHTML = "Unflag Table";
+                    link.style.color = "red";
+                } 
+                else {
+                    link.innerHTML = "Flag Table";
+                    link.style.color = "#337ab7";
+                }
+            });
         }
 
         function getaURL(name, url) {

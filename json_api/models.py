@@ -254,6 +254,17 @@ def delete_row(pmid, exp, row):
     locations.pop(int(row));
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
+def flag_table(pmid, exp):
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    if "flagged" in elem:
+        elem["flagged"] = 1 - elem["flagged"]
+    else:
+        elem["flagged"] = 1
+    print(elem["flagged"])
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
 def split_table(pmid, exp, row):
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()

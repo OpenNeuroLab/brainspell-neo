@@ -9,8 +9,9 @@ Clients can make requests to the JSON API directly, or access Brainspell through
 ## Running Brainspell
 
 To run Brainspell locally:  
-1) Clone the Git repo.  
-2) Install the Python dependencies with `pip install -r requirements.txt`.
+1) Clone the Git repo.
+2) Install Postgres (if not already installed). In a mac you can use `brew install postgres`.
+3) Install the Python dependencies with `pip install -r requirements.txt`.
 
 Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
 

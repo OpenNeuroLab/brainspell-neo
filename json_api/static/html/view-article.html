@@ -22,6 +22,7 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
+    <meta id="user_logged_in" data-name="{{ github_user }}">
 
 
     <!-- Custom CSS -->
@@ -173,8 +174,8 @@
       , shadow: false // Whether to render a shadow
       , hwaccel: false // Whether to use hardware acceleration
       , position: 'absolute' // Element positioning
-      }
-      var target = document.getElementById('github_collections_div')
+      };
+      var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       console.log(spinner)
       $.get("/repos?list=1&pmid={{id}}", function(data, err){
@@ -234,14 +235,20 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(value)
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements)
+                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements)
                         ).append(
-                                $("<a>", {"type":"button","class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree))
+                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree))
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
-                                $("<button>", {"type":"button","class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
+                                $("<button>", {"type":"button", "id": "closer", "class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
                         )).css("z-index","2000"));
+
             $("#articleContents").append(first);
+            if ($("#user_logged_in").data()["name"] == "None") {
+                $("#agree").hide();
+                $("#disagree").hide();
+                $("#closer").before("Please login to vote  ");
+            }
             // remove the modal from the DOM on hide
             $('#myModal').on('hidden.bs.modal', function(){
                 $(this).remove();

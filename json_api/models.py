@@ -250,8 +250,8 @@ def delete_row(pmid, exp, row):
     target = next(target)
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
-    locations = elem["locations"];
-    locations.pop(int(row));
+    locations = elem["locations"]
+    locations.pop(int(row))
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
 

@@ -519,15 +519,20 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
 
         gh_user = self.get_current_github_user()
         if gh_user["access_token"]:
+            #get all repos for an authenticated user
             data = yield get_my_repos(self.get_auth_http_client(),
                                   gh_user['access_token'])
             repos = [d for d in data if d["name"].startswith("brainspell-collection")]
-            print("repos are", [r["name"] for r in repos])
-            #if pmid or contents:
-                # TODO: Ideally this information would be store in the database
-                # this is pretty hacky. I'm checking each collection for this pmid
+
+            # TODO: Ideally this information would be store in the database
+            # this is pretty hacky. I'm checking gathering info for each pmid in
+            # each collection. If the user speficified a pmid in the REST call, then
+            # check if the pmid exists in the collection
             for repo in repos:
+                #this is the name w/out the brainspell-collection in it
                 repo["pretty_name"] = repo["name"].replace("brainspell-collection-", "")
+
+                #get file list content for each repo
                 content_data = yield torngithub.github_request(
                                   self.get_auth_http_client(),
                                   '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
@@ -538,30 +543,35 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                 access_token=gh_user['access_token'],
                 method="GET")
                 content = content_data["body"]
+
+                #extract pmids from content body
                 pmids = [c["name"].replace(".json", "") for c in content]
+
+                #get article information from each pmid from the database
                 all_contents = [next(get_article(pmid)) for pmid in pmids]
 
+                #Convert to a dict the info we want (so it can be JSON serialized later)
                 def article_content_dict(cont):
                     return dict(title= cont.title, reference= cont.reference, pmid=cont.pmid)
-
                 repo["contents"] = [article_content_dict(cont) for cont in all_contents]
 
+                #If we are looking for a certaim pmid, add a tag for if it exists in the collection
                 if pmid:
                     if pmid in pmids:
                         repo["in_collection"] = True
                     else:
                         repo["in_collection"] = False
 
-
+            #if we want to return a JSON instead or a page render
             if return_list:
                 self.write(json_encode(repos))
             else:
-                #print("repo info is", repos[0])
                 self.render("static/html/github-account.html",
                                 info=repos,
                                 github_user=gh_user["name"],
                                 github_avatar=gh_user["avatar_url"])
 
+        #if you're not authorized, redirect to oauth
         else:
             self.redirect("/oauth?next=/repos")
 

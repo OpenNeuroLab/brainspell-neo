@@ -245,6 +245,16 @@ def coactivation(coordinate): # Yields around 11,000 coordinates
                     coordinate_sets.append(location_sets["locations"])
     return coordinate_sets
 
+def delete_row(pmid, exp, row):
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    locations = elem["locations"];
+    locations.pop(int(row));
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
+
+
 def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
     target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
     target = next(target)

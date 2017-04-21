@@ -518,6 +518,12 @@
             }
             contents.append($("<tr>").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add a Row").css("text-align","center")));
             table.append(contents);
+            {% if title != ""%}
+            var footer = $("<tfoot>");
+            footer.append($("<tr>").css("background-color", "white").css("width", "50%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))))
+            footer.append($("<tr>").css("background-color", "white").css("width", "50%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))))
+            table.append(footer);
+            {% end %}
             return table;
         }
 
@@ -574,6 +580,31 @@
             });
             //location.reload();
             //return true;
+        }
+
+        function deleteRow(element) {
+            if (exp[element].selectedRow != null) {
+                var r = exp[element].selectedRow;
+                //var x = exp[element].locations[r][0];
+                //var y = exp[element].locations[r][1];
+                //var z = exp[element].locations[r][2];
+                console.log(r);
+
+                $.ajax({
+                    type: "GET",
+                    url: "/json/delete-row?pmid={{id}}&key={{key}}&experiment=" + element + "&row=" + r
+                }).complete(function(o) {
+                    j = o.responseText;
+                    console.log(j);
+                    obj = JSON.parse(j);
+                    location.reload();
+                });
+            }
+        }
+
+        function splitTable(element) {
+            console.log(element);
+            // TODO: implement splitting tables
         }
 
         function getaURL(name, url) {

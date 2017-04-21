@@ -149,6 +149,16 @@ class AddArticleEndpointHandler(BaseHandler):
             response = {"success": 0}
         self.write(json.dumps(response))
 
+class DeleteRowEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        if valid_api_key(api_key):
+            pmid = self.get_query_argument("pmid", "")
+            exp = self.get_query_argument("experiment", "")
+            row = self.get_query_argument("row", "")
+            print(pmid)
+            delete_row(pmid, exp, row)
+        self.write(json.dumps({"success": "1"}))
 
 # view-article page
 class ArticleHandler(BaseHandler):
@@ -161,7 +171,7 @@ class ArticleHandler(BaseHandler):
         gh_user = self.get_current_github_user()
         self.render("static/html/view-article.html", id=articleId,
                     github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-                    title=self.get_current_email())
+                    title=self.get_current_email(), key=self.get_current_password())
 
     def post(self):  # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
@@ -687,6 +697,7 @@ def make_app():
         (r"/json/random-query", RandomEndpointHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
+        (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),
         (r"/json/delete-article", DeleteArticleHandler),

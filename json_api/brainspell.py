@@ -61,7 +61,7 @@ class MainHandler(BaseHandler):
         try:
             failure = int(self.get_argument("failure", 0))
         except:
-            failure = 0   
+            failure = 0
         try:  # handle registration
             registered = int(self.get_argument("registered", 0))
         except:
@@ -168,6 +168,15 @@ class SplitTableEndpointHandler(BaseHandler):
             exp = self.get_query_argument("experiment", "")
             row = self.get_query_argument("row", "")
             split_table(pmid, exp, row)
+        self.write(json.dumps({"success": "1"}))
+
+class FlagTableEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        if valid_api_key(api_key):
+            pmid = self.get_query_argument("pmid", "")
+            exp = int(self.get_query_argument("experiment", ""))
+            flag_table(pmid, exp)
         self.write(json.dumps({"success": "1"}))
 
 # view-article page
@@ -709,6 +718,7 @@ def make_app():
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/split-table", SplitTableEndpointHandler),
+        (r"/json/flag-table", FlagTableEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),
         (r"/json/delete-article", DeleteArticleHandler),

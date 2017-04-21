@@ -566,6 +566,9 @@
             footer.append(flagTableElem);
             table.append(footer);
             {% end %}
+            if (flagged) {
+                table.addClass("flagged");
+            }
             return table;
         }
 
@@ -670,7 +673,6 @@
             //var x = exp[element].locations[r][0];
             //var y = exp[element].locations[r][1];
             //var z = exp[element].locations[r][2];
-
             $.ajax({
                 type: "GET",
                 url: "/json/flag-table?pmid={{id}}&key={{key}}&experiment=" + element
@@ -746,5 +748,6 @@
             console.log("GRAPHICS LOADED");
         }
     </script>
+
 </body>
 </html>

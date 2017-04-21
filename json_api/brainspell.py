@@ -160,6 +160,16 @@ class DeleteRowEndpointHandler(BaseHandler):
             delete_row(pmid, exp, row)
         self.write(json.dumps({"success": "1"}))
 
+class SplitTableEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        if valid_api_key(api_key):
+            pmid = self.get_query_argument("pmid", "")
+            exp = self.get_query_argument("experiment", "")
+            row = self.get_query_argument("row", "")
+            split_table(pmid, exp, row)
+        self.write(json.dumps({"success": "1"}))
+
 # view-article page
 class ArticleHandler(BaseHandler):
     def get(self):
@@ -698,6 +708,7 @@ def make_app():
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/delete-row", DeleteRowEndpointHandler),
+        (r"/json/split-table", SplitTableEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),
         (r"/json/delete-article", DeleteArticleHandler),

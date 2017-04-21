@@ -437,8 +437,8 @@
     </script>
     <div class="container">
         <div class="row">
-            <h3>Discussion Section</h3>
-            <!--
+            <!--<h3>Discussion Section</h3>
+            
             <form id="comment_submitter" action="/view-article" method="post">
                 <textarea id="comment" style="width: 100%;height:100px; left:1em; right:1em;" placeholder="Any Questions or Concerns about this article?"></textarea>
                 <button id="discussion" class="btn btn-default">Submit</button>
@@ -623,7 +623,23 @@
 
         function splitTable(element) {
             console.log(element);
-            // TODO: implement splitting tables
+            if (exp[element].selectedRow != null) {
+                var r = exp[element].selectedRow;
+                //var x = exp[element].locations[r][0];
+                //var y = exp[element].locations[r][1];
+                //var z = exp[element].locations[r][2];
+                console.log(r);
+
+                $.ajax({
+                    type: "GET",
+                    url: "/json/split-table?pmid={{id}}&key={{key}}&experiment=" + element + "&row=" + r
+                }).complete(function(o) {
+                    j = o.responseText;
+                    console.log(j);
+                    obj = JSON.parse(j);
+                    //location.reload();
+                });
+            }
         }
 
         function getaURL(name, url) {

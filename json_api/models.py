@@ -255,6 +255,20 @@ def delete_row(pmid, exp, row):
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
 
+def split_table(pmid, exp, row):
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    locations = elem["locations"];
+    locations1 = locations[0:int(row)]
+    locations2 = locations[int(row):]
+    elem["locations"] = locations1
+    secondTable = {"title": "", "caption": "", "locations": locations2, "id": (max([exp["id"] for exp in experiments]) + 1)}
+    experiments.insert(int(exp) + 1, secondTable)
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
+
+
 def update_z_scores(id,user,values): #TODO maybe save the user that inserted the data
     target = Articles.select(Articles.experiments).where(Articles.pmid == id).execute()
     target = next(target)

@@ -61,7 +61,7 @@ class MainHandler(BaseHandler):
         try:
             failure = int(self.get_argument("failure", 0))
         except:
-            failure = 0   
+            failure = 0
         try:  # handle registration
             registered = int(self.get_argument("registered", 0))
         except:

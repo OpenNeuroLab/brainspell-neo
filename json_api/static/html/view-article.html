@@ -200,6 +200,11 @@
              console.log(err)
            })
         });
+      }).fail(function(response){
+        console.log("response is", response.statusText)
+        spinner.stop(target)
+        $("#github_collections").select2({placeholder: response.statusText})
+        $("#github_collections").prop("disabled", true)
       })
 
 
@@ -327,7 +332,7 @@
             {% if title!="" %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
             {% end %}
-                
+
             $("#articleContents").append(linkParagraph);
             var dropper = $("<div/>");
             if (metadata != undefined) {

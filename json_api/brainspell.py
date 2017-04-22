@@ -170,6 +170,15 @@ class SplitTableEndpointHandler(BaseHandler):
             split_table(pmid, exp, row)
         self.write(json.dumps({"success": "1"}))
 
+class ArticleAuthorEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        if valid_api_key(api_key):
+            pmid = self.get_query_argument("pmid", "")
+            authors = self.get_query_argument("authors", "")
+            update_authors(pmid, authors)
+        self.write(json.dumps({"success": "1"}))
+
 class AddTableTextHandler(BaseHandler):
     def post(self):
         pmid = self.get_argument("pmid", "")
@@ -730,6 +739,7 @@ def make_app():
         (r"/json/coordinates", CoordinatesEndpointHandler),  # TODO: add to API documentation on wiki
         (r"/json/random-query", RandomEndpointHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
+        (r"/json/set-article-authors", ArticleAuthorEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/split-table", SplitTableEndpointHandler),

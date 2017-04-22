@@ -279,6 +279,9 @@ def split_table(pmid, exp, row):
     experiments.insert(int(exp) + 1, secondTable)
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
+def update_authors(pmid, authors):
+    Articles.update(authors = authors).where(Articles.pmid == pmid).execute()
+
 def add_table_text(pmid, values):
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)

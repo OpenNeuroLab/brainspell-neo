@@ -279,6 +279,14 @@ def split_table(pmid, exp, row):
     experiments.insert(int(exp) + 1, secondTable)
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
+def add_coordinate(pmid, exp, coords): # adds a coordinate row to the end of a table
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    elem["locations"].append(coords)
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
+
 def update_authors(pmid, authors):
     Articles.update(authors = authors).where(Articles.pmid == pmid).execute()
 

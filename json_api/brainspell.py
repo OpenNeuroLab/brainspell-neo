@@ -170,6 +170,16 @@ class SplitTableEndpointHandler(BaseHandler):
             split_table(pmid, exp, row)
         self.write(json.dumps({"success": "1"}))
 
+class AddCoordinateEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        if valid_api_key(api_key):
+            pmid = self.get_query_argument("pmid", "")
+            exp = self.get_query_argument("experiment", "")
+            coords = self.get_query_argument("coordinates", "").replace(" ", "")
+            add_coordinate(pmid, exp, coords)
+        self.write(json.dumps({"success": "1"}))
+
 class ArticleAuthorEndpointHandler(BaseHandler):
     def get(self):
         api_key = self.get_query_argument("key", "")
@@ -743,6 +753,7 @@ def make_app():
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/split-table", SplitTableEndpointHandler),
+        (r"/json/add-row", AddCoordinateEndpointHandler), # adds a single coordinate row to the end of an experiment table
         (r"/json/flag-table", FlagTableEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler),

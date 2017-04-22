@@ -443,9 +443,9 @@ class SaveArticleHandler(BaseHandler):  # TODO: change to a JSON endpoint
 
 
 # delete a saved article
-class DeleteArticleHandler(BaseHandler):
+class DeleteArticleEndpointHandler(BaseHandler):
     def get(self):
-        if self.is_logged_in():
+        if self.is_logged_in(): # TODO: should take a username/key, rather than checking cookies
             value = self.get_query_argument("article")
             User_metadata.delete().where(User_metadata.user_id == self.get_current_email(),
                                          User_metadata.metadata_id == value).execute()
@@ -757,10 +757,10 @@ def make_app():
         (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/split-table", SplitTableEndpointHandler),
         (r"/json/add-row", AddCoordinateEndpointHandler), # adds a single coordinate row to the end of an experiment table
-        (r"/json/flag-table", FlagTableEndpointHandler),
+        (r"/json/flag-table", FlagTableEndpointHandler), # TODO: add API documentation
         (r"/json/bulk-add", BulkAddEndpointHandler),
-        (r"/json/saved-articles", SavedArticlesEndpointHandler),
-        (r"/json/delete-article", DeleteArticleHandler),
+        (r"/json/saved-articles", SavedArticlesEndpointHandler), # TODO: add API documentation
+        (r"/json/delete-article", DeleteArticleEndpointHandler), # TODO: add API documentation
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),

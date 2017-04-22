@@ -9,11 +9,14 @@ Clients can make requests to the JSON API directly, or access Brainspell through
 ## Running Brainspell
 
 To run Brainspell locally:  
-1) Clone the Git repo.
-2) Install Postgres (if not already installed). In a mac you can use `brew install postgres`.
-3) Install the Python dependencies with `pip install -r requirements.txt`.
+1) Clone the Git repo with `git clone git@github.com:OpenNeuroLab/brainspell-neo.git`.
+2) Install Postgres (if not already installed). If you have Homebrew installed, you can use `brew install postgres`.
+3) Make sure that you're using Python 3.5.
+4) Enter the repo with `cd brainspell-neo/`, and install the Python dependencies with `pip install -r requirements.txt`.
 
 Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
+
+Having difficulty getting Brainspell running? Install [Conda](https://conda.io/docs/get-started.html), and create an environment for Python 3.5.
 
 ## Code Organization
 

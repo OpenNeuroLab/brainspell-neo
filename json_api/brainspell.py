@@ -170,6 +170,14 @@ class SplitTableEndpointHandler(BaseHandler):
             split_table(pmid, exp, row)
         self.write(json.dumps({"success": "1"}))
 
+class AddTableTextHandler(BaseHandler):
+    def post(self):
+        pmid = self.get_argument("pmid", "")
+        vals = self.get_argument("values", "")
+        if self.is_logged_in():
+            add_table_text(pmid, vals)
+        self.redirect("/view-article?id=" + pmid)
+
 class FlagTableEndpointHandler(BaseHandler):
     def get(self):
         api_key = self.get_query_argument("key", "")
@@ -738,6 +746,7 @@ def make_app():
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
+        (r"/add-table-text", AddTableTextHandler),
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
         (r"/save-collection", SaveCollectionHandler),

@@ -148,7 +148,7 @@ def parse(query): # TODO: needs to be commented
         columns.append(Articles.pmid)
     if tiab.search(query):
         columns.extend([Articles.title, Articles.abstract])
-    formatted_query = re.sub('\[.*\]','',query)
+    formatted_query = re.sub('\[.*\]','',query).strip().replace(" ", "%")
     if not columns:
         return (None,None,formatted_query)
     matches = [Match(col,formatted_query) for col in columns]
@@ -157,8 +157,8 @@ def parse(query): # TODO: needs to be commented
 
 # used by the search page; an overloaded function that returns either the results of a search, or the experiments that correspond to the articles
 def formatted_search(query, start, param=None, experiments=False): # param specifies dropdown value from search bar; experiments specifies whether to only return the experiments
-    (columns,term,formatted_query) = parse(query)
-    query = query.replace(" ","%")
+    columns, term, formatted_query = parse(query)
+    query = formatted_query
     print(query) 
     if columns:
         search = Articles.select(Articles.pmid, Articles.title, Articles.authors).where(term).limit(10).offset(start)
@@ -277,6 +277,15 @@ def split_table(pmid, exp, row):
     elem["locations"] = locations1
     secondTable = {"title": "", "caption": "", "locations": locations2, "id": (max([exp["id"] for exp in experiments]) + 1)}
     experiments.insert(int(exp) + 1, secondTable)
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
+
+def add_table_text(pmid, values):
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    values = values.replace(" ", "").split("\n")
+    secondTable = {"title": "", "caption": "", "locations": values, "id": (max([exp["id"] for exp in experiments]) + 1)}
+    experiments.insert(len(experiments), secondTable)
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
 

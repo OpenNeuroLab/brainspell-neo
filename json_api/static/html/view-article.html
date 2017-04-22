@@ -339,9 +339,22 @@
 
             {% if title!="" %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
-            {% end  %}
+
+            linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
+            {% end %}
 
             $("#articleContents").append(linkParagraph);
+            var tableInputForm = $("<div>").css("display", "none").attr("id", "tableInputForm").css("padding-bottom", "20px");
+            var tableForm = $("<form>").attr("action", "/add-table-text").attr("method", "post").append(
+                $("<p>").text("Each coordinate should be on its own line, in the format \"x, y, z\" (without quotes).")
+            ).append(
+                $("<textarea>").attr("name", "values")
+            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{id}}")).append(
+                $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
+            );
+            tableInputForm.append(tableForm);
+            $("#articleContents").append(tableInputForm);
+            
             var dropper = $("<div/>");
             if (metadata != undefined) {
                 var metadataStr = "";

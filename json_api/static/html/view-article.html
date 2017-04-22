@@ -329,6 +329,7 @@
                 obj["metadata"] = obj["metadata"].slice(8,-2);
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -338,7 +339,7 @@
 
             {% if title!="" %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
-            {% end %}
+            {% end  %}
 
             $("#articleContents").append(linkParagraph);
             var dropper = $("<div/>");
@@ -375,8 +376,24 @@
                 $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
             }
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
-
             $("#articleContents").append(dropper);
+
+
+            var user_terms = $("<div/>");
+            user_terms.append($("<p>").css("color", "#c0c0c0").text("User descriptors: "));
+            if (user != undefined) {
+                for (var i = 0; i < user.length; i++) {
+                    user_terms.append(user[i]);
+                }
+            }
+            user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","show_items()").css("font-weight","bold"));
+            var item = $("<form>", {"method":"post","action":"view-article"});;
+            item.append($("<input>", {"id":"submitter"}).hide());
+            item.append($("<button>", {"id":"submitt","class":"btn btn-default","onclick":"send(" + $("submitter").val() + ")"}).hide());
+            user_terms.append(item);
+            $("#articleContents").append(user_terms);
+
+
 
             // TODO: add "action" once that endpoint is finished
             var form = $('<div>', {'id':"locations"});
@@ -503,7 +520,6 @@
                 addExperiment(exp[i].id, exp[i]);
             }
         }
-
         function experimentsTable(array, position, experimentNumber, flagged) {
             var table = $("<table>").css("position", "relative");
             table.addClass("scroller");
@@ -746,6 +762,24 @@
                 });
             });
             console.log("GRAPHICS LOADED");
+        }
+
+        function send(val) {
+            $.ajax({
+                type: "POST",
+                url: "/view-article",
+                data: {
+                    "changes": $("#submitter").val(),
+                    "id": getID()
+                }
+            }).complete(function(o) {
+                //console.log(o);
+                location.reload();
+            });
+        }
+        function show_items() {
+            $('#submitter').show();
+            $('#submitt').show();
         }
     </script>
 

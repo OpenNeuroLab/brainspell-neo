@@ -218,6 +218,13 @@ class ArticleHandler(BaseHandler):
             update_vote(id, email, topic, direction)
             self.redirect("/view-article?id=" + str(id))
 
+        try:
+            user_tag = self.get_argument("changes")
+            print(user_tag)
+            add_user_tag(user_tag,id)
+        except:
+            pass
+
 
 # API endpoint to handle search queries; returns 10 results at a time
 class SearchEndpointHandler(BaseHandler):

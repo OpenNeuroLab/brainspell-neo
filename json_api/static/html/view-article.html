@@ -380,7 +380,7 @@
                         metadatalst.push([metadata[j]["name"], metadata[j]["vote"]])
                     }
                     else {
-                        metadatalst.push([metadata[j]["name"], "NOVOTES"]);
+                        metadatalst.push([metadata[j]["name"], "NOVOTES"]); // TODO: not a good structure for this; should be a dictionary
                     }
                 }
                 // Create a modal for each term (approve or reject)
@@ -389,7 +389,17 @@
                 for (var i = 0; i < metadatalst.length; i++) {
                     var temp = metadatalst[i];
                     temp = JSON.stringify(temp);
-                    dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+                    var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
+                    if (metadatalst[i][1] != "NOVOTES") { // add visual feedback based on whether upvotes vs. downvotes are greater
+                        if (metadatalst[i][1]["up"].length == metadatalst[i][1]["down"].length) {
+                            voteTagBtn.css("color", "#FFA500") // orange
+                        } else if (metadatalst[i][1]["up"].length > metadatalst[i][1]["down"].length) {
+                            voteTagBtn.css("color", "#228B22"); // dark green
+                        } else {
+                            voteTagBtn.css("color", "#ff0000"); // red
+                        }
+                    }
+                    dropper.append(voteTagBtn);
                 }
 
 

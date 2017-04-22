@@ -207,11 +207,11 @@
            })
         });
       }).fail(function(response){
-        console.log("response is", response.statusText)
+        console.log("response is", response.statusText);
         spinner.stop(target)
         $("#github_collections").select2({placeholder: response.statusText})
         $("#github_collections").prop("disabled", true)
-      })
+      });
 
 
 
@@ -604,6 +604,11 @@
             }
             flagTableElem.append($("<td>").append(linkElem));
             footer.append(flagTableElem);
+            footer.append($("<button>").attr("onclick", "showCognitive(" + experimentNumber + ")").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").text("Cognitive"))));
+            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "showBehavioral(" + experimentNumber + ")").text("Behavioral"))));
+            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "showTasks(" + experimentNumber + ")").text("Tasks"))));
+
+
             table.append(footer);
             {% end %}
             if (flagged) {
@@ -805,6 +810,46 @@
             $('#submitter').show();
             $('#submitt').show();
         }
+        function showCognitive(element) {
+            var items = $("<ul>", {"class":"list-group"});
+            for (var i = 0; i < cogAtlas_cognitive.length; i++) {
+                var temp = JSON.stringify(cogAtlas_cognitive[i]["name"]);
+                var single = $("<li>", {"class":"list-group-item"}).text(cogAtlas_cognitive[i]["name"]).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                items.append(single);
+            }
+            var descriptor = $("<div>", {"class": "container"}).append(
+                $("<div>", {"class":"row"}).append(
+                    $("<div>",{"id":"descriptorModal", "class":"modal fade bs-example-modal-lg","tabindex":-1,"role":"dialog","aria-labelledby":"myLargeModalLabel"}).append(
+                        $("<div>",{"class":"modal-dialog modal-lg"}).append(
+                            $("<div>",{"class":"modal-content"}).append(
+                                $("<div>",{"id":"custom-search-input"}).append(
+                                    $("<div>",{"class":"input-group col-md-12"}).append(
+                                            $("<input>",{"id":"search","type":"text","class":"form-control input-lg","placeholder":"Search Descriptor"})
+                                    ).append(
+                                        $("<span>",{"class":"input-group-btn"}).append(
+                                                $("<button>",{"class":"btn btn-info btn-lg","type":"button"}).append(
+                                                        $("<i>",{"class":"glyphicon glyphicon-search"})
+                                                )
+                                        )
+                                    )
+                                ).append(items)
+                            )
+                        )
+                    )
+                )
+            ).css("z-index","1999");
+            $("#articleContents").append(descriptor);
+            $('#descriptorModal').on('hidden.bs.modal', function(){
+                $(this).remove();
+            });
+            searcher();
+            return descriptor;
+
+        }
+
+
+
+
     </script>
 
 </body>

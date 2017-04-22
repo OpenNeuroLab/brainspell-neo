@@ -24,6 +24,11 @@
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
     <meta id="user_logged_in" data-name="{{ github_user }}">
 
+    <!--Features to add words and corresponding definitions -->
+    <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
+    <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
+    <script type="text/javascript" src="/static/js/brainmap-behavioral.js"></script>
+
 
     <!-- Custom CSS -->
     <style>
@@ -329,7 +334,7 @@
                 obj["metadata"] = obj["metadata"].slice(8,-2);
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
-            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"]
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -393,12 +398,18 @@
 
             //Add user based terms
             var user_terms = $("<div/>");
+            user_terms.append($("<p>").css("color", "#c0c0c0").text("User descriptors: "));
+            if (user != undefined) {
+                for (var i = 0; i < user.length; i++) {
+                    user_terms.append($("<button>").text(user[i]).attr("class", "dropbtn").attr("data-toggle", "modal"));
+                }
+            }
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
             var user_data = $("<form>").attr("action", "/add-user-data").attr("method", "post").append(
                     $("<p>",{"value":"Add Tag below"})).append(
                 $("<input>").attr("name", "values")
-            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{id}}")).append(
+            ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{id}}")).append(
                 $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
             );
             user_input.append(user_data);

@@ -347,7 +347,7 @@ def update_vote(id,user,topic,direction): #TODO save the user that changed the v
 def add_user_tag(user_tag,id):
     main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
     target = eval(main_target.metadata)
-    if target["user"]:
+    if target.get("user"):
         target["user"].append(user_tag)
     else:
         target["user"] = [user_tag]

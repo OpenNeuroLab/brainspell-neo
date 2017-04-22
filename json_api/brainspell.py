@@ -200,10 +200,11 @@ class AddTableTextHandler(BaseHandler):
 
 class AddUserDataHandler(BaseHandler):
     def post(self):
-        id = self.get_argument("id")
-        user_tag = self.get_argument("changes")
+        id = self.get_argument("pmid")
+        user_tag = self.get_argument("values")
         print(user_tag)
         add_user_tag(user_tag,id)
+        self.redirect("/view-article?id=" +id)
 
 
 class FlagTableEndpointHandler(BaseHandler):

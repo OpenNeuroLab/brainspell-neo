@@ -402,7 +402,7 @@
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","show_items()").css("font-weight","bold"));
             var item = $("<form>", {"method":"post","action":"view-article"});;
             item.append($("<input>", {"id":"submitter"}).hide());
-            item.append($("<button>", {"id":"submitt","class":"btn btn-default","onclick":"send(" + $("submitter").val() + ")"}).hide());
+            item.append($("<button>", {"id":"submitt","class":"btn btn-default","onclick":"send()", "value":"Add"}).hide());
             user_terms.append(item);
             $("#articleContents").append(user_terms);
 
@@ -777,7 +777,7 @@
             console.log("GRAPHICS LOADED");
         }
 
-        function send(val) {
+        function send() {
             $.ajax({
                 type: "POST",
                 url: "/view-article",

@@ -391,20 +391,20 @@
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
             $("#articleContents").append(dropper);
 
-
+            //Add user based terms
             var user_terms = $("<div/>");
-            user_terms.append($("<p>").css("color", "#c0c0c0").text("User descriptors: "));
-            if (user != undefined) {
-                for (var i = 0; i < user.length; i++) {
-                    user_terms.append(user[i]);
-                }
-            }
-            user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","show_items()").css("font-weight","bold"));
-            var item = $("<form>", {"method":"post","action":"view-article"});;
-            item.append($("<input>", {"id":"submitter"}).hide());
-            item.append($("<button>", {"id":"submitt","class":"btn btn-default","onclick":"send(" + $("submitter").val() + ")"}).hide());
-            user_terms.append(item);
+            user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
+            var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
+            var user_data = $("<form>").attr("action", "/add-user-data").attr("method", "post").append(
+                    $("<p>",{"value":"Add Tag below"})).append(
+                $("<input>").attr("name", "values")
+            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{id}}")).append(
+                $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
+            );
+            user_input.append(user_data);
+            user_terms.append(user_input);
             $("#articleContents").append(user_terms);
+
 
 
 
@@ -777,7 +777,7 @@
             console.log("GRAPHICS LOADED");
         }
 
-        function send(val) {
+        function send() {
             $.ajax({
                 type: "POST",
                 url: "/view-article",

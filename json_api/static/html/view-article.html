@@ -217,8 +217,10 @@
 
         function popup(elements) {
             var targets = JSON.parse(elements);
-            var agreements = "";
-            var disagree = "";
+            var agreements = 0;
+            var disagree = 0;
+            var userVotedAgree = "";
+            var userVotedDisagree = "";
             var element = targets;
             if (typeof(targets) == "object") { // Specifies votes were provided
                 element = targets[0];
@@ -227,6 +229,16 @@
                     console.log(votes);
                     agreements = votes["up"].length;
                     disagree = votes["down"].length;
+                    for (var i = 0; i < agreements; i++) {
+                        if (votes["up"][i]["email"] == "{{title}}") {
+                            userVotedAgree = " (including you)"
+                        }
+                    }
+                    for (var i = 0; i < disagree; i++) {
+                        if (votes["down"][i]["email"] == "{{title}}") {
+                            userVotedDisagree = " (including you)"
+                        }
+                    }
                 }
             }
             value = "";
@@ -245,9 +257,9 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(value)
                         ).append(
-                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements)
+                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements + userVotedAgree)
                         ).append(
-                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree))
+                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree + userVotedDisagree))
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
                                 $("<button>", {"type":"button", "id": "closer", "class": "btn btn-default","data-dismiss":"modal"}).text("Close"))

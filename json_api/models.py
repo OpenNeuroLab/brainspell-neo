@@ -353,17 +353,13 @@ def toggle_vote(pmid, topic, email, direction):
         target[entry]["vote"][direction].append({
             "email": email # leave open for any other metadata we may eventually want to include
         })
-        print("added vote to: " + direction)
-        print(target)
 
     # delete any votes in the opposite direction
     otherDirectionLst = ["up", "down"]
     otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
-    print("removing vote from: " + otherDirection)
     for v in range(len(target[entry]["vote"][otherDirection])):
         if target[entry]["vote"][otherDirection][v]["email"] == email:
             del target[entry]["vote"][otherDirection][v]
-    print(target)
 
     updatedMetadata = {
         "meshHeadings": target

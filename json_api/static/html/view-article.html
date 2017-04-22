@@ -225,8 +225,8 @@
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    agreements = votes["up"];
-                    disagree = votes["down"];
+                    agreements = votes["up"].length;
+                    disagree = votes["down"].length;
                 }
             }
             value = "";
@@ -255,9 +255,11 @@
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
+                {% if title=="" %}
                 $("#agree").hide();
                 $("#disagree").hide();
                 $("#closer").before("Please login to vote  ");
+                {% end %}
             }
             // remove the modal from the DOM on hide
             $('#myModal').on('hidden.bs.modal', function(){
@@ -755,22 +757,22 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
 
-        // TODO Send this information to the database, change schema to allow this
-        function updateVote(topic,direction) {
-            if (`{{ title }}` == "") {
-                window.location.replace("/login");
-            }
-            var form = $("<form>", {"method":"post","action":"/view-article","id":"voterselector"});
-            form.append($("<input>", {"type":"hidden","name":"topicChange","id":"topicChange","value":"" + topic}));
-            form.append($("<input>", {"type":"hidden","name":"directionChange","id":"directionChange","value":"" + direction}));
-            form.append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
-            $("#articleContents").append(form);
-            document.getElementById("voterselector").submit();
-            console.log("SUBMITTED");
+        function updateVote(topic, direction) {
+            $.ajax({
+                type: "GET",
+                url: "/json/toggle-user-vote?email={{title}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
+            }).complete(function(o) {
+                j = o.responseText;
+                console.log(j);
+                obj = JSON.parse(j);
+                location.reload();
+            });
         }
+
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
+        
         $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
         function startloader() {
             $(window).load(function () {

@@ -320,28 +320,58 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         query = Articles.update(experiments=experiments).where(Articles.pmid == id)
         query.execute()
 
+def toggle_vote(pmid, topic, email, direction):
+    fullArticle = next(Articles.select(Articles.metadata).where(Articles.pmid == pmid).execute())
 
-def update_vote(id,user,topic,direction): #TODO save the user that changed the vote
-    main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
+    target = eval(fullArticle.metadata)['meshHeadings']
+    entry = -1
 
-    target = eval(main_target.metadata)['meshHeadings']
-    value = ""
     for i in range(len(target)):
         if target[i]['name'] == topic:
-            value = i
+            entry = i
             break
-    if value == "":
-        target.append({"name":topic,"majorTopic":"N"})
-        value = len(target) - 1
-    if target[value].get("vote"):
-        target[value]["vote"][direction] += 1
-    else:
-        target[value]["vote"] = {"up":0,"down":0}
-        target[value]["vote"][direction] += 1
-    new = {}
-    new['meshHeadings'] = target
-    print(new)
-    query = Articles.update(metadata = new).where(Articles.pmid == id)
+
+    if entry == -1: # if the tag hasn't been added yet, then add it
+        target.append({
+            "name": topic,
+            "majorTopic": "N"
+        })
+        entry = len(target) - 1
+
+    if "vote" not in target[entry]: # if no one has voted, then add voting structures
+        target[entry]["vote"] = {}
+        target[entry]["vote"]["up"] = []
+        target[entry]["vote"]["down"] = []
+
+    # toggle the vote
+    toggled = False
+    for v in range(len(target[entry]["vote"][direction])):
+        if target[entry]["vote"][direction][v]["email"] == email:
+            del target[entry]["vote"][direction][v]
+            toggled = True
+    if not toggled:
+        target[entry]["vote"][direction].append({
+            "email": email # leave open for any other metadata we may eventually want to include
+        })
+        print("added vote to: " + direction)
+        print(target)
+
+    # delete any votes in the opposite direction
+    otherDirectionLst = ["up", "down"]
+    otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
+    print("removing vote from: " + otherDirection)
+    for v in range(len(target[entry]["vote"][otherDirection])):
+        if target[entry]["vote"][otherDirection][v]["email"] == email:
+            del target[entry]["vote"][otherDirection][v]
+    print(target)
+
+    updatedMetadata = {
+        "meshHeadings": target
+    }
+
+    # print(updatedMetadata)
+
+    query = Articles.update(metadata = updatedMetadata).where(Articles.pmid == pmid)
     query.execute()
 
 def add_user_tag(user_tag,id):

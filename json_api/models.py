@@ -396,24 +396,23 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
             break
     if entry == -1: # if the tag hasn't been added yet, then add it
         k[column].append({
-            "name": element,
-            "majorTopic": "N"
+            "element": element,
         })
         entry = len(target) - 1
 
-    if "vote" not in target[entry]: # if no one has voted, then add voting structures
-        target[entry]["vote"] = {}
-        target[entry]["vote"]["up"] = []
-        target[entry]["vote"]["down"] = []
+    if "vote" not in k[column][element]: # if no one has voted, then add voting structures
+        k[column][element]["vote"] = {}
+        k[column][element]["vote"]["up"] = []
+        k[column][element["vote"]["down"] = []
 
     # toggle the vote
     toggled = False
-    for v in range(len(target[entry]["vote"][direction])):
-        if target[entry]["vote"][direction][v]["email"] == email:
+    for v in range(len(k[column][element]["vote"][direction])):
+        if (k[column][element]["vote"][direction][v]["email"] == email):
             del target[entry]["vote"][direction][v]
             toggled = True
     if not toggled:
-        target[entry]["vote"][direction].append({
+        k[column][element]["vote"][direction].append({
             "email": email # leave open for any other metadata we may eventually want to include
         })
 

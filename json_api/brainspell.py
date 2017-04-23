@@ -481,6 +481,19 @@ class SavedArticlesEndpointHandler(BaseHandler):
             self.write(json.dumps({"success": 0}))
 
 
+class TableVoteUpdateHandler(BaseHandler):
+    def post(self):
+        element = self.get_argument("element")
+        direction = self.get_argument("direction")
+        table_num = self.get_argument("table_num")
+        pmid = self.get_argument("id")
+        column = self.get_argument("column")
+        user = self.get_current_email()
+        update_table_vote(element,direction,table_num,pmid,column,user)
+        self.redirect("/view-article?id=" + pmid)
+
+
+
 # save an article to a user's account
 class SaveCollectionHandler(BaseHandler):
     def post(self):
@@ -782,6 +795,7 @@ def make_app():
         (r"/create_repo", NewRepoHandler),
         (r"/add-to-collection", NewFileHandler),
         (r"/add-user-data", AddUserDataHandler),
+        (r"/updateTableVote", TableVoteUpdateHandler),
         (r"/remove-from-collection", DeleteFileHandler)
     ], debug=True, **settings)
 

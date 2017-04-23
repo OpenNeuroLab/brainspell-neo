@@ -215,7 +215,8 @@
 
 
 
-        function popup(elements) {
+        function popup(elements, table_num = -1, column='NA') {
+            column = JSON.stringify(column);
             var targets = JSON.parse(elements);
             var agreements = 0;
             var disagree = 0;
@@ -257,13 +258,46 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(value)
                         ).append(
-                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements + userVotedAgree)
+                                function() {
+                                    if (table_num == -1) {
+                                        return $("<a>", {
+                                            "type": "button",
+                                            "id": "agree",
+                                            "class": "btn btn-default",
+                                            "onclick": `updateVote('${element}','up')`
+                                        }).text("Agree: " + agreements + userVotedAgree);
+                                    } else {
+                                        return $("<a>", {
+                                            "type": "button",
+                                            "id":"agree",
+                                            "class":"btn btn-default",
+                                            "onclick":`updateTableVote('${element}','up', ${table_num},${column})`
+                                        }).text("Agree: " + agreements + userVotedAgree);
+                                    }
+                                }
                         ).append(
-                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree + userVotedDisagree))
+                                function() {
+                                    if (table_num == -1) {
+                                        return $("<a>", {
+                                            "type": "button",
+                                            "id": "disagree",
+                                            "class": "btn btn-default",
+                                            "onclick": `updateVote('${element}','down')`
+                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                    } else {
+                                        return $("<a>", {
+                                            "type": "button",
+                                            "id":"disagree",
+                                            "class":"btn btn-default",
+                                            "onclick":`updateTableVote('${element}','down',${table_num},${column})`
+                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                    }
+                                }
+
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
                                 $("<button>", {"type":"button", "id": "closer", "class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
-                        )).css("z-index","2000"));
+                        )).css("z-index","2000")));
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
@@ -297,11 +331,11 @@
             });
         }
 
-        function meshAdder(term = descriptors) {
+        function meshAdder(term = descriptors, table_num = -1, column='NA') {
             var items = $("<ul>", {"class":"list-group"});
             for (var i = 0; i < term.length; i++) {
                 var temp = JSON.stringify(term[i]["name"]);
-                var single = $("<li>", {"class":"list-group-item"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                var single = $("<li>", {"class":"list-group-item"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "'," + table_num +"," +  JSON.stringify(column) +  ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                 items.append(single);
             }
             var descriptor = $("<div>", {"class": "container"}).append(
@@ -628,28 +662,29 @@
             }
             flagTableElem.append($("<td>").append(linkElem));
             footer.append(flagTableElem);
-            footer.append($("<button>", {"onclick": "meshAdder(cogAtlas_cognitive)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive"));
-            if (experimentsObj[i]["cognitive"] != undefined) {
-                for (var k = 0; k < experimentsObj[i]["cognitive"].length; k++) {
-                    var temp = JSON.stringify(experimentsObj[i]["cognitive"][k]);
-                    var term = $("<button>").text(experimentsObj[i]["cognitive"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    footer.append(term);
+            footer.append($("<button>", {"id":"cognitive","onclick": "meshAdder(cogAtlas_cognitive," + experimentNumber + ", 'C'" + ")", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive"));
+            footer.append($("<button>", {"id":"behavioral","onclick": "meshAdder(brainMap_behavioral," + experimentNumber + ", 'B')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral"));
+            footer.append($("<button>", {"id":"tasks","onclick": "meshAdder(cogAtlas_tasks," + experimentNumber + ", 'T')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks"));
+            //Add in table specific descriptors;
+            if (experimentsObj[experimentNumber]["cognitive"] != undefined) {
+                for (var k = 0; k < experimentsObj[experimentNumber]["cognitive"].length; k++) {
+                    var temp = JSON.stringify(experimentsObj[experimentNumber]["cognitive"][k]);
+                    var term = $("<button>").text(experimentsObj[experimentNumber]["cognitive"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    $("#cognitive").after(term);
                 }
             }
-            footer.append($("<button>", {"onclick": "meshAdder(brainMap_behavioral)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral"));
-            if (experimentsObj[i]["cognitive"] != undefined) {
-                for (var k = 0; k < experimentsObj[i]["behavioral"].length; k++) {
-                    temp = JSON.stringify(experimentsObj[i]["behavioral"][k]);
-                    term = $("<button>").text(experimentsObj[i]["behavioral"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    footer.append(term);
+            if (experimentsObj[experimentNumber]["behavioral"] != undefined) {
+                for (var k = 0; k < experimentsObj[experimentNumber]["behavioral"].length; k++) {
+                    temp = JSON.stringify(experimentsObj[experimentNumber]["behavioral"][k]);
+                    term = $("<button>").text(experimentsObj[experimentNumber]["behavioral"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    $("#behavioral").after(term);
                 }
             }
-            footer.append($("<button>", {"onclick": "meshAdder(cogAtlas_tasks)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks"));
-            if (experimentsObj[i]["tasks"] != undefined) {
-                for (var k = 0; k < experimentsObj[i]["tasks"].length; k++) {
-                    temp = JSON.stringify(experimentsObj[i]["tasks"][k]);
-                    term = $("<button>").text(experimentsObj[i]["tasks"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    footer.append(term);
+            if (experimentsObj[experimentNumber]["tasks"] != undefined) {
+                for (var k = 0; k < experimentsObj[experimentNumber]["tasks"].length; k++) {
+                    temp = JSON.stringify(experimentsObj[experimentNumber]["tasks"][k]);
+                    term = $("<button>").text(experimentsObj[experimentNumber]["tasks"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    $("#tasks").after(term);
                 }
             }
 //            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "meshAdder(brainMap_behavioral)").text("Behavioral"))));
@@ -806,6 +841,25 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
 
+        function updateTableVote(element,direction,tableNum,column) {
+            $.ajax({
+                type: "POST",
+                url: "/updateTableVote",
+                data: {
+                    "element": element,
+                    "direction":direction,
+                    "table_num":tableNum,
+                    "id": getID(),
+                    "column":column
+                }
+            }).complete(function(o) {
+                //console.log(o);
+                location.reload();
+            });
+
+
+        }
+
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
@@ -856,22 +910,6 @@
             $('#submitter').show();
             $('#submitt').show();
         }
-        function showBehavioral() {
-
-
-
-
-        }
-
-        function showTasks() {
-
-
-
-
-        }
-
-
-
 
     </script>
 

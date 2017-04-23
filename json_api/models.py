@@ -380,5 +380,59 @@ def add_user_tag(user_tag,id):
     query = Articles.update(metadata = target).where(Articles.pmid == id)
     query.execute()
 
+def update_table_vote(element,direction,table_num,pmid,column,email):
+    table_num = eval(table_num)
+    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    target = next(target)
+    target = eval(target.experiments)
+    k = target[table_num]
+    entry = -1
+    if not k.get(column):
+        k[column] = []
+    for i in range(len(k[column])):
+        if k[column][i] == element:
+            entry = i
+            break
+
+    if entry == -1: # if the tag hasn't been added yet, then add it
+        k[column].append({
+            "name": element,
+            "majorTopic": "N"
+        })
+        entry = len(target) - 1
+
+    if "vote" not in target[entry]: # if no one has voted, then add voting structures
+        target[entry]["vote"] = {}
+        target[entry]["vote"]["up"] = []
+        target[entry]["vote"]["down"] = []
+
+    # toggle the vote
+    toggled = False
+    for v in range(len(target[entry]["vote"][direction])):
+        if target[entry]["vote"][direction][v]["email"] == email:
+            del target[entry]["vote"][direction][v]
+            toggled = True
+    if not toggled:
+        target[entry]["vote"][direction].append({
+            "email": email # leave open for any other metadata we may eventually want to include
+        })
+
+    # delete any votes in the opposite direction
+    otherDirectionLst = ["up", "down"]
+    otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
+    for v in range(len(target[entry]["vote"][otherDirection])):
+        if target[entry]["vote"][otherDirection][v]["email"] == email:
+            del target[entry]["vote"][otherDirection][v]
+
+    updatedMetadata = {
+        "meshHeadings": target
+    }
+
+    # print(updatedMetadata)
+    target[table_num] = k
+
+    query = Articles.update(experiments = target).where(Articles.pmid == pmid)
+    query.execute()
+
 
 

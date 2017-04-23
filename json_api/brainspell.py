@@ -203,7 +203,7 @@ class AddUserDataHandler(BaseHandler):
         id = self.get_argument("pmid")
         user_tag = self.get_argument("values")
         print(user_tag)
-        add_user_tag(user_tag,id)
+        add_user_tag(user_tag, id) # TODO: needs to verify API key
         self.redirect("/view-article?id=" +id)
 
 
@@ -227,7 +227,7 @@ class ArticleHandler(BaseHandler):
         gh_user = self.get_current_github_user()
         self.render("static/html/view-article.html", id=articleId,
                     github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-                    title=self.get_current_email(), key=self.get_current_password())
+                    title=self.get_current_email(), key=self.get_current_password()) # TODO: rename all of the "title"s to "email", and change the HTML templates accordingly
 
     def post(self):  # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
         id = self.get_body_argument('id')
@@ -244,16 +244,18 @@ class ArticleHandler(BaseHandler):
             update_z_scores(id, email, values)
             self.redirect("/view-article?id=" + str(id))
 
-        topic = ""
-        direction = ""
-        try:
-            topic = self.get_body_argument("topicChange")
-            direction = self.get_body_argument("directionChange")
-        except:
-            pass
-        if topic and direction:
-            update_vote(id, email, topic, direction)
-            self.redirect("/view-article?id=" + str(id))
+
+class ToggleUserVoteEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        email = self.get_query_argument("email", "")
+        if user_login(email, api_key):
+            topic = self.get_query_argument("topic", "")
+            pmid = self.get_query_argument("pmid", "")
+            direction = self.get_query_argument("direction", "")
+            # exp = int(self.get_query_argument("experiment", ""))
+            toggle_vote(pmid, topic, email, direction)
+        self.write(json.dumps({"success": "1"}))
 
 
 
@@ -494,7 +496,7 @@ class SaveCollectionHandler(BaseHandler):
             pass
             # self.redirect("/view-article?id=" + str(value))
 
-
+# BEGIN: GitHub repo handlers
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     @tornado.gen.coroutine
     def get(self):
@@ -762,6 +764,7 @@ def make_app():
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/saved-articles", SavedArticlesEndpointHandler), # TODO: add API documentation
         (r"/json/delete-article", DeleteArticleEndpointHandler), # TODO: add API documentation
+        (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
         (r"/login", LoginHandler),
         (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),

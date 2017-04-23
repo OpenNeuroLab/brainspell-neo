@@ -217,16 +217,28 @@
 
         function popup(elements) {
             var targets = JSON.parse(elements);
-            var agreements = "";
-            var disagree = "";
+            var agreements = 0;
+            var disagree = 0;
+            var userVotedAgree = "";
+            var userVotedDisagree = "";
             var element = targets;
             if (typeof(targets) == "object") { // Specifies votes were provided
                 element = targets[0];
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    agreements = votes["up"];
-                    disagree = votes["down"];
+                    agreements = votes["up"].length;
+                    disagree = votes["down"].length;
+                    for (var i = 0; i < agreements; i++) {
+                        if (votes["up"][i]["email"] == "{{title}}") {
+                            userVotedAgree = " (including you)"
+                        }
+                    }
+                    for (var i = 0; i < disagree; i++) {
+                        if (votes["down"][i]["email"] == "{{title}}") {
+                            userVotedDisagree = " (including you)"
+                        }
+                    }
                 }
             }
             value = "";
@@ -245,9 +257,9 @@
                         $("<div>", {"class":"modal-body"}).append(
                                 $("<p>").text(value)
                         ).append(
-                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements)
+                                $("<a>", {"type":"button","id": "agree","class": "btn btn-default","onclick":`updateVote('${element}','up')`}).text("Agree: " + agreements + userVotedAgree)
                         ).append(
-                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree))
+                                $("<a>", {"type":"button","id":"disagree", "class": "btn btn-default","onclick":`updateVote('${element}','down')`}).text("Disagree: " + disagree + userVotedDisagree))
                         ).append(
                             $("<div>", {"class":"modal-footer"}).append(
                                 $("<button>", {"type":"button", "id": "closer", "class": "btn btn-default","data-dismiss":"modal"}).text("Close"))
@@ -255,9 +267,11 @@
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
+                {% if title=="" %}
                 $("#agree").hide();
                 $("#disagree").hide();
                 $("#closer").before("Please login to vote  ");
+                {% end %}
             }
             // remove the modal from the DOM on hide
             $('#myModal').on('hidden.bs.modal', function(){
@@ -378,7 +392,7 @@
                         metadatalst.push([metadata[j]["name"], metadata[j]["vote"]])
                     }
                     else {
-                        metadatalst.push([metadata[j]["name"], "NOVOTES"]);
+                        metadatalst.push([metadata[j]["name"], "NOVOTES"]); // TODO: not a good structure for this; should be a dictionary
                     }
                 }
                 // Create a modal for each term (approve or reject)
@@ -387,7 +401,17 @@
                 for (var i = 0; i < metadatalst.length; i++) {
                     var temp = metadatalst[i];
                     temp = JSON.stringify(temp);
-                    dropper.append($("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal"));
+                    var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
+                    if (metadatalst[i][1] != "NOVOTES") { // add visual feedback based on whether upvotes vs. downvotes are greater
+                        if (metadatalst[i][1]["up"].length == metadatalst[i][1]["down"].length) {
+                            voteTagBtn.css("color", "#FFA500") // orange
+                        } else if (metadatalst[i][1]["up"].length > metadatalst[i][1]["down"].length) {
+                            voteTagBtn.css("color", "#228B22"); // dark green
+                        } else {
+                            voteTagBtn.css("color", "#ff0000"); // red
+                        }
+                    }
+                    dropper.append(voteTagBtn);
                 }
 
 
@@ -762,22 +786,22 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
 
-        // TODO Send this information to the database, change schema to allow this
-        function updateVote(topic,direction) {
-            if (`{{ title }}` == "") {
-                window.location.replace("/login");
-            }
-            var form = $("<form>", {"method":"post","action":"/view-article","id":"voterselector"});
-            form.append($("<input>", {"type":"hidden","name":"topicChange","id":"topicChange","value":"" + topic}));
-            form.append($("<input>", {"type":"hidden","name":"directionChange","id":"directionChange","value":"" + direction}));
-            form.append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));
-            $("#articleContents").append(form);
-            document.getElementById("voterselector").submit();
-            console.log("SUBMITTED");
+        function updateVote(topic, direction) {
+            $.ajax({
+                type: "GET",
+                url: "/json/toggle-user-vote?email={{title}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
+            }).complete(function(o) {
+                j = o.responseText;
+                console.log(j);
+                obj = JSON.parse(j);
+                location.reload();
+            });
         }
+
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
+        
         $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
         function startloader() {
             $(window).load(function () {

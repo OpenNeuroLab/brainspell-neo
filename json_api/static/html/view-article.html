@@ -22,7 +22,7 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
-    <meta id="user_logged_in" data-name="{{ github_user }}">
+    <meta id="user_logged_in" data-name="{github_user }}">
 
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
@@ -629,8 +629,29 @@
             flagTableElem.append($("<td>").append(linkElem));
             footer.append(flagTableElem);
             footer.append($("<button>", {"onclick": "meshAdder(cogAtlas_cognitive)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive"));
+            if (experimentsObj[i]["cognitive"] != undefined) {
+                for (var k = 0; k < experimentsObj[i]["cognitive"].length; k++) {
+                    var temp = JSON.stringify(experimentsObj[i]["cognitive"][k]);
+                    var term = $("<button>").text(experimentsObj[i]["cognitive"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    footer.append(term);
+                }
+            }
             footer.append($("<button>", {"onclick": "meshAdder(brainMap_behavioral)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral"));
+            if (experimentsObj[i]["cognitive"] != undefined) {
+                for (var k = 0; k < experimentsObj[i]["behavioral"].length; k++) {
+                    temp = JSON.stringify(experimentsObj[i]["behavioral"][k]);
+                    term = $("<button>").text(experimentsObj[i]["behavioral"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    footer.append(term);
+                }
+            }
             footer.append($("<button>", {"onclick": "meshAdder(cogAtlas_tasks)", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks"));
+            if (experimentsObj[i]["tasks"] != undefined) {
+                for (var k = 0; k < experimentsObj[i]["tasks"].length; k++) {
+                    temp = JSON.stringify(experimentsObj[i]["tasks"][k]);
+                    term = $("<button>").text(experimentsObj[i]["tasks"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    footer.append(term);
+                }
+            }
 //            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "meshAdder(brainMap_behavioral)").text("Behavioral"))));
 //            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "meshAdder(cogAtlas_tasks)").text("Tasks"))));
 
@@ -681,7 +702,6 @@
             }
             changes = JSON.stringify(changes);
             console.log(changes);
-
 
             $.ajax({
                 type: "POST",

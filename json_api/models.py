@@ -385,6 +385,7 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)
     target = eval(target.experiments)
+    email = email.decode()
     k = target[table_num]
     entry = -1
     if not k.get(column):
@@ -393,7 +394,6 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
         if k[column][i] == element:
             entry = i
             break
-
     if entry == -1: # if the tag hasn't been added yet, then add it
         k[column].append({
             "name": element,

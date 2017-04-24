@@ -662,30 +662,32 @@
             }
             flagTableElem.append($("<td>").append(linkElem));
             footer.append(flagTableElem);
-            footer.append($("<button>", {"id":"cognitive","onclick": "meshAdder(cogAtlas_cognitive," + experimentNumber + ", 'C'" + ")", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive"));
-            footer.append($("<button>", {"id":"behavioral","onclick": "meshAdder(brainMap_behavioral," + experimentNumber + ", 'B')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral"));
-            footer.append($("<button>", {"id":"tasks","onclick": "meshAdder(cogAtlas_tasks," + experimentNumber + ", 'T')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks"));
+            footer.append($("<button>", {"id":"cognitive","onclick": "meshAdder(cogAtlas_cognitive," + experimentNumber + ", 'C'" + ")", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive: "));
+            footer.append($("<button>", {"id":"behavioral","onclick": "meshAdder(brainMap_behavioral," + experimentNumber + ", 'B')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral: "));
+            footer.append($("<button>", {"id":"tasks","onclick": "meshAdder(cogAtlas_tasks," + experimentNumber + ", 'T')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks: "));
             //Add in table specific descriptors;
             if (experimentsObj[experimentNumber]["C"] != undefined) {
                 var keys = Object.keys(experimentsObj[experimentNumber]["C"]);
                 for (var k = 0; k < experimentsObj[experimentNumber]["C"].length; k++) {
                     var temp = JSON.stringify(keys[k]);
                     var term = $("<button>").text(keys[k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    $("#cognitive").insertAfter(term);
+                }
+            }
+            if (experimentsObj[experimentNumber]["B"] != undefined) {
+                var keys = Object.keys(experimentsObj[experimentNumber]["B"]);
+                for (var k = 0; k < experimentsObj[experimentNumber]["B"].length; k++) {
+                    var temp = JSON.stringify(keys[k]);
+                    var term = $("<button>").text(keys[k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
                     $("#cognitive").after(term);
                 }
             }
-            if (experimentsObj[experimentNumber]["behavioral"] != undefined) {
-                for (var k = 0; k < experimentsObj[experimentNumber]["B"].length; k++) {
-                    temp = JSON.stringify(experimentsObj[experimentNumber]["behavioral"][k]);
-                    term = $("<button>").text(experimentsObj[experimentNumber]["behavioral"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    $("#behavioral").after(term);
-                }
-            }
-            if (experimentsObj[experimentNumber]["tasks"] != undefined) {
+            if (experimentsObj[experimentNumber]["T"] != undefined) {
+                var keys = Object.keys(experimentsObj[experimentNumber]["T"]);
                 for (var k = 0; k < experimentsObj[experimentNumber]["T"].length; k++) {
-                    temp = JSON.stringify(experimentsObj[experimentNumber]["tasks"][k]);
-                    term = $("<button>").text(experimentsObj[experimentNumber]["tasks"][k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    $("#tasks").after(term);
+                    var temp = JSON.stringify(keys[k]);
+                    var term = $("<button>").text(keys[k]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    $("#cognitive").after(term);
                 }
             }
 //            footer.append($("<button>").attr("class","dropbtn").css("float", "left").append($("<td>").append($("<a>").attr("onclick", "meshAdder(brainMap_behavioral)").text("Behavioral"))));

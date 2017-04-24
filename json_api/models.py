@@ -381,6 +381,7 @@ def add_user_tag(user_tag,id):
     query.execute()
 
 def update_table_vote(element,direction,table_num,pmid,column,email):
+    print("here")
     table_num = eval(table_num)
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)
@@ -391,37 +392,41 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
     if not k.get(column):
         k[column] = []
     for i in range(len(k[column])):
-        if k[column][i] == element:
+        if list(k[column][i].keys())[0] == element:
             entry = i
             break
+    print("entry is ",entry)
     if entry == -1: # if the tag hasn't been added yet, then add it
         k[column].append({
-            "element": element,
+            element: {},
         })
-        entry = len(target) - 1
+        entry = len(k[column]) - 1
+    print(entry)
 
-    if "vote" not in k[column][element]: # if no one has voted, then add voting structures
-        k[column][element]["vote"] = {}
-        k[column][element]["vote"]["up"] = []
-        k[column][element["vote"]["down"] = []
+    if "vote" not in k[column][entry][element]: # if no one has voted, then add voting structures
+        k[column][entry][element]["vote"] = {}
+        k[column][entry][element]["vote"]["up"] = []
+        k[column][entry][element]["vote"]["down"] = []
+
+    k[column][entry][element]["vote"][direction].append(email)
 
     # toggle the vote
-    toggled = False
-    for v in range(len(k[column][element]["vote"][direction])):
-        if (k[column][element]["vote"][direction][v]["email"] == email):
-            del target[entry]["vote"][direction][v]
-            toggled = True
-    if not toggled:
-        k[column][element]["vote"][direction].append({
-            "email": email # leave open for any other metadata we may eventually want to include
-        })
-
-    # delete any votes in the opposite direction
-    otherDirectionLst = ["up", "down"]
-    otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
-    for v in range(len(target[entry]["vote"][otherDirection])):
-        if target[entry]["vote"][otherDirection][v]["email"] == email:
-            del target[entry]["vote"][otherDirection][v]
+    # toggled = False
+    # for v in range(len(k[column][element]["vote"][direction])):
+    #     if (k[column][element]["vote"][direction][v]["email"] == email):
+    #         del target[entry]["vote"][direction][v]
+    #         toggled = True
+    # if not toggled:
+    #     k[column][element]["vote"][direction].append({
+    #         "email": email # leave open for any other metadata we may eventually want to include
+    #     })
+    #
+    # # delete any votes in the opposite direction
+    # otherDirectionLst = ["up", "down"]
+    # otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
+    # for v in range(len(target[entry]["vote"][otherDirection])):
+    #     if target[entry]["vote"][otherDirection][v]["email"] == email:
+    #         del target[entry]["vote"][otherDirection][v]
 
     updatedMetadata = {
         "meshHeadings": target

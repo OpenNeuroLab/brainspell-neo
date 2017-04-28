@@ -736,7 +736,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
 
 
 class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
-    # Deletes a JSON file from the User Repo 
+    # Deletes a JSON file from the User Repo
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):

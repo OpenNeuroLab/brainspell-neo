@@ -234,10 +234,10 @@
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    if (agr == -1) {
+                    if (agreements != 0 || votes["up"].length != 0) {
                         agreements = votes["up"].length;
                     }
-                    if (disagr == -1) {
+                    if (disagree != 0 || votes["down"].length != 0) {
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
@@ -288,6 +288,7 @@
                         ).append(
                                 function() {
                                     if (table_num == -1) {
+                                        console.log(userVotedDisagree)
                                         return $("<a>", {
                                             "type": "button",
                                             "id": "disagree",

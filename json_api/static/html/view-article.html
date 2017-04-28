@@ -228,10 +228,10 @@
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    if (agreements != 0) {
+                    if (agreements != 0 || votes["up"].length != 0) {
                         agreements = votes["up"].length;
                     }
-                    if (disagree != 0) {
+                    if (disagree != 0 || votes["down"].length != 0) {
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
@@ -282,19 +282,20 @@
                         ).append(
                                 function() {
                                     if (table_num == -1) {
+                                        console.log(userVotedDisagree)
                                         return $("<a>", {
                                             "type": "button",
                                             "id": "disagree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','down')`
-                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                        }).text("Disagree: " + disagree + userVotedDisagree);
                                     } else {
                                         return $("<a>", {
                                             "type": "button",
                                             "id":"disagree",
                                             "class":"btn btn-default",
                                             "onclick":`updateTableVote('${element}','down',${table_num},${column})`
-                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                        }).text("Disagree: " + disagree + userVotedDisagree);
                                     }
                                 }
 

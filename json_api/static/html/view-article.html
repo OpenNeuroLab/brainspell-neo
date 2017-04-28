@@ -218,7 +218,7 @@
         function popup(elements, table_num = -1, column='NA',agr=0,disagr=0) {
             column = JSON.stringify(column);
             var targets = JSON.parse(elements);
-            var agreements = agr
+            var agreements = agr;
             var disagree = disagr;
             var userVotedAgree = "";
             var userVotedDisagree = "";
@@ -228,8 +228,12 @@
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    agreements = votes["up"].length;
-                    disagree = votes["down"].length;
+                    if (agreements != 0) {
+                        agreements = votes["up"].length;
+                    }
+                    if (disagree != 0) {
+                        disagree = votes["down"].length;
+                    }
                     for (var i = 0; i < agreements; i++) {
                         if (votes["up"][i]["email"] == "{{title}}") {
                             userVotedAgree = " (including you)"
@@ -670,7 +674,7 @@
                 var keys = experimentsObj[experimentNumber]["C"];
                 for (var k = 0; k < keys.length; k++) {
                     var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + experimentNumber + ',' + JSON.stringify('C') + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                     footer.append(term);
                 }
             }

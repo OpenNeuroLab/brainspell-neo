@@ -392,7 +392,7 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
     if not k.get(column):
         k[column] = []
     for i in range(len(k[column])):
-        if list(k[column][i].keys())[0] == element:
+        if k[column][i]['element'] == element:
             entry = i
             break
     if entry == -1: # if the tag hasn't been added yet, then add it
@@ -409,22 +409,22 @@ def update_table_vote(element,direction,table_num,pmid,column,email):
     k[column][entry]["vote"][direction].append(email)
 
     # toggle the vote
-    toggled = False
-    for v in range(len(k[column][entry]["vote"][direction])):
-        if (k[column][entry]["vote"][direction][v] == email):
-            del k[column][entry]["vote"][direction][v]
-            toggled = True
-    if not toggled:
-        k[column][entry]["vote"][direction].append(
-            email # leave open for any other metadata we may eventually want to include
-        )
-
-    # delete any votes in the opposite direction
-    otherDirectionLst = ["up", "down"]
-    otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
-    for v in range(len(k[column][entry]["vote"][otherDirection])):
-        if target[entry]["vote"][otherDirection][v] == email:
-            target[entry]["vote"][otherDirection].pop(v)
+    # toggled = False
+    # for v in range(len(k[column][entry]["vote"][direction])):
+    #     if (k[column][entry]["vote"][direction][v] == email):
+    #         del k[column][entry]["vote"][direction][v]
+    #         toggled = True
+    # if not toggled:
+    #     k[column][entry]["vote"][direction].append(
+    #         email # leave open for any other metadata we may eventually want to include
+    #     )
+    #
+    # # delete any votes in the opposite direction
+    # otherDirectionLst = ["up", "down"]
+    # otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
+    # for v in range(len(k[column][entry]["vote"][otherDirection])):
+    #     if target[entry]["vote"][otherDirection][v] == email:
+    #         target[entry]["vote"][otherDirection].pop(v)
 
 
 

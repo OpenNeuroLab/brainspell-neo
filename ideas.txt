@@ -4,3 +4,15 @@ Consider:
 - Maybe an endpoint to get the titles (or all of the information) for a set of PMIDs.
 - A validation for articles before they're sent to the bulk-add endpoint.
 - A cron job to automatically update DOIs.
+
+
+Github Functionality 
+- Check in search and random whether an article is already in a collection 
+- Store Collection names and articles associated in database 
+	- Use that to generate Widgets 
+- Integrate User pages 
+- Store collections in userId in the database 
+- Store the PMID’s in each collection as well. 
+- Integrate the two login systems 
+- Add notes in each Article in the collection 
+- Paginate the collections page 

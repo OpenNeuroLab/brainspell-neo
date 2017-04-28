@@ -215,11 +215,17 @@
 
 
 
-        function popup(elements, table_num = -1, column='NA',agr=0,disagr=0) {
+        function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
             column = JSON.stringify(column);
             var targets = JSON.parse(elements);
-            var agreements = agr;
-            var disagree = disagr;
+            var agreements = 0;
+            var disagree = 0;
+            if (agr != -1) {
+                agreements = agr;
+            }
+            if (disagr != -1) {
+                disagree = disagr
+            }
             var userVotedAgree = "";
             var userVotedDisagree = "";
             var element = targets;
@@ -228,10 +234,10 @@
                 var votes = targets[1];
                 if (votes != "NOVOTES") {
                     console.log(votes);
-                    if (agreements != 0) {
+                    if (agr == -1) {
                         agreements = votes["up"].length;
                     }
-                    if (disagree != 0) {
+                    if (disagr == -1) {
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
@@ -287,14 +293,14 @@
                                             "id": "disagree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','down')`
-                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                        }).text("Disagree: " + disagree + userVotedDisagree);
                                     } else {
                                         return $("<a>", {
                                             "type": "button",
                                             "id":"disagree",
                                             "class":"btn btn-default",
                                             "onclick":`updateTableVote('${element}','down',${table_num},${column})`
-                                        }).text("Disagree: " + agreements + userVotedAgree);
+                                        }).text("Disagree: " + disagree + userVotedDisagree);
                                     }
                                 }
 

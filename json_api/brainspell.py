@@ -585,6 +585,8 @@ def get_my_repos(http_client, access_token):
 
 
 class ReposHandler(BaseHandler, torngithub.GithubMixin):
+    """We should update the database if there is a discrepency"""
+
     # @tornado.web.authenticated
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -662,6 +664,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
+    #TODO Again update the database
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
@@ -696,6 +699,8 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
 
 
 class NewFileHandler(BaseHandler, torngithub.GithubMixin):
+    #Adds a json file to github repository
+    # Add to database as well
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
@@ -731,6 +736,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
 
 
 class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
+    # Deletes a JSON file from the User Repo 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):

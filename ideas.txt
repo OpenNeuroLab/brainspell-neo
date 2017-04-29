@@ -16,4 +16,4 @@ Github Functionality
 - Integrate the two login systems 
 - Add notes in each Article in the collection 
 - Paginate the collections page 
-- The bar should be a database request 
+- The bar should be a database request

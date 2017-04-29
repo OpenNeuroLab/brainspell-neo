@@ -125,9 +125,14 @@
               </a>
             </h4>
           </div>
-          <div class="col=md-10">
+          <div>
             {{i["description"]}}
-          </div>
+
+                             {% for c in i["contributors"] %}
+                  <img class=" img-circle" src="{{c["avatar_url"]}} width="25px" height="25px">
+                  {% end for %}
+              </div>
+
         </div>
         <div id="collapse{{idx}}" class="panel-collapse collapse {% if not idx %} in {% end if %}" role="tabpanel" aria-labelledby="heading{{idx}}">
           <div class="panel-body">

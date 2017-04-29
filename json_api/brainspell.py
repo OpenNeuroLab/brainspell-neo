@@ -526,7 +526,8 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
                 redirect_uri=redirect_uri,
                 client_id=settings["github_client_id"],
                 client_secret=settings["github_client_secret"],
-                code=self.get_argument("code"))
+                code=self.get_argument("code")
+            )
             if user:
                 self.set_secure_cookie("user", json_encode(user))
             else:
@@ -544,7 +545,6 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 class GithubLogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("user")
-        print("what is this next", self.get_argument("next", "/"))
         self.redirect(self.get_argument("next", "/"))
 
 
@@ -626,7 +626,19 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                                   ),
                 access_token=gh_user['access_token'],
                 method="GET")
+
+                print(repo["contributors_url"])
+                contrib = yield torngithub.github_request(self.get_auth_http_client(),
+                                                          repo["contributors_url"].replace("https://api.github.com", ""),
+                                                          access_token=gh_user['access_token'],
+                                                          method = "GET")
+                repo["contributors"] = contrib["body"]
+
+
+                # print(content_data)
+
                 content = content_data["body"]
+
 
                 #extract pmids from content body
                 pmids = [c["name"].replace(".json", "") for c in content]

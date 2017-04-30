@@ -4,4 +4,3 @@ Brain Browser: a tool for visualization of translucent images that can take adva
 
 Continuous Activation Graphic:
 Brainsprite: a tool that uses PNG files to show activation with depth 
-

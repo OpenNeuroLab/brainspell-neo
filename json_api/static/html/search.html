@@ -214,6 +214,7 @@
     <script src="static/js/search-widgets.js"></script>
 
     <script>
+    // TODO: eventually move to separate file
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
         $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $(
@@ -284,7 +285,7 @@
                 }
             }).complete(function(o) {
                 // window.location("/account")
-                console.log(o);
+                console.log(o); // TODO: give some indication that the collection was successfully created
                 //alert("Feature not implemented yet.");
             });
         }

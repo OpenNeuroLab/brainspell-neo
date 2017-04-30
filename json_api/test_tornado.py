@@ -3,6 +3,7 @@ import os
 import pytest
 import brainspell
 import models
+import search
 
 application = brainspell.make_app()
 

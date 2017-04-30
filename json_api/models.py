@@ -34,11 +34,8 @@ config = dict(
 
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config)
 
-#You can enter information here something like User.create(___)
-# TODO: what does the above comment mean?
 
-#db.commit() to save the change
-# TODO: and this comment? save what change?
+
 
 class BaseModel(signals.Model):
     """
@@ -118,19 +115,11 @@ class User_metadata(BaseModel):
         db_table = 'user_metadata'
 
 
-"""
-Returns a list of relevant columns user wishes to search
-Follows PubMed Labeling System:
-    [au] indicates author
-    [ALL] all fields
-    [MH] Mesh terms: To be added
-    [PMID]: Pubmed ID
-    [TIAB]: Title/Abstract
-"""
+
 
 # TODO: move the following two functions to the appropriate file (doesn't belong in models.py)
 
-# TODO: what does this do?
+# Specifies a range around a given coordinate to search the database 
 def generate_circle(coordinate): #Coordinate of form "-26,54,14"
     ordered = [int(x) for x in coordinate.split(",")][0:3] #Ignore z-score
     search_terms = []
@@ -141,7 +130,7 @@ def generate_circle(coordinate): #Coordinate of form "-26,54,14"
             search_terms.append(",".join([str(x) for x in val]))
     return search_terms
 
-# TODO: what does this do?
+# Finds coordinates associated with a range around a given coordinate. 
 def coactivation(coordinate): # Yields around 11,000 coordinates
     coordinate_sets = []
     search_circle = generate_circle(coordinate)

@@ -6,8 +6,18 @@ def random_search():
     search = Articles.select(Articles.pmid, Articles.title, Articles.authors).order_by(fn.Random()).limit(5)
     return search.execute()
 
-# helper function for search queries
-def parse_helper(query): # TODO: needs to be commented
+
+# helper function for search queries, generates match objects of target columns for search if user specified 
+def parse_helper(query):
+    """
+    Returns a list of relevant columns user wishes to search
+    Follows PubMed Labeling System:
+        [au] indicates author
+        [ALL] all fields
+        [MH] Mesh terms: To be added
+        [PMID]: Pubmed ID
+        [TIAB]: Title/Abstract
+    """
     columns = []
     au = re.compile(r"\[au]")
     all = re.compile(r"\[ALL]")

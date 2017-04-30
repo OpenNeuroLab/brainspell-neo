@@ -2,7 +2,7 @@ import tornado
 from tornado.httputil import url_concat
 import torngithub
 from torngithub import json_encode
-from user_account_helpers import BaseHandler
+from user_accounts import BaseHandler
 import os
 
 # BEGIN: read environment variables

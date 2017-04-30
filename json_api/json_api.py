@@ -1,4 +1,8 @@
-from user_account_helpers import *
+# JSON API classes
+
+from user_accounts import *
+from article_helpers import *
+from search import *
 
 # BEGIN: search API endpoints
 
@@ -138,6 +142,18 @@ class ArticleAuthorEndpointHandler(BaseHandler):
             update_authors(pmid, authors)
         self.write(json.dumps({"success": "1"}))
 
+# endpoint for a user to vote on an article tag
+class ToggleUserVoteEndpointHandler(BaseHandler):
+    def get(self):
+        api_key = self.get_query_argument("key", "")
+        email = self.get_query_argument("email", "")
+        if user_login(email, api_key):
+            topic = self.get_query_argument("topic", "")
+            pmid = self.get_query_argument("pmid", "")
+            direction = self.get_query_argument("direction", "")
+            # exp = int(self.get_query_argument("experiment", ""))
+            toggle_vote(pmid, topic, email, direction)
+        self.write(json.dumps({"success": "1"}))
 
 # BEGIN: table API endpoints
 

@@ -6,6 +6,17 @@ import models
 
 application = brainspell.make_app()
 
+"""
+TODO: need to make tests for:
+1) user creation 
+2) user login
+3) adding and deleting a row of coordinates
+4) splitting, flagging a table
+5) voting on table and article tags
+6) setting the authors for an article
+7) saving to a brainspell.org collection, and to a GitHub collection
+"""
+
 def test_search():
     assert len(models.formatted_search("brain", 0)) > 0
 

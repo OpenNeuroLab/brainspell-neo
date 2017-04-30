@@ -1,3 +1,5 @@
+# handlers for the user-facing website, and the Tornado I/O loop
+
 import urllib
 import tornado.httpserver
 import tornado.ioloop
@@ -12,9 +14,9 @@ import subprocess
 import hashlib
 from base64 import b64encode
 
-from helper_functions import *
+from article_helpers import *
 from json_api import *
-from user_account_helpers import *
+from user_accounts import *
 from github_collections import *
 
 
@@ -60,7 +62,7 @@ class LoginHandler(BaseHandler):
             self.render("static/html/login.html", message="Invalid", title="", failure=1)
 
 
-# log out the user
+# log the user out
 class LogoutHandler(BaseHandler):
     def get(self):
         self.clear_cookie("email")
@@ -73,7 +75,7 @@ class RegisterHandler(BaseHandler):
     def get(self):
         self.render("static/html/register.html", title="", failure=0)
 
-    def post(self):
+    def post(self): # TODO: make into a JSON API endpoint
         username = self.get_body_argument("name").encode('utf-8')
         email = self.get_body_argument("email").encode('utf-8')
         password = self.get_body_argument("password").encode('utf-8')
@@ -97,10 +99,12 @@ class SearchHandler(BaseHandler):
         email = self.get_current_email()
         gh_user = self.get_current_github_user()
         self.render("static/html/search.html", query=q, start=start,
-                    title=email, req=req,
+                    title=email, req=req, # parameters like "req" and "title" need to be renamed to reflect what their values are
                     github_user=gh_user["name"],
                     github_avatar=gh_user["avatar_url"])
 
+
+# TODO: what does this do? needs better name
 class AddTableTextHandler(BaseHandler):
     def post(self):
         pmid = self.get_argument("pmid", "")
@@ -110,6 +114,7 @@ class AddTableTextHandler(BaseHandler):
         self.redirect("/view-article?id=" + pmid)
 
 
+# TODO: what does this do? this needs a better name + a comment describing it
 class AddUserDataHandler(BaseHandler):
     def post(self):
         id = self.get_argument("pmid")
@@ -117,6 +122,7 @@ class AddUserDataHandler(BaseHandler):
         print(user_tag)
         add_user_tag(user_tag, id) # TODO: needs to verify API key
         self.redirect("/view-article?id=" +id)
+
 
 # view-article page
 class ArticleHandler(BaseHandler):
@@ -131,12 +137,12 @@ class ArticleHandler(BaseHandler):
                     github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
                     title=self.get_current_email(), key=self.get_current_password()) # TODO: rename all of the "title"s to "email", and change the HTML templates accordingly
 
-    def post(self):  # TODO: maybe make its own endpoint (probably more appropriate than overloading this one)
+    def post(self):  # TODO: make its own endpoint; does not belong in this handler
         id = self.get_body_argument('id')
         email = self.get_current_email()
         values = ""
 
-        try:
+        try: # TODO: get rid of try/catch and write correctly
             values = self.get_body_argument("dbChanges")
             values = json.loads(values)  # z-values in dictionary
             print(values)
@@ -145,20 +151,6 @@ class ArticleHandler(BaseHandler):
         if values:
             update_z_scores(id, email, values)
             self.redirect("/view-article?id=" + str(id))
-
-
-class ToggleUserVoteEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        email = self.get_query_argument("email", "")
-        if user_login(email, api_key):
-            topic = self.get_query_argument("topic", "")
-            pmid = self.get_query_argument("pmid", "")
-            direction = self.get_query_argument("direction", "")
-            # exp = int(self.get_query_argument("experiment", ""))
-            toggle_vote(pmid, topic, email, direction)
-        self.write(json.dumps({"success": "1"}))
-
 
 # account page
 class AccountHandler(BaseHandler):
@@ -171,7 +163,7 @@ class AccountHandler(BaseHandler):
         else:
             self.redirect("/register")
 
-    def post(self):
+    def post(self): # TODO: make into a JSON API endpoint "change-username-password"
         hasher = hashlib.sha1()
         hasher2 = hashlib.sha1()
         newUsername = self.get_argument("newUserName")
@@ -234,8 +226,8 @@ class SaveArticleHandler(BaseHandler):  # TODO: change to a JSON endpoint
         else:
             self.redirect("/view-article?id=" + str(value))
 
-
-class TableVoteUpdateHandler(BaseHandler):
+# update a vote on a table tag
+class TableVoteUpdateHandler(BaseHandler): # TODO: what is element? also, make into a JSON API endpoint
     def post(self):
         element = self.get_argument("element")
         direction = self.get_argument("direction")
@@ -258,7 +250,7 @@ class SaveCollectionHandler(BaseHandler):
                 User_metadata.insert(user_id=self.get_current_email(),
                                      article_pmid=article, collection=collection_name).execute()
         else:
-            pass
+            pass # TODO: what happens if a user is not logged in? needs to handle this case
             # self.redirect("/view-article?id=" + str(value))
 
 
@@ -274,7 +266,6 @@ settings = {
     "login_url": "/login",
     "compress_response": True
 }
-
 
 def make_app():
     return tornado.web.Application([
@@ -305,7 +296,7 @@ def make_app():
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
-        (r"/add-table-text", AddTableTextHandler),
+        (r"/add-table-text", AddTableTextHandler), # TODO: what does this do?
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
         (r"/save-collection", SaveCollectionHandler),

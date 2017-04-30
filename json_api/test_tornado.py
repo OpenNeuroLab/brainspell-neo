@@ -19,7 +19,7 @@ TODO: need to make tests for:
 """
 
 def test_search():
-    assert len(models.formatted_search("brain", 0)) > 0
+    assert len(search.formatted_search("brain", 0)) > 0
 
 def test_procfile():
     f = open("../Procfile", "r")

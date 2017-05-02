@@ -184,7 +184,7 @@
         <p id="pmid-warning" style="display: none;">PMID codes are 8 characters.</p>
         <p style="color: #c0c0c0;">No results. Add an article?</p>
             <div class="form-row">
-                <input id="newPMID" name="pmid" placeholder="Enter article PMID">
+                <input id="newPMID" name="newPMID" placeholder="Enter article PMID">
                 <button onclick="validatePMID()">Submit</button>
             </div>
         <!--
@@ -257,9 +257,19 @@
             var name = $.trim($('#newPMID').val());
             var pattern = new RegExp("[0-9]{8}");
             if (pattern.test(name)) {
-                alert("This feature hasn't been implemented yet.");
+                alert("OK!")
+                
                 // TODO: make an add-article UI
-                // $("#newPMID").submit();
+               $.ajax({
+                type: "POST",
+                url: "/search",
+                data: {
+                    "newPMID": name
+                }
+            }).complete(function() {
+                location.reload();
+            }
+            )
             } else {
                 document.getElementById("pmid-warning").style.display = "block";
             }

@@ -102,6 +102,10 @@ class SearchHandler(BaseHandler):
                     title=email, req=req, # parameters like "req" and "title" need to be renamed to reflect what their values are
                     github_user=gh_user["name"],
                     github_avatar=gh_user["avatar_url"])
+    def post(self): #allows introduction of manual article
+        pmid = self.get_argument("newPMID")
+        print(pmid)
+
 
 
 # TODO: what does this do? needs better name

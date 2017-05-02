@@ -93,11 +93,20 @@ def getArticleData(article_id):
     articleInfo["authors"] = records.get("AU")
     articleInfo["abstract"] = records.get("AB")
     articleInfo["DOI"] = getDOI(records.get("AID"))
-    articleInfo["coordinates"] = ""
+    articleInfo["experiments"] = ""
+    identity = "" 
     try:
-        urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + pmid + "/").read()
+        articleInfo["experiments"] = {"locations": eval(urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + str(pmid) + "/").read().decode())["data"]}
+        k = articleInfo["experiments"]["locations"]
+        for i in range(len(k)):
+            print("KI is ",k[i])
+            if len(k[i]) == 4:
+                identity = k[0]
+                k[i] = k[i][1:]
+            k[i] = ",".join([str(x) for x in (k[i])])
     except:
         pass
+    articleInfo["id"] = identity
     return articleInfo
 
 def getDOI(lst):

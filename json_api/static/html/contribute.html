@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <link rel="icon" href="https://brainspell.herokuapp.com/static/img/favicon.png">
+    <link rel="icon" href="/static/img/favicon.png">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
     <title>Contribute</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <!-- TODO: move to separate file to benefit from caching -->
@@ -216,10 +216,10 @@
     </div>
 
     <!-- jQuery Version 1.11.1 -->
-    <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
+    <script src="/static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
 
     <script>
         $(document).on('change',':file',function(e) {
@@ -231,7 +231,7 @@
                 $("#uploader").after($("<p>").text("Invalid File Selected").css("padding-left",'8%'));
             }
             if (file.size > 2000000) { //2MB Limit
-                alert("File Size Too Large");
+                alert("File Size Too Large. Please contact Site administrators if you want to submit larger files.");
                 location.reload();
             } else {
                 $("#uploader").before($("<p>").text(label).css("padding-left","8%"));

@@ -23,7 +23,6 @@
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
     <meta id="user_logged_in" data-name="{{ github_user }}">
-    <!-- TODO: is that written correctly? only one curly brace on the left? -->
     <!-- TODO Synchronize what really qualifies as logged in. Github User specified for voting procedures -->
 
     <!--Features to add words and corresponding definitions -->
@@ -390,6 +389,10 @@
             j = o.responseText;
             console.log(j);
             obj = JSON.parse(j);
+            if (Object.keys(obj).length == 0) {
+                 window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
+
+            }
             try {
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             } catch (err) { //Specifies a !CDATA left behind as a remnant of old database

@@ -86,19 +86,22 @@ class RandomEndpointHandler(BaseHandler):
 class ArticleEndpointHandler(BaseHandler):
     def get(self):
         id = self.get_query_argument("pmid")
-        article = next(get_article(id))
         response = {}
-        response["timestamp"] = article.timestamp
-        response["abstract"] = article.abstract
-        response["authors"] = article.authors
-        response["doi"] = article.doi
-        response["experiments"] = article.experiments
-        response["metadata"] = article.metadata
-        response["neurosynthid"] = article.neurosynthid
-        response["pmid"] = article.pmid
-        response["reference"] = article.reference
-        response["title"] = article.title
-        response["id"] = article.uniqueid
+        try:
+            article = next(get_article(id))
+            response["timestamp"] = article.timestamp
+            response["abstract"] = article.abstract
+            response["authors"] = article.authors
+            response["doi"] = article.doi
+            response["experiments"] = article.experiments
+            response["metadata"] = article.metadata
+            response["neurosynthid"] = article.neurosynthid
+            response["pmid"] = article.pmid
+            response["reference"] = article.reference
+            response["title"] = article.title
+            response["id"] = article.uniqueid
+        except:
+            pass
         self.write(json.dumps(response))
 
 # API endpoint corresponding to BulkAddHandler
@@ -237,3 +240,5 @@ class SavedArticlesEndpointHandler(BaseHandler):
             self.write(json.dumps(response))
         else:
             self.write(json.dumps({"success": 0}))
+
+

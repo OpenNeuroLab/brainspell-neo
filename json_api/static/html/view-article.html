@@ -652,7 +652,12 @@
                 }
                 contents.append(row);
             }
-            contents.append($("<tr>").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add a Row").css("text-align","center")));
+
+
+            {% if title != ""%}
+            contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
+            {% end %}
+
             table.append(contents);
             {% if title != ""%}
             var footer = $("<tfoot>");
@@ -758,6 +763,28 @@
             });
             //location.reload();
             //return true;
+        }
+
+        function addRowTo(element, rowDOM) {
+            $(rowDOM).attr("onclick", "");
+            rowDOM.innerHTML = '<td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="padding-top: 5px; padding-bottom: 5px;"><input type="number" style="width:60%;" step="0.01" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td>';
+        }
+
+        function checkIfRowSubmit(e, input, experiment) {
+            if (e.keyCode == 13) {
+                var inputs = input.parentNode.parentNode.getElementsByTagName("input");
+                var coords = inputs[0].value + "," + inputs[1].value + "," + inputs[2].value;
+                $.ajax({
+                    type: "GET",
+                    url: "/json/add-row?pmid={{id}}&key={{key}}&experiment=" + experiment + "&coordinates=" + coords
+                }).complete(function(o) {
+                    j = o.responseText;
+                    console.log(j);
+                    obj = JSON.parse(j);
+                    location.reload();
+                });
+                return false;
+            }
         }
 
         function deleteRow(element) {

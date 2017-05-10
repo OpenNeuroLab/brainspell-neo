@@ -34,9 +34,6 @@ config = dict(
 
 conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config)
 
-
-
-
 class BaseModel(signals.Model):
     """
     The following is the data within the schema:
@@ -99,7 +96,7 @@ class User(BaseModel):
     emailaddress = CharField(null=True)
     userid = peewee.PrimaryKeyField()
     username = CharField(null=True)
-    # saved_articles= TextField(null=True) #TODO ADD THIS
+    # saved_articles= TextField(null=True) # TODO: ADD THIS
 
     class Meta:
         db_table = 'users'

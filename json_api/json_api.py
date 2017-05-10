@@ -8,14 +8,12 @@ from search import *
 
 # API endpoint to handle search queries; returns 10 results at a time
 class SearchEndpointHandler(BaseHandler):
-    def get(self):
-        self.set_header("Content-Type", "application/json")
+    def pull_api(self, response):
         database_dict = {}
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
         results = formatted_search(q, start, option)
-        response = {}
         output_list = []
         for article in results:
             try:
@@ -34,19 +32,17 @@ class SearchEndpointHandler(BaseHandler):
             # TODO: consider returning the start/end indices for the range of articles returned instead
         else:
             response["start_index"] = start
-        self.write(json.dumps(response))
+        return response
 
 
 # API endpoint to fetch coordinates from all articles that match a query; returns 200 sets of coordinates at a time
 class CoordinatesEndpointHandler(BaseHandler):
-    def get(self):
-        self.set_header("Content-Type", "application/json")
+    def pull_api(self, response):
         database_dict = {}
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         option = self.get_query_argument("req", "t")
         results = formatted_search(q, start, option, True)
-        response = {}
         output_list = []
         for article in results:
             try:
@@ -57,16 +53,14 @@ class CoordinatesEndpointHandler(BaseHandler):
             except:
                 pass
         response["coordinates"] = output_list
-        self.write(json.dumps(response))
+        return response
 
 
 # API endpoint that returns five random articles; used on the front page of Brainspell
 class RandomEndpointHandler(BaseHandler):
-    def get(self):
-        self.set_header("Content-Type", "application/json")
+    def pull_api(self, response):
         database_dict = {}
         results = random_search()
-        response = {}
         output_list = []
         for article in results:
             try:
@@ -78,17 +72,16 @@ class RandomEndpointHandler(BaseHandler):
             except:
                 pass
         response["articles"] = output_list
-        self.write(json.dumps(response))
+        return response
 
 # BEGIN: article API endpoints
 
 # API endpoint to get the contents of an article (called by the view-article page)
 class ArticleEndpointHandler(BaseHandler):
-    def get(self):
-        id = self.get_query_argument("pmid")
-        response = {}
+    def pull_api(self, response):
+        pmid = self.get_query_argument("pmid")
         try:
-            article = next(get_article(id))
+            article = next(get_article(pmid))
             response["timestamp"] = article.timestamp
             response["abstract"] = article.abstract
             response["authors"] = article.authors
@@ -101,12 +94,12 @@ class ArticleEndpointHandler(BaseHandler):
             response["title"] = article.title
             response["id"] = article.uniqueid
         except:
-            pass
-        self.write(json.dumps(response))
+            response["success"] = 0
+        return response
 
 # API endpoint corresponding to BulkAddHandler
 class BulkAddEndpointHandler(BaseHandler):
-    def post(self):
+    def post(self): # no wrapper method for POST push APIs yet
         response = {}
         file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
         contents = json.loads(file_body)
@@ -121,88 +114,69 @@ class BulkAddEndpointHandler(BaseHandler):
 
 # fetch PubMed and Neurosynth data using a user specified PMID, and add the article to our database
 class AddArticleEndpointHandler(BaseHandler):
-    def get(self):
+    def push_api(self, response):
         pmid = self.get_query_argument("pmid", "")
-        api_key = self.get_query_argument("key", "")
-        response = {}
-        if valid_api_key(api_key):
-            x = getArticleData(pmid)
-            request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
-                                      experiments=x["coordinates"], title=x["title"])
-            request.execute()
-            response = {"success": 1}
-        else:
-            response = {"success": 0}
-        self.write(json.dumps(response))
+        x = getArticleData(pmid) # TODO: name this variable correctly
+        request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
+                                  experiments=x["coordinates"], title=x["title"])
+        request.execute()
+        return response
 
 # edit the authors of an article
 class ArticleAuthorEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        if valid_api_key(api_key):
-            pmid = self.get_query_argument("pmid", "")
-            authors = self.get_query_argument("authors", "")
-            update_authors(pmid, authors)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        pmid = self.get_query_argument("pmid", "")
+        authors = self.get_query_argument("authors", "")
+        update_authors(pmid, authors)
+        return response
 
 # endpoint for a user to vote on an article tag
 class ToggleUserVoteEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        email = self.get_query_argument("email", "")
-        if user_login(email, api_key):
-            topic = self.get_query_argument("topic", "")
-            pmid = self.get_query_argument("pmid", "")
-            direction = self.get_query_argument("direction", "")
-            # exp = int(self.get_query_argument("experiment", ""))
-            toggle_vote(pmid, topic, email, direction)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        email = get_email_from_api_key(self.get_query_argument("key", ""))
+        topic = self.get_query_argument("topic", "")
+        pmid = self.get_query_argument("pmid", "")
+        direction = self.get_query_argument("direction", "")
+        # exp = int(self.get_query_argument("experiment", ""))
+        toggle_vote(pmid, topic, email, direction)
+        return response
 
 # BEGIN: table API endpoints
 
 # flag a table as inaccurate
 class FlagTableEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        if valid_api_key(api_key):
-            pmid = self.get_query_argument("pmid", "")
-            exp = int(self.get_query_argument("experiment", ""))
-            flag_table(pmid, exp)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        pmid = self.get_query_argument("pmid", "")
+        exp = int(self.get_query_argument("experiment", ""))
+        flag_table(pmid, exp)
+        return response
 
 # delete row from experiment table
 class DeleteRowEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        if valid_api_key(api_key):
-            pmid = self.get_query_argument("pmid", "")
-            exp = self.get_query_argument("experiment", "")
-            row = self.get_query_argument("row", "")
-            print(pmid)
-            delete_row(pmid, exp, row)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        pmid = self.get_query_argument("pmid", "")
+        exp = self.get_query_argument("experiment", "")
+        row = self.get_query_argument("row", "")
+        delete_row(pmid, exp, row)
+        return response
 
 # split experiment table
 class SplitTableEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        if valid_api_key(api_key):
-            pmid = self.get_query_argument("pmid", "")
-            exp = self.get_query_argument("experiment", "")
-            row = self.get_query_argument("row", "")
-            split_table(pmid, exp, row)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        pmid = self.get_query_argument("pmid", "")
+        exp = self.get_query_argument("experiment", "")
+        row = self.get_query_argument("row", "")
+        split_table(pmid, exp, row)
+        return response
 
 # add one row of coordinates to an experiment table
 class AddCoordinateEndpointHandler(BaseHandler):
-    def get(self):
-        api_key = self.get_query_argument("key", "")
-        if valid_api_key(api_key):
-            pmid = self.get_query_argument("pmid", "")
-            exp = self.get_query_argument("experiment", "")
-            coords = self.get_query_argument("coordinates", "").replace(" ", "")
-            add_coordinate(pmid, exp, coords)
-        self.write(json.dumps({"success": "1"}))
+    def push_api(self, response):
+        pmid = self.get_query_argument("pmid", "")
+        exp = self.get_query_argument("experiment", "")
+        coords = self.get_query_argument("coordinates", "").replace(" ", "")
+        add_coordinate(pmid, exp, coords)
+        return response
 
 # BEGIN: non-Github collections API endpoints
 

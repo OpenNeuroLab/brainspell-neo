@@ -4,6 +4,7 @@ import torngithub
 from torngithub import json_encode
 from user_accounts import BaseHandler
 import os
+from search import *
 
 # BEGIN: read environment variables
 

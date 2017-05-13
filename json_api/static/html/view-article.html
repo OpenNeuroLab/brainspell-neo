@@ -184,9 +184,9 @@
       };
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
-      console.log(spinner)
+      console.log(spinner);
       $.get("/repos?list=1&pmid={{id}}", function(data, err){
-        var data = JSON.parse(data)
+        var data = JSON.parse(data);
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
                                   function(d){return d.name.replace("brainspell-collection-","")})
@@ -215,7 +215,7 @@
         $("#github_collections").prop("disabled", true)
       });
 
-
+        //Generates the popup widget when a vote element is clicked
       // TODO: might be worth making a class for popup, or potentially putting it in its own file
         function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
             column = JSON.stringify(column);
@@ -290,13 +290,14 @@
                         ).append(
                                 function() {
                                     if (table_num == -1) {
-                                        console.log(userVotedDisagree)
+                                        console.log(userVotedDisagree);
                                         return $("<a>", {
                                             "type": "button",
                                             "id": "disagree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','down')`
                                         }).text("Disagree: " + disagree + userVotedDisagree);
+
                                     } else {
                                         return $("<a>", {
                                             "type": "button",
@@ -455,7 +456,7 @@
                     var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
                     if (metadatalst[i][1] != "NOVOTES") { // add visual feedback based on whether upvotes vs. downvotes are greater
                         if (metadatalst[i][1]["up"].length == metadatalst[i][1]["down"].length) {
-                            voteTagBtn.css("color", "#FFA500") // orange
+                            voteTagBtn.css("color", "#FFA500"); // orange
                         } else if (metadatalst[i][1]["up"].length > metadatalst[i][1]["down"].length) {
                             voteTagBtn.css("color", "#228B22"); // dark green
                         } else {
@@ -517,7 +518,7 @@
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
 //                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
                     "</div>");
-            startloader();
+//            startloader();
 
 
             // if not on mobile
@@ -769,7 +770,7 @@
             $(rowDOM).attr("onclick", "");
             rowDOM.innerHTML = '<td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="padding-top: 5px; padding-bottom: 5px;"><input type="number" style="width:60%;" step="0.01" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td>';
         }
-
+        //On Enter Submits a new row to the database and refreshes page.
         function checkIfRowSubmit(e, input, experiment) {
             if (e.keyCode == 13) {
                 var inputs = input.parentNode.parentNode.getElementsByTagName("input");
@@ -786,7 +787,7 @@
                 return false;
             }
         }
-
+        // Delete a row from the table
         function deleteRow(element) {
             if (exp[element].selectedRow != null) {
                 var r = exp[element].selectedRow;
@@ -806,7 +807,7 @@
                 });
             }
         }
-
+        //Breaks a table at a specified element
         function splitTable(element) {
             console.log(element);
             if (exp[element].selectedRow != null) {
@@ -827,7 +828,7 @@
                 });
             }
         }
-
+        //Specifies a table as invalid
         function flagTable(link, element) {
             console.log(element);
             //var x = exp[element].locations[r][0];
@@ -850,7 +851,7 @@
                 }
             });
         }
-
+        // Returns the current article location
         function getaURL(name, url) {
             if (!url) {
               url = window.location.href;
@@ -862,6 +863,8 @@
             if (!results[2]) return '';
             return "/save-article" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
+
+        //Returns the PMID of the current Article
         function getID(url) {
             if (!url) {
               url = window.location.href;
@@ -874,7 +877,7 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
-
+        // Updates the vote of a single Table Element
         function updateTableVote(element,direction,tableNum,column) {
             $.ajax({
                 type: "POST",
@@ -890,10 +893,8 @@
                 //console.log(o);
                 location.reload();
             });
-
-
         }
-
+        //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
@@ -909,24 +910,28 @@
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
-        
-        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
-        function startloader() {
-            $(window).load(function () {
-                var brain = brainsprite({
-                    canvas: "3Dviewer",
-                    sprite: "spriteImg",
-//                    overlay: {
-//                        sprite: "overlayImg",
-//                        nbSlice: {"Y":79,'Z':63}
-//                    },
-                    flagCoordinates: true,
-                    nbSlice: {"Y": 233, "Z": 189}
-                });
-            });
-            console.log("GRAPHICS LOADED");
-        }
 
+        //TODO Renders BrainSprite Graphics, Currently not used:
+//        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
+//        function startloader() {
+//            $(window).load(function () {
+//                var brain = brainsprite({
+//                    canvas: "3Dviewer",
+//                    sprite: "spriteImg",
+////                    overlay: {
+////                        sprite: "overlayImg",
+////                        nbSlice: {"Y":79,'Z':63}
+////                    },
+//                    flagCoordinates: true,
+//                    nbSlice: {"Y": 233, "Z": 189}
+//                });
+//            });
+//            console.log("GRAPHICS LOADED");
+//        }
+
+
+
+        //TODO Evaluate whether this is even still necessary
         function send() {
             $.ajax({
                 type: "POST",
@@ -940,11 +945,6 @@
                 location.reload();
             });
         }
-        function show_items() {
-            $('#submitter').show();
-            $('#submitt').show();
-        }
-
     </script>
 
 </body>

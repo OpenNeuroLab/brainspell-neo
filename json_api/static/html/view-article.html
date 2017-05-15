@@ -129,7 +129,7 @@
                     Add to Github Collections:
                   </label>
                   <select class="js-example-basic-multiple js-states form-control" id="github_collections" multiple="multiple"></select>
-                  {% end %}
+                {% end %}
                 </div>
             </div>
         </div>
@@ -210,8 +210,8 @@
         });
       }).fail(function(response){
         console.log("response is", response.statusText);
-        spinner.stop(target)
-        $("#github_collections").select2({placeholder: response.statusText})
+        spinner.stop(target);
+        $("#github_collections").select2({placeholder: response.statusText});
         $("#github_collections").prop("disabled", true)
       });
 
@@ -344,7 +344,7 @@
                 }
             });
         }
-
+        //Creates the mesh Popup whenever an "Add Descriptor" term is selected
         function meshAdder(term = descriptors, table_num = -1, column='NA') {
             var items = $("<ul>", {"class":"list-group"});
             for (var i = 0; i < term.length; i++) {
@@ -377,8 +377,10 @@
             $('#descriptorModal').on('hidden.bs.modal', function(){
                 $(this).remove();
             });
-            searcher();
+            searcher(); //Activates search for each mesh term
         }
+
+
         var count = 1;
         var experimentsObj;
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
@@ -392,15 +394,19 @@
             obj = JSON.parse(j);
             if (Object.keys(obj).length == 0) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
-
             }
+
+
             try {
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             } catch (err) { //Specifies a !CDATA left behind as a remnant of old database
                 obj["metadata"] = obj["metadata"].slice(8,-2);
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
-            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"]
+
+
+
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"];
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));

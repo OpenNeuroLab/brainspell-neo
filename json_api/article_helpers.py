@@ -68,7 +68,7 @@ def toggle_vote(pmid, topic, email, direction):
     query.execute()
 
 
-# TODO: what does this do?
+# Adds a custom user tag to the Database
 def add_user_tag(user_tag,id):
     main_target = next(Articles.select(Articles.metadata).where(Articles.pmid == id).execute())
     target = eval(main_target.metadata)

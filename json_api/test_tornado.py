@@ -17,21 +17,28 @@ TODO: need to make tests for:
 6) setting the authors for an article
 7) saving to a brainspell.org collection, and to a GitHub collection
 """
-
+# Asserts search results appearing for commonly found target
 def test_search():
     assert len(search.formatted_search("brain", 0)) > 0
 
+#Asserts Procfile in proper place. (Required for Heroku build)
 def test_procfile():
     f = open("../Procfile", "r")
     contents = f.read()
     filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
     assert filename in os.listdir()
 
+
+
+
+# TODO: What does this test do?
 @pytest.fixture
 def app():
     return application
 
+# TODO: What does this test do?
 @pytest.mark.gen_test
 def test_front_page(http_client, base_url):
     response = yield http_client.fetch(base_url)
     assert response.code == 200
+

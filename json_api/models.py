@@ -64,7 +64,7 @@ class Articles(BaseModel):
     pmid = CharField(null=True, unique=True)
     reference = CharField(null=True)
     title = CharField(null=True)
-    uniqueid = peewee.PrimaryKeyField()
+    uniqueid = peewee.PrimaryKeyField(null=True)
 
     class Meta:
         db_table = 'articles'

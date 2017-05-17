@@ -118,7 +118,7 @@ class AddTableTextHandler(BaseHandler):
         self.redirect("/view-article?id=" + pmid)
 
 
-# TODO: what does this do? this needs a better name + a comment describing it
+# Adds a custom user Tag to the database
 class AddUserDataHandler(BaseHandler):
     def post(self):
         id = self.get_argument("pmid")

@@ -10,4 +10,9 @@ env:
 # command to run tests
 script: cd json_api && pytest
 
+addons:
+  sauce_connect:
+    username: "Sharabesh"
+    access_key: "42bc2c2b-f383-4e18-b530-5d85c203101d"
+
 

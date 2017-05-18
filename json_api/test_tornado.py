@@ -46,7 +46,6 @@ def test_row_add(): #Using selenium testing
     driver.get("https://brainspell.herokuapp.com")
     assert "Brainspell" in driver.title #Checks website title is accurate
     driver.get("https://brainspell.herokuapp.com/view-article?id=00000000")
-    assert driver.find_element_by_id("110690") != None #Entry fields for Z-
     meshButtons = driver.find_elements_by_class_name("dropbtn")
     assert meshButtons != None #Ensure Mesh terms are included
 

@@ -14,9 +14,11 @@
     <!-- Bootstrap Core CSS -->
     <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">
+    <!--<link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">-->
+
     <link href="/static/css/view-article.css" rel="stylesheet">
-    <link href="/static/css/view-article.css" rel="stylesheet">
+
+
     <script type="text/javascript" src="/static/js/definitions.js"></script>
     <script type="text/javascript" src="/static/js/brainsprite.min.js"></script>
     <link href="/static/css/select2.min.css" rel="stylesheet">
@@ -24,10 +26,17 @@
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
     <meta id="user_logged_in" data-name="{github_user }}">
 
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+
+
+
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
     <script type="text/javascript" src="/static/js/brainmap-behavioral.js"></script>
+
+
 
 
     <!-- Custom CSS -->
@@ -137,7 +146,9 @@
     <!-- /.container -->
 
     <div class="container" id="articleContents" style="padding-bottom: 30px;">
+
     </div>
+
 
     <div class="container" style="padding-bottom: 30px;">
         <div id="experiments"></div>
@@ -145,10 +156,12 @@
 
     <!-- jQuery Version 1.11.1 -->
     <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
+      <!--<script type="text/javascript" src="https://rawgit.com/wenzhixin/bootstrap-table/master/src/bootstrap-table.js"></script>-->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
     <script type="text/javascript" src="/static/js/select2.full.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
-    <link href="/static/css/location-table.css" rel="stylesheet">
+    <!--<link href="/static/css/location-table.css" rel="stylesheet">-->
     <script src="/static/js/three.min.js"></script>
     <script src="/static/js/detector.js"></script>
     <script src='/static/js/subdivision-modifier.js'></script>
@@ -156,6 +169,45 @@
     <script src="/static/js/trackball-controls.js"></script>
     <script src="/static/js/brain-widget.js"></script>
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+
+
+    <script>
+        var clients = [
+            { "Name": "Otto Clay", "Age": 25, "Country": 1, "Address": "Ap #897-1459 Quam Avenue", "Married": false },
+            { "Name": "Connor Johnston", "Age": 45, "Country": 2, "Address": "Ap #370-4647 Dis Av.", "Married": true },
+            { "Name": "Lacey Hess", "Age": 29, "Country": 3, "Address": "Ap #365-8835 Integer St.", "Married": false },
+            { "Name": "Timothy Henson", "Age": 56, "Country": 1, "Address": "911-5143 Luctus Ave", "Married": true },
+            { "Name": "Ramona Benton", "Age": 32, "Country": 3, "Address": "Ap #614-689 Vehicula Street", "Married": false }
+        ];
+
+        var countries = [
+            { Name: "", Id: 0 },
+            { Name: "United States", Id: 1 },
+            { Name: "Canada", Id: 2 },
+            { Name: "United Kingdom", Id: 3 }
+        ];
+
+        $("#jsGrid").jsGrid({
+            width: "100%",
+            //height: "400px",
+
+            inserting: true,
+            editing: true,
+            sorting: true,
+            paging: true,
+
+            data: clients,
+
+            fields: [
+                { name: "Name", type: "text", width: 150, validate: "required" },
+                { name: "Age", type: "number", width: 50 },
+                { name: "Address", type: "text", width: 200 },
+                { name: "Country", type: "select", items: countries, valueField: "Id", textField: "Name" },
+                { name: "Married", type: "checkbox", title: "Is Married", sorting: false },
+                { type: "control" }
+            ]
+        });
+    </script>
 
     <script>
     var opts = {
@@ -385,7 +437,7 @@
             url: "/json/article?pmid={{id}}"
         }).complete(function(o) {
             j = o.responseText;
-            console.log(j);
+            //console.log(j);
             obj = JSON.parse(j);
             try {
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
@@ -418,7 +470,7 @@
             );
             tableInputForm.append(tableForm);
             $("#articleContents").append(tableInputForm);
-            
+
             var dropper = $("<div/>");
             if (metadata != undefined) {
                 var metadataStr = "";
@@ -499,7 +551,7 @@
                     if ("flagged" in experimentsObj[i]) {
                         flagged = experimentsObj[i]["flagged"];
                     }
-                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
+                    //expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
                     form.append(expContainer);
                     count++;
                 }
@@ -558,12 +610,14 @@
                 $(this).append($("<div>").css("clear", "both"));
             });
 
-    	}));
+      console.log("experiments table is", experimentsObj)
+
+    	})); //end .complete
     </script>
     <div class="container">
         <div class="row">
             <!--<h3>Discussion Section</h3>
-            
+
             <form id="comment_submitter" action="/view-article" method="post">
                 <textarea id="comment" style="width: 100%;height:100px; left:1em; right:1em;" placeholder="Any Questions or Concerns about this article?"></textarea>
                 <button id="discussion" class="btn btn-default">Submit</button>
@@ -579,7 +633,7 @@
         this.page.url = "https://brainspell.herokuapp.com/view-article?id={{id}}";
         this.page.identifier = "{{id}}";
         };
-        
+
         (function() { // DON'T EDIT BELOW THIS LINE
         var d = document, s = d.createElement('script');
         s.src = 'https://brainspell.disqus.com/embed.js';
@@ -588,7 +642,7 @@
         })();
         </script>
         <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-                                        
+
         </div>
     </div>
 
@@ -850,7 +904,7 @@
                 if (link.innerHTML == "Flag Table") {
                     link.innerHTML = "Unflag Table";
                     link.style.color = "red";
-                } 
+                }
                 else {
                     link.innerHTML = "Flag Table";
                     link.style.color = "#337ab7";
@@ -916,7 +970,7 @@
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
-        
+
         $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
         function startloader() {
             $(window).load(function () {

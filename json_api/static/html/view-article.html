@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <link rel="icon" href="https://brainspell.herokuapp.com/static/img/favicon.png">
+    <link rel="icon" href="/static/img/favicon.png">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
     <title>View Article - Brainspell v2</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!--<link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">-->
 
@@ -24,7 +24,8 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
-    <meta id="user_logged_in" data-name="{github_user }}">
+    <meta id="user_logged_in" data-name="{{ github_user }}">
+    <!-- TODO Synchronize what really qualifies as logged in. Github User specified for voting procedures -->
 
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
@@ -137,7 +138,7 @@
                     Add to Github Collections:
                   </label>
                   <select class="js-example-basic-multiple js-states form-control" id="github_collections" multiple="multiple"></select>
-                  {% end %}
+                {% end %}
                 </div>
             </div>
         </div>
@@ -149,19 +150,21 @@
 
     </div>
 
+    <div class="container">
+      <div id="jsGrid">
+      </div>
+    </div>
 
     <div class="container" style="padding-bottom: 30px;">
         <div id="experiments"></div>
     </div>
 
     <!-- jQuery Version 1.11.1 -->
-    <script src="https://brainspell.herokuapp.com/static/js/jquery.js"></script>
-      <!--<script type="text/javascript" src="https://rawgit.com/wenzhixin/bootstrap-table/master/src/bootstrap-table.js"></script>-->
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+    <script src="/static/js/jquery.js"></script>
     <script type="text/javascript" src="/static/js/select2.full.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
-    <script src="https://brainspell.herokuapp.com/static/js/bootstrap.min.js"></script>
-    <!--<link href="/static/css/location-table.css" rel="stylesheet">-->
+    <script src="/static/js/bootstrap.min.js"></script>
+    <link href="/static/css/location-table.css" rel="stylesheet">
     <script src="/static/js/three.min.js"></script>
     <script src="/static/js/detector.js"></script>
     <script src='/static/js/subdivision-modifier.js'></script>
@@ -169,6 +172,7 @@
     <script src="/static/js/trackball-controls.js"></script>
     <script src="/static/js/brain-widget.js"></script>
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
 
 
     <script>
@@ -187,6 +191,34 @@
             { Name: "United Kingdom", Id: 3 }
         ];
 
+        function addJSGrid(dataObj, selector){
+          console.log("data object is",dataObj)
+          console.log($(selector))
+          var gridData = _.map(dataObj, function(v){
+            var loc = v.split(",")
+            return {"x":parseFloat(loc[0]), "y":parseFloat(loc[1]), "z":parseFloat(loc[2])}
+          })
+          $(selector).jsGrid({
+            width: "50%",
+            //height: "400px",
+
+            inserting: true,
+            editing: true,
+            sorting: true,
+            paging: true,
+            pageSize: 7,
+
+            data: gridData,
+            fields:[
+              { name: "x", type: "number"},
+              { name: "y", type: "number"},
+              { name: "z", type: "number"},
+              { name: "Z eff", type: "number"},
+              { type: "control" }
+            ]
+          })
+        }
+
         $("#jsGrid").jsGrid({
             width: "100%",
             //height: "400px",
@@ -195,6 +227,7 @@
             editing: true,
             sorting: true,
             paging: true,
+            pageSize: 5,
 
             data: clients,
 
@@ -210,6 +243,7 @@
     </script>
 
     <script>
+    // TODO: clean up; start by logically separating the JS code into sections, then into functions, then into files
     var opts = {
       lines: 13 // The number of lines to draw
       , length: 28 // The length of each line
@@ -234,9 +268,9 @@
       };
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
-      console.log(spinner)
+      console.log(spinner);
       $.get("/repos?list=1&pmid={{id}}", function(data, err){
-        var data = JSON.parse(data)
+        var data = JSON.parse(data);
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
                                   function(d){return d.name.replace("brainspell-collection-","")})
@@ -260,13 +294,13 @@
         });
       }).fail(function(response){
         console.log("response is", response.statusText);
-        spinner.stop(target)
-        $("#github_collections").select2({placeholder: response.statusText})
+        spinner.stop(target);
+        $("#github_collections").select2({placeholder: response.statusText});
         $("#github_collections").prop("disabled", true)
       });
 
-
-
+        //Generates the popup widget when a vote element is clicked
+      // TODO: might be worth making a class for popup, or potentially putting it in its own file
         function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
             column = JSON.stringify(column);
             var targets = JSON.parse(elements);
@@ -340,13 +374,14 @@
                         ).append(
                                 function() {
                                     if (table_num == -1) {
-                                        console.log(userVotedDisagree)
+                                        console.log(userVotedDisagree);
                                         return $("<a>", {
                                             "type": "button",
                                             "id": "disagree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','down')`
                                         }).text("Disagree: " + disagree + userVotedDisagree);
+
                                     } else {
                                         return $("<a>", {
                                             "type": "button",
@@ -393,7 +428,7 @@
                 }
             });
         }
-
+        //Creates the mesh Popup whenever an "Add Descriptor" term is selected
         function meshAdder(term = descriptors, table_num = -1, column='NA') {
             var items = $("<ul>", {"class":"list-group"});
             for (var i = 0; i < term.length; i++) {
@@ -426,8 +461,10 @@
             $('#descriptorModal').on('hidden.bs.modal', function(){
                 $(this).remove();
             });
-            searcher();
+            searcher(); //Activates search for each mesh term
         }
+
+
         var count = 1;
         var experimentsObj;
         var $resultClone = $("<div>", {"class": "row"}).css("padding", "10px");
@@ -435,17 +472,25 @@
         $($.ajax({
             type: "GET",
             url: "/json/article?pmid={{id}}"
-        }).complete(function(o) {
+        }).complete(function(o) { // MAIN INIT
             j = o.responseText;
             //console.log(j);
             obj = JSON.parse(j);
+            if (Object.keys(obj).length == 0) {
+                 window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
+            }
+
+
             try {
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             } catch (err) { //Specifies a !CDATA left behind as a remnant of old database
                 obj["metadata"] = obj["metadata"].slice(8,-2);
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
-            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"]
+
+
+
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"];
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -501,7 +546,7 @@
                     var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
                     if (metadatalst[i][1] != "NOVOTES") { // add visual feedback based on whether upvotes vs. downvotes are greater
                         if (metadatalst[i][1]["up"].length == metadatalst[i][1]["down"].length) {
-                            voteTagBtn.css("color", "#FFA500") // orange
+                            voteTagBtn.css("color", "#FFA500"); // orange
                         } else if (metadatalst[i][1]["up"].length > metadatalst[i][1]["down"].length) {
                             voteTagBtn.css("color", "#228B22"); // dark green
                         } else {
@@ -538,9 +583,7 @@
             $("#articleContents").append(user_terms);
 
 
-
-
-            // TODO: add "action" once that endpoint is finished
+            // TODO: add "action" once that endpoint is finished (? action?)
             var form = $('<div>', {'id':"locations"});
             // generate experiment tables
             experimentsObj = jQuery.parseJSON(obj["experiments"].replace(/'/g, '"'));
@@ -551,22 +594,25 @@
                     if ("flagged" in experimentsObj[i]) {
                         flagged = experimentsObj[i]["flagged"];
                     }
-                    //expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
+                    expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
+
+
                     form.append(expContainer);
                     count++;
                 }
             }
-            //Generate BrainSprite Images
+
+
+            // Generate BrainSprite Images
             // (setting display none until this does something useful)
             $("#articleContents").append("<div>" +
                     "<canvas style='max-width:100%;width:500px;display: none' id='3Dviewer'>" +
                     "<img id='spriteImg' class='hidden' src='/static/img/sprite.jpg'>" +
 //                    "<img id='overlayImg' class='hidden' src='dmnSprite.png'>'" +
                     "</div>");
-            startloader();
+//            startloader();
 
 
-            //if(!(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))) {
             // if not on mobile
             $("body").append("<canvas id='3d' style='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none'>");
             if (Detector.webgl) {
@@ -587,7 +633,6 @@
             configureExperiments(experimentsObj);
 
             requestAnimationFrame(animate);
-            //}
             // end brain widget generation
 
             form.append($("<div>").css("clear", "both"));
@@ -608,24 +653,19 @@
                         wrapper, document.getElementById('container' + elemID).firstChild);
                 }
                 $(this).append($("<div>").css("clear", "both"));
+
             });
 
       console.log("experiments table is", experimentsObj)
+      console.log("adding JS Grid??")
+      experimentsObj.forEach(function(item, idx, arr){
+        addJSGrid(item["locations"],"#jsGrid"+idx)
+      })
 
     	})); //end .complete
     </script>
     <div class="container">
         <div class="row">
-            <!--<h3>Discussion Section</h3>
-
-            <form id="comment_submitter" action="/view-article" method="post">
-                <textarea id="comment" style="width: 100%;height:100px; left:1em; right:1em;" placeholder="Any Questions or Concerns about this article?"></textarea>
-                <button id="discussion" class="btn btn-default">Submit</button>
-                <script>$("#comment_submitter").append($("<input>", {"type":"hidden","name":"id","id":"id","value":"" + getID()}));</script>
-                <p><br></p>
-                <!--TODO Add option to add existing comments to the article JQUERY
-            </form>
-        -->
         <div id="disqus_thread"></div>
         <script>
 
@@ -646,9 +686,8 @@
         </div>
     </div>
 
-
-
     <script>
+    // TODO: make the voting, adding coordinates, deleting coordinates, etc. stay on the same page, and update the page on callback
 
         function configureExperiments(exp) {
             $("#experiments").html("");
@@ -668,8 +707,8 @@
             }
         }
         function experimentsTable(array, position, experimentNumber, flagged) {
-            var table = $("<table>").css("position", "relative");
-            table.addClass("scroller");
+            var table = $('<div id="jsGrid'+experimentNumber+'">').css("position", "relative");
+            /*table.addClass("scroller");
             table.addClass("gradient-style");
             table.append($("<caption>").text("Experiment " + position));
             var contents = $('<tbody>');
@@ -741,6 +780,12 @@
                 for (var k = 0; k < keys.length; k++) {
                     var temp = JSON.stringify(keys[k]['element']);
                     var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + experimentNumber + ',' + JSON.stringify('C') + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    if ( keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
+                        term.css("color","green");
+                    }
+                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
+                        term.css("color","red")
+                    }
                     footer.append(term);
                 }
             }
@@ -750,6 +795,12 @@
                 for (var k = 0; k < experimentsObj[experimentNumber]["B"].length; k++) {
                     var temp = JSON.stringify(keys[k]['element']);
                     var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
+                        term.css("color","green");
+                    }
+                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
+                        term.css("color","red")
+                    }
                     footer.append(term);
                 }
             }
@@ -759,6 +810,12 @@
                 for (var k = 0; k < experimentsObj[experimentNumber]["T"].length; k++) {
                     var temp = JSON.stringify(keys[k]['element']);
                     var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
+                        term.css("color","green");
+                    }
+                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
+                        term.css("color","red")
+                    }
                     footer.append(term);
                 }
             }
@@ -767,7 +824,7 @@
             {% end %}
             if (flagged) {
                 table.addClass("flagged");
-            }
+            }*/
 
             return table;
         }
@@ -830,7 +887,7 @@
             $(rowDOM).attr("onclick", "");
             rowDOM.innerHTML = '<td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="height: 100%; padding-top: 5px; padding-bottom: 5px;"><input type="text" style="width: 60%;" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td><td style="padding-top: 5px; padding-bottom: 5px;"><input type="number" style="width:60%;" step="0.01" value="0" onkeypress="return checkIfRowSubmit(event, this, ' + element + ')"></td>';
         }
-
+        //On Enter Submits a new row to the database and refreshes page.
         function checkIfRowSubmit(e, input, experiment) {
             if (e.keyCode == 13) {
                 var inputs = input.parentNode.parentNode.getElementsByTagName("input");
@@ -847,7 +904,7 @@
                 return false;
             }
         }
-
+        // Delete a row from the table
         function deleteRow(element) {
             if (exp[element].selectedRow != null) {
                 var r = exp[element].selectedRow;
@@ -867,7 +924,7 @@
                 });
             }
         }
-
+        //Breaks a table at a specified element
         function splitTable(element) {
             console.log(element);
             if (exp[element].selectedRow != null) {
@@ -888,7 +945,7 @@
                 });
             }
         }
-
+        //Specifies a table as invalid
         function flagTable(link, element) {
             console.log(element);
             //var x = exp[element].locations[r][0];
@@ -911,7 +968,7 @@
                 }
             });
         }
-
+        // Returns the current article location
         function getaURL(name, url) {
             if (!url) {
               url = window.location.href;
@@ -923,6 +980,8 @@
             if (!results[2]) return '';
             return "/save-article" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
         }
+
+        //Returns the PMID of the current Article
         function getID(url) {
             if (!url) {
               url = window.location.href;
@@ -935,11 +994,11 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
-
+        // Updates the vote of a single Table Element
         function updateTableVote(element,direction,tableNum,column) {
             $.ajax({
                 type: "POST",
-                url: "/updateTableVote",
+                url: "/update-table-vote",
                 data: {
                     "element": element,
                     "direction":direction,
@@ -949,12 +1008,10 @@
                 }
             }).complete(function(o) {
                 //console.log(o);
-                location.reload();
+                window.location = window.location;
             });
-
-
         }
-
+        //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
@@ -963,7 +1020,7 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                location.reload();
+                window.location = window.location; // Faster update mechanism
             });
         }
 
@@ -971,23 +1028,27 @@
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
 
-        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
-        function startloader() {
-            $(window).load(function () {
-                var brain = brainsprite({
-                    canvas: "3Dviewer",
-                    sprite: "spriteImg",
-//                    overlay: {
-//                        sprite: "overlayImg",
-//                        nbSlice: {"Y":79,'Z':63}
-//                    },
-                    flagCoordinates: true,
-                    nbSlice: {"Y": 233, "Z": 189}
-                });
-            });
-            console.log("GRAPHICS LOADED");
-        }
+        //TODO Renders BrainSprite Graphics, Currently not used:
+//        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
+//        function startloader() {
+//            $(window).load(function () {
+//                var brain = brainsprite({
+//                    canvas: "3Dviewer",
+//                    sprite: "spriteImg",
+////                    overlay: {
+////                        sprite: "overlayImg",
+////                        nbSlice: {"Y":79,'Z':63}
+////                    },
+//                    flagCoordinates: true,
+//                    nbSlice: {"Y": 233, "Z": 189}
+//                });
+//            });
+//            console.log("GRAPHICS LOADED");
+//        }
 
+
+
+        //TODO Evaluate whether this is even still necessary
         function send() {
             $.ajax({
                 type: "POST",
@@ -1001,11 +1062,6 @@
                 location.reload();
             });
         }
-        function show_items() {
-            $('#submitter').show();
-            $('#submitt').show();
-        }
-
     </script>
 
 </body>

@@ -17,3 +17,11 @@ Github Functionality
 - Add notes in each Article in the collection 
 - Paginate the collections page 
 - The bar should be a database request
+
+Potentially reimplement:
+- Tables: reimplement using jQuery Datatables 
+
+- Brain Browser: a tool for visualization of translucent images that can take advantage of multi-core systems 
+
+- Continuous Activation Graphic:
+- Brainsprite: a tool that uses PNG files to show activation with depth 

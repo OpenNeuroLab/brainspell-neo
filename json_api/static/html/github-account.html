@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <link rel="icon" href="https://brainspell.herokuapp.com/static/img/favicon.png">
+    <link rel="icon" href="/static/img/favicon.png">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
     <title>Brainspell v2 - An open, human-curated classification of neuroimaging literature</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="https://brainspell.herokuapp.com/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <style>
@@ -129,7 +129,7 @@
             {{i["description"]}}
 
                              {% for c in i["contributors"] %}
-                  <img class=" img-circle" src="{{c["avatar_url"]}} width="25px" height="25px">
+                  <img class=" img-circle" src="{{c["avatar_url"]}}" width="25px" height="25px">
                   {% end for %}
               </div>
 

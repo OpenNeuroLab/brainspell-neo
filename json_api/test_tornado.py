@@ -18,7 +18,8 @@ capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
 hub_url = "%s:%s@localhost:4445" % (username, access_key)
 capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
 capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
-driver = webdriver.Remote(browser_profile=selenium.webdriver.firefox.firefox_profile.FirefoxProfile,desired_capabilities=capabilities, command_executor="http://%s/wd/hub" % hub_url)
+capabilities["browserName"] = "firefox"
+driver = webdriver.Remote(desired_capabilities=capabilities, command_executor="http://%s/wd/hub" % hub_url)
 
 """
 TODO: need to make tests for:

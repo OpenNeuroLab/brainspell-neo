@@ -4,8 +4,12 @@ import pytest
 import brainspell
 import models
 import search
+import selenium
+from selenium import webdriver
 
 application = brainspell.make_app()
+
+driver = webdriver.Chrome()
 
 """
 TODO: need to make tests for:
@@ -27,6 +31,15 @@ def test_procfile():
     contents = f.read()
     filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
     assert filename in os.listdir()
+
+def test_row_add(): #Using selenium testing
+    driver.get("https://brainspell.herokuapp.com")
+    assert "Brainspell" in driver.title #Checks website title is accurate
+    driver.get("https://brainspell.herokuapp.com/view-article?id=00000000")
+    assert driver.find_element_by_id("110690") != None #Entry fields for Z-
+    meshButtons = driver.find_elements_by_class_name("dropbtn")
+    assert meshButtons != None #Ensure Mesh terms are included
+
 
 
 

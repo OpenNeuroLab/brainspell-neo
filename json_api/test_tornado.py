@@ -11,6 +11,7 @@ application = brainspell.make_app()
 
 
 """Configuring SauceLabs for Selenium Testing"""
+capabilities = {}
 username = os.environ["SAUCE_USERNAME"]
 access_key = os.environ["SAUCE_ACCESS_KEY"]
 capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]

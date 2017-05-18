@@ -12,13 +12,14 @@ application = brainspell.make_app()
 
 """Configuring SauceLabs for Selenium Testing"""
 capabilities = {}
+profile = webdriver.Chrome()
 username = os.environ["SAUCE_USERNAME"]
 access_key = os.environ["SAUCE_ACCESS_KEY"]
 capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
 hub_url = "%s:%s@localhost:4445" % (username, access_key)
 capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
 capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
-driver = webdriver.Remote(desired_capabilities=capabilities, command_executor="http://%s/wd/hub" % hub_url)
+driver = webdriver.Remote(browser_profile=profile,desired_capabilities=capabilities, command_executor="http://%s/wd/hub" % hub_url)
 
 """
 TODO: need to make tests for:

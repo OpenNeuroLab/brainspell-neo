@@ -207,13 +207,14 @@
             sorting: true,
             paging: true,
             pageSize: 7,
+            confirmDeleting: true,
 
             data: gridData,
             fields:[
-              { name: "x", type: "number"},
-              { name: "y", type: "number"},
-              { name: "z", type: "number"},
-              { name: "Z eff", type: "number"},
+              { name: "x", type: "text"}, //TODO: OMG THIS SUCKS, but "number" does not work!!!!
+              { name: "y", type: "text"},
+              { name: "z", type: "text"},
+              { name: "Z eff", type: "text"},
               { type: "control" }
             ]
           })
@@ -221,11 +222,24 @@
           $(selector).on({
               mouseenter: function(){
                   var item = $(this).data("JSGridItem");
-                  console.log("mouseenter", item);
+                  var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
+                  var index = this.rowIndex
+                  var sphereObj = experimentsObj[whichTable].locations[index].sph
+
+                  experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
+
+                  sphereObj.material.color.setRGB(0,1,0);
+                  //console.log("this is", this)
+                  //console.log("mouseenter", whichTable, index, sphereObj);
               },
               mouseleave: function(){
                   var item = $(this).data("JSGridItem");
-                  console.log("mouseleave", item);
+
+                  var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
+                  var index = this.rowIndex
+                  var sphereObj = experimentsObj[whichTable].locations[index].sph
+
+                  sphereObj.material.color.setRGB(0,1,0);
               }
           }, "tr");
 

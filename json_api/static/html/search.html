@@ -274,7 +274,14 @@
                 document.getElementById("pmid-warning").style.display = "block";
             }
         }
-
+        function sleep(milliseconds) {
+          var start = new Date().getTime();
+          for (var i = 0; i < 1e7; i++) {
+            if ((new Date().getTime() - start) > milliseconds){
+              break;
+            }
+          }
+        }
 
         function saveCollection() {
             var articles = [];
@@ -282,25 +289,17 @@
                 console.log($(this).val());
                 articles.push($(this).val());
             });
-            collectionName = prompt("Enter the collection name:", "");
+            collectionName = prompt("Enter the collection name:", "").trim();
 
-            alert("Articles to save: " + articles.join(", "));
-            articles = JSON.stringify(articles);
-            console.log("Articles and CollectionNames are");
-            console.log(articles);
-            console.log(collectionName);
-            $.ajax({
-                type: "POST",
-                url: "/save-bulk",
-                data: {
-                    "pmids": articles,
-                    "collection": collectionName
-                }
-            }).complete(function(o) {
-                // window.location("/account")
-                console.log(o); // TODO: give some indication that the collection was successfully created
-                //alert("Feature not implemented yet.");
+//            alert("Articles to save: " + articles.join(", "));
+            for (var i = 0; i < articles.length; i++) {
+            $.post("/add-to-collection?"+$.param({pmid: eval(articles[i]),
+           collection:"brainspell-collection-"+collectionName}), function(data, err){
+             console.log(err)
             });
+
+
+            }
         }
 
         // brain widgets

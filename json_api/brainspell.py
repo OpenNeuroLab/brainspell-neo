@@ -304,7 +304,7 @@ def make_app():
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
         # (r"/save-collection", SaveCollectionHandler),
-        (r"/save-bulk",BulkNewFileHandler),
+        # (r"/save-bulk",BulkNewFileHandler),
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),
         (r"/add-to-collection", NewFileHandler),

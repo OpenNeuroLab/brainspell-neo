@@ -244,7 +244,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
         starttime = time.time()
         collection = self.get_argument("collection")
         pmid = self.get_argument("pmid")
-        article = next(get_article(pmid))
+        article = list(get_article(pmid))[0]
         entry = {"pmid": pmid,
                 "title": article.title,
                 "reference": article.reference,
@@ -310,50 +310,50 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
             method="DELETE",
             body={"sha": sha, "message": "removing {} from collection".format(pmid)})]
 
-class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def post(self):
-        startime = time.time()
-        collection = self.get_argument("collection")
-        pmids = self.get_argument("pmids")
-        pmids = eval(pmids)
-        user_info = self.get_current_github_user()["login"]
-        if collection in next(User.select().where(User.username == user_info).execute()).collections: #If collection exists
-            for pmid in pmids:
-                pmid = eval(pmid)
-                article = list(get_article(pmid))[0]
-                entry = {"pmid": pmid,
-                        "title": article.title,
-                        "reference": article.reference,
-                        "doi": article.doi,
-                         "notes": "Here are my notes on this article"}
-                content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
-                gh_user = self.get_current_github_user()
-                add_to_repo(collection,pmid,gh_user["login"])
-                body = {
-                    "message": "adding {} to collection".format(pmid),
-                    "content": content
-                }
-                collection = "brainspell-collection-" + collection
-                ress = yield [
-                    torngithub.github_request(
-                        self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                                       repo=collection,
-                                                                       path="{}.json".format(pmid)),
-                        access_token=gh_user['access_token'],
-                        method="PUT",
-                        body=body
-                    )
-                ]
-                data = []
-                for res in ress:
-                    data.extend(res.body)
-                endtime = time.time()
-        else:
-            print("Your collection doesn't exist")
-            return False #TODO: Tell user the collection doesn't exist
-
-
-
+# class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
+#     @tornado.web.asynchronous
+#     @tornado.gen.coroutine
+#     def post(self):
+#         startime = time.time()
+#         collection = self.get_argument("collection")
+#         pmids = self.get_argument("pmids")
+#         pmids = eval(pmids)
+#         user_info = self.get_current_github_user()["login"]
+#         if collection in next(User.select().where(User.username == user_info).execute()).collections: #If collection exists
+#             collection = "brainspell-collection-" + collection
+#             for pmid in pmids:
+#                 pmid = eval(pmid)
+#                 article = list(get_article(pmid))[0]
+#                 entry = {"pmid": pmid,
+#                         "title": article.title,
+#                         "reference": article.reference,
+#                         "doi": article.doi,
+#                          "notes": "Here are my notes on this article"}
+#                 content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
+#                 gh_user = self.get_current_github_user()
+#                 add_to_repo(collection,pmid,gh_user["login"])
+#                 body = {
+#                     "message": "adding {} to collection".format(pmid),
+#                     "content": content
+#                 }
+#                 ress = yield [
+#                     torngithub.github_request(
+#                         self.get_auth_http_client(),
+#                         '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+#                                                                        repo=collection,
+#                                                                        path="{}.json".format(pmid)),
+#                         access_token=gh_user['access_token'],
+#                         method="PUT",
+#                         body=body
+#                     )
+#                 ]
+#                 data = []
+#                 for res in ress:
+#                     data.extend(res.body)
+#                 endtime = time.time()
+#         else:
+#             print("Your collection doesn't exist")
+#             return False #TODO: Tell user the collection doesn't exist
+#
+#
+#

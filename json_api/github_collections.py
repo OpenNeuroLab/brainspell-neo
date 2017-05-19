@@ -7,6 +7,7 @@ import os
 from search import *
 from user_accounts import *
 import tornado.web
+from base64 import b64encode
 
 # BEGIN: read environment variables
 
@@ -137,34 +138,40 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                 repo["pretty_name"] = repo["name"].replace("brainspell-collection-", "")
 
                 #get file list content for each repo
-                content_data = yield torngithub.github_request(
-                                  self.get_auth_http_client(),
-                                  '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                  repo=repo["name"],
-                                  #path="{}.json".format(pmid)
-                                  path=""
-                                  ),
-                access_token=gh_user['access_token'],
-                method="GET")
+                try:
+                    content_data = yield torngithub.github_request(
+                                      self.get_auth_http_client(),
+                                      '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                      repo=repo["name"],
+                                      #path="{}.json".format(pmid)
+                                      path=""
+                                      ),
+                    access_token=gh_user['access_token'],
+                    method="GET")
 
-                print(repo["contributors_url"])
-                contrib = yield torngithub.github_request(self.get_auth_http_client(),
-                                                          repo["contributors_url"].replace("https://api.github.com", ""),
-                                                          access_token=gh_user['access_token'],
-                                                          method = "GET")
-                repo["contributors"] = contrib["body"]
-
-
-                # print(content_data)
-
-                content = content_data["body"]
+                    print(repo["contributors_url"])
+                    contrib = yield torngithub.github_request(self.get_auth_http_client(),
+                                                              repo["contributors_url"].replace("https://api.github.com", ""),
+                                                              access_token=gh_user['access_token'],
+                                                              method = "GET")
+                    repo["contributors"] = contrib["body"]
 
 
-                #extract pmids from content body
-                pmids = [c["name"].replace(".json", "") for c in content]
+                    # print(content_data)
 
-                #get article information from each pmid from the database
-                all_contents = [next(get_article(pmid)) for pmid in pmids]
+                    content = content_data["body"]
+
+
+                    #extract pmids from content body
+                    pmids = [c["name"].replace(".json", "") for c in content]
+
+                    #get article information from each pmid from the database
+                    all_contents = [next(get_article(pmid)) for pmid in pmids]
+                except: #TODO This is hacky, Empty Repos break the code!
+                    all_contents = []
+                    repo["contributors"] = {}
+
+
 
                 #Convert to a dict the info we want (so it can be JSON serialized later)
                 def article_content_dict(cont):
@@ -310,11 +317,12 @@ class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
         startime = time.time()
         collection = self.get_argument("collection")
         pmids = self.get_argument("pmids")
+        pmids = eval(pmids)
         user_info = self.get_current_github_user()["login"]
-        print(self.get_current_github_user())
-        if collection in next(User.select().where(User.username == user_info).execute()).collections:
+        if collection in next(User.select().where(User.username == user_info).execute()).collections: #If collection exists
             for pmid in pmids:
-                article = next(get_article(pmid))
+                pmid = eval(pmid)
+                article = list(get_article(pmid))[0]
                 entry = {"pmid": pmid,
                         "title": article.title,
                         "reference": article.reference,
@@ -327,19 +335,24 @@ class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
                     "message": "adding {} to collection".format(pmid),
                     "content": content
                 }
-                ress = yield [torngithub.github_request(
-                    self.get_auth_http_client(),
-                    '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                                                   repo=collection,
-                                                                   path="{}.json".format(pmid)),
-                    access_token=gh_user['access_token'],
-                    method="PUT",
-                    body=body)]
+                ress = yield [
+                    torngithub.github_request(
+                        self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                       repo=collection,
+                                                                       path="{}.json".format(pmid)),
+                        access_token=gh_user['access_token'],
+                        method="PUT",
+                        body=body
+                    )
+                ]
                 data = []
                 for res in ress:
                     data.extend(res.body)
-
                 endtime = time.time()
         else:
             print("Your collection doesn't exist")
             return False #TODO: Tell user the collection doesn't exist
+
+
+

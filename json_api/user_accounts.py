@@ -124,6 +124,7 @@ def new_repo(name,username):
     return True
 
 def add_to_repo(collection, pmid, username):
+    collection = collection.replace("brainspell-collection-","")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]
@@ -137,6 +138,7 @@ def add_to_repo(collection, pmid, username):
 
 
 def remove_from_repo(collection, pmid, username):
+    collection = collection.replace("brainspell-collection-","")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]

@@ -238,15 +238,15 @@ function onDocumentMouseDown(event, eid, ex) {
             var selectPage = Math.floor((i+1)/7)+1
             var tableSelector = $("#container"+eid)[0].children[1].id
             var relRow = i - 7*(selectPage - 1)
-            console.log(relRow)
+            //console.log(relRow)
             if (relRow == -1){
               selectPage = selectPage - 1
               relRow = 6
             }
             $("#"+tableSelector).jsGrid({pageIndex:selectPage})
-            console.log("guess page is", selectPage, "total idx", i)
+            //console.log("guess page is", selectPage, "total idx", i)
 
-            console.log(tableSelector, selectPage, i, relRow, "#"+tableSelector + " tr")
+            //console.log(tableSelector, selectPage, i, relRow, "#"+tableSelector + " tr")
             var clickedRow = $("#"+tableSelector + " tr")[3+relRow];
             $(clickedRow).addClass("jsgrid-selected-row")
             //clickedRow.addClass("jsgrid-selected-row")

@@ -177,10 +177,14 @@
 
     <script>
 
+        function splittable(e){
+          console.log("want to split table from", e)
+        }
+
 
         function addJSGrid(dataObj, selector){
-          console.log("data object is",dataObj)
-          console.log($(selector))
+          //console.log("data object is",dataObj)
+          //console.log($(selector))
           var gridData = _.map(dataObj, function(loc){
             //var loc = v.split(",")
             return {"x":parseFloat(loc[0]), "y":parseFloat(loc[1]), "z":parseFloat(loc[2])}
@@ -202,7 +206,28 @@
               { name: "y", type: "text"},
               { name: "z", type: "text"},
               { name: "Z eff", type: "text"},
-              { type: "control" }
+              { type: "control" },
+              {
+                  type: "control",
+                  editButton: false,
+                  deleteButton: false,
+                  headerTemplate: function() {
+                      return "Split"/*$("<button>").attr("type", "button").text("Add")
+                          .on("click", function () {
+                              showDetailsDialog("Add", {});
+                          });*/
+                  },
+                  itemTemplate: function(value, item) {
+                      /*return this._createGridButton("glyphicon glyphicon-arrow-down", "Click to split table", function(grid) {
+                          // do whatever you want, e.g. alert item field and start editing
+                          console.log(item);
+                          //grid.editItem(item);
+                      });*/
+                      return $('<span class="glyphicon glyphicon-arrow-down" aria-hidden="true" onclick="splittable(this)"></span>')
+                  },
+                  editTemplate: function(value, item) { return $('<span class="glyphicon glyphicon-arrow-down" aria-hidden="true" onclick="splittable(this)"></span>') },
+              }
+
             ]
           })
 
@@ -213,7 +238,7 @@
                   var pageNo = $("#jsGrid"+whichTable+" .jsgrid-pager-current-page")[0].innerText //DISGUSTING
 
                   var index = 7*(pageNo-1) + this.rowIndex
-                  
+
                   var sphereObj = experimentsObj[whichTable].locations[index].sph
 
                   experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
@@ -268,7 +293,7 @@
         var data = JSON.parse(data);
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
-                                  function(d){return d.name.replace("brainspell-collection-","")})
+                                  function(d){return d.name.replace("brainspell-collection-","")});
         $("#github_collections").select2({data: coll_names, theme: "bootstrap"});
         $("#github_collections").val(in_collection).trigger("change")
         spinner.stop(target)
@@ -394,7 +419,7 @@
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
-                {% if title=="" %}
+                {% if github_user== "" %}
                 $("#agree").hide();
                 $("#disagree").hide();
                 $("#closer").before("Please login to vote  ");
@@ -471,7 +496,7 @@
             j = o.responseText;
             //console.log(j);
             obj = JSON.parse(j);
-            if (Object.keys(obj).length == 0) {
+            if (Object.keys(obj).length <= 1) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
             }
 
@@ -493,7 +518,7 @@
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
-            {% if title!="" %}
+            {% if github_user !="" %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
 
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));

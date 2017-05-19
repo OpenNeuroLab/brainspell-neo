@@ -237,9 +237,22 @@ function onDocumentMouseDown(event, eid, ex) {
             //console.log("clicked row", i)
             var selectPage = Math.floor((i+1)/7)+1
             var tableSelector = $("#container"+eid)[0].children[1].id
-            console.log(tableSelector, selectPage, i)
+            var relRow = i - 7*(selectPage - 1)
+            console.log(relRow)
+            if (relRow == -1){
+              selectPage = selectPage - 1
+              relRow = 6
+            }
             $("#"+tableSelector).jsGrid({pageIndex:selectPage})
-            clickedRow = $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")");
+            console.log("guess page is", selectPage, "total idx", i)
+
+            console.log(tableSelector, selectPage, i, relRow, "#"+tableSelector + " tr")
+            var clickedRow = $("#"+tableSelector + " tr")[3+relRow];
+            $(clickedRow).addClass("jsgrid-selected-row")
+            //clickedRow.addClass("jsgrid-selected-row")
+            //jsgrid-selected-row
+
+
             /*$("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
             $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop()
                 + clickedRow.position().top - clickedRow.height());*/

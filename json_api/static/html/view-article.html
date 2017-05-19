@@ -14,9 +14,11 @@
     <!-- Bootstrap Core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">
+    <!--<link href="/static/css/column.css" media="screen and (min-device-width: 800px)" rel="stylesheet">-->
+
     <link href="/static/css/view-article.css" rel="stylesheet">
-    <link href="/static/css/view-article.css" rel="stylesheet">
+
+
     <script type="text/javascript" src="/static/js/definitions.js"></script>
     <script type="text/javascript" src="/static/js/brainsprite.min.js"></script>
     <link href="/static/css/select2.min.css" rel="stylesheet">
@@ -25,10 +27,17 @@
     <meta id="user_logged_in" data-name="{{ github_user }}">
     <!-- TODO Synchronize what really qualifies as logged in. Github User specified for voting procedures -->
 
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+
+
+
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
     <script type="text/javascript" src="/static/js/brainmap-behavioral.js"></script>
+
+
 
 
     <!-- Custom CSS -->
@@ -138,6 +147,12 @@
     <!-- /.container -->
 
     <div class="container" id="articleContents" style="padding-bottom: 30px;">
+
+    </div>
+
+    <div class="container">
+      <div id="jsGrid">
+      </div>
     </div>
 
     <div class="container" style="padding-bottom: 30px;">
@@ -157,6 +172,95 @@
     <script src="/static/js/trackball-controls.js"></script>
     <script src="/static/js/brain-widget.js"></script>
     <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
+
+
+    <script>
+
+        function splittable(e){
+          console.log("want to split table from", e)
+        }
+
+
+        function addJSGrid(dataObj, selector){
+          //console.log("data object is",dataObj)
+          //console.log($(selector))
+          var gridData = _.map(dataObj, function(loc){
+            //var loc = v.split(",")
+            return {"x":parseFloat(loc[0]), "y":parseFloat(loc[1]), "z":parseFloat(loc[2])}
+          })
+          var myGrid = $(selector).jsGrid({
+            width: "50%",
+            //height: "400px",
+
+            inserting: true,
+            editing: true,
+            sorting: true,
+            paging: true,
+            pageSize: 7,
+            confirmDeleting: true,
+
+            data: gridData,
+            fields:[
+              { name: "x", type: "text"}, //TODO: OMG THIS SUCKS, but "number" does not work!!!!
+              { name: "y", type: "text"},
+              { name: "z", type: "text"},
+              { name: "Z eff", type: "text"},
+              { type: "control" },
+              {
+                  type: "control",
+                  editButton: false,
+                  deleteButton: false,
+                  headerTemplate: function() {
+                      return "Split"/*$("<button>").attr("type", "button").text("Add")
+                          .on("click", function () {
+                              showDetailsDialog("Add", {});
+                          });*/
+                  },
+                  itemTemplate: function(value, item) {
+                      /*return this._createGridButton("glyphicon glyphicon-arrow-down", "Click to split table", function(grid) {
+                          // do whatever you want, e.g. alert item field and start editing
+                          console.log(item);
+                          //grid.editItem(item);
+                      });*/
+                      return $('<span class="glyphicon glyphicon-arrow-down" aria-hidden="true" onclick="splittable(this)"></span>')
+                  },
+                  editTemplate: function(value, item) { return $('<span class="glyphicon glyphicon-arrow-down" aria-hidden="true" onclick="splittable(this)"></span>') },
+              }
+
+            ]
+          })
+
+          $(selector).on({
+              mouseenter: function(){
+                  var item = $(this).data("JSGridItem");
+                  var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
+                  var pageNo = $("#jsGrid"+whichTable+" .jsgrid-pager-current-page")[0].innerText //DISGUSTING
+
+                  var index = 7*(pageNo-1) + this.rowIndex
+
+                  var sphereObj = experimentsObj[whichTable].locations[index].sph
+
+                  experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
+
+                  sphereObj.material.color.setRGB(0,1,0);
+                  //console.log("this is", this)
+                  //console.log("mouseenter", whichTable, index, sphereObj);
+              },
+              mouseleave: function(){
+                  var item = $(this).data("JSGridItem");
+
+                  var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
+                  var index = this.rowIndex
+                  experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
+
+              }
+          }, "tr");
+
+        }
+
+
+    </script>
 
     <script>
     // TODO: clean up; start by logically separating the JS code into sections, then into functions, then into files
@@ -389,7 +493,7 @@
             url: "/json/article?pmid={{id}}"
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
-            console.log(j);
+            //console.log(j);
             obj = JSON.parse(j);
             if (Object.keys(obj).length <= 1) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
@@ -430,7 +534,7 @@
             );
             tableInputForm.append(tableForm);
             $("#articleContents").append(tableInputForm);
-            
+
             var dropper = $("<div/>");
             if (metadata != undefined) {
                 var metadataStr = "";
@@ -510,10 +614,14 @@
                         flagged = experimentsObj[i]["flagged"];
                     }
                     expContainer.append(experimentsTable(experimentsObj[i]["locations"], experimentsObj[i]['id'], i, flagged));
+
+
                     form.append(expContainer);
                     count++;
                 }
             }
+
+
             // Generate BrainSprite Images
             // (setting display none until this does something useful)
             $("#articleContents").append("<div>" +
@@ -564,9 +672,16 @@
                         wrapper, document.getElementById('container' + elemID).firstChild);
                 }
                 $(this).append($("<div>").css("clear", "both"));
+
             });
 
-    	}));
+      console.log("experiments table is", experimentsObj)
+      console.log("adding JS Grid??")
+      experimentsObj.forEach(function(item, idx, arr){
+        addJSGrid(item["locations"],"#jsGrid"+idx)
+      })
+
+    	})); //end .complete
     </script>
     <div class="container">
         <div class="row">
@@ -577,7 +692,7 @@
         this.page.url = "https://brainspell.herokuapp.com/view-article?id={{id}}";
         this.page.identifier = "{{id}}";
         };
-        
+
         (function() { // DON'T EDIT BELOW THIS LINE
         var d = document, s = d.createElement('script');
         s.src = 'https://brainspell.disqus.com/embed.js';
@@ -586,7 +701,7 @@
         })();
         </script>
         <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-                                        
+
         </div>
     </div>
 
@@ -611,131 +726,13 @@
             }
         }
         function experimentsTable(array, position, experimentNumber, flagged) {
-            var table = $("<table>").css("position", "relative");
-            table.addClass("scroller");
-            table.addClass("gradient-style");
-            table.append($("<caption>").text("Experiment " + position));
-            var contents = $('<tbody>');
-            contents.addClass("experiments-tbody");
-            var header = $('<tr>');
-            header.append($("<td>", {"class": "experiment-header"}).text("X"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Y"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z"));
-            header.append($("<td>", {"class": "experiment-header"}).text("Z-effective"));
-            contents.append(header);
+            var mtable = $('<div id="jsGrid'+experimentNumber+'">').css("position", "relative");
+
             for (var i = 0; i < array.length; i++) {
-                var row = $("<tr>", {"class": "experiment-table-row"}).attr("onclick", "rowClicked(this, " + experimentNumber + ")");
                 array[i] = array[i].split(",");
-                var z_score = array[i][3];
-                for (var j in array[i].slice(0,3)) {
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
-                        $(this).css("padding-top", "5px").css("padding-bottom", "5px");
-                        let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
-                        $(this).html("");
-                        $(this).append(textInput);
-                        textInput.focus();
-                    }).text(array[i][j]));
-                }
-                if (z_score == null) {
-                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {
-                        "type": "number",
-                        "style": "width:60%;",
-                        "step": "0.01",
-                        "id": "" + position + i
-                    })));
-                }
-                else {
-//                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
-                        $(this).css("padding-top", "5px").css("padding-bottom", "5px");
-                        let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
-                        $(this).html("");
-                        $(this).append(textInput);
-                        textInput.focus();
-                    }).text(z_score));
-                }
-                contents.append(row);
+                array[i].push(i)
             }
-
-
-            {% if github_user != ""%}
-            contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
-            {% end %}
-
-            table.append(contents);
-            {% if github_user != ""%}
-            var footer = $("<tfoot>");
-            footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
-            footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));
-            var flagTableElem = $("<tr>").css("background-color", "white").css("width", "33%").css("float", "left");
-            var linkElem = $("<a>").attr("href", "#!").attr("onclick", "flagTable(this, " + experimentNumber + ")").text("Flag Table");
-            if (flagged == 1) {
-                linkElem.css("color", "red");
-                linkElem.text("Unflag Table");
-            }
-            flagTableElem.append($("<td>").append(linkElem));
-            footer.append(flagTableElem);
-            footer.append($("<button>", {"id":"cognitive","onclick": "meshAdder(cogAtlas_cognitive," + experimentNumber + ", 'C'" + ")", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive: "));
-
-
-
-
-
-
-
-            //Add in table specific descriptors;
-            if (experimentsObj[experimentNumber]["C"] != undefined) {
-                var keys = experimentsObj[experimentNumber]["C"];
-                for (var k = 0; k < keys.length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + experimentNumber + ',' + JSON.stringify('C') + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    if ( keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
-                        term.css("color","green");
-                    }
-                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
-                        term.css("color","red")
-                    }
-                    footer.append(term);
-                }
-            }
-            footer.append($("<button>", {"id":"behavioral","onclick": "meshAdder(brainMap_behavioral," + experimentNumber + ", 'B')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Behavioral: "));
-            if (experimentsObj[experimentNumber]["B"] != undefined) {
-                var keys = experimentsObj[experimentNumber]["B"];
-                for (var k = 0; k < experimentsObj[experimentNumber]["B"].length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
-                        term.css("color","green");
-                    }
-                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
-                        term.css("color","red")
-                    }
-                    footer.append(term);
-                }
-            }
-            footer.append($("<button>", {"id":"tasks","onclick": "meshAdder(cogAtlas_tasks," + experimentNumber + ", 'T')", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Tasks: "));
-            if (experimentsObj[experimentNumber]["T"] != undefined) {
-                var keys = experimentsObj[experimentNumber]["T"];
-                for (var k = 0; k < experimentsObj[experimentNumber]["T"].length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                    if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
-                        term.css("color","green");
-                    }
-                    else if (keys[k]["vote"]["up"].length < keys[k]["vote"]["down"].length) {
-                        term.css("color","red")
-                    }
-                    footer.append(term);
-                }
-            }
-
-            table.append(footer);
-            {% end %}
-            if (flagged) {
-                table.addClass("flagged");
-            }
-
-            return table;
+            return mtable;
         }
 
         function drop(element) {
@@ -871,7 +868,7 @@
                 if (link.innerHTML == "Flag Table") {
                     link.innerHTML = "Unflag Table";
                     link.style.color = "red";
-                } 
+                }
                 else {
                     link.innerHTML = "Flag Table";
                     link.style.color = "#337ab7";

@@ -96,7 +96,7 @@ class User(BaseModel):
     emailaddress = CharField(null=True)
     userid = peewee.PrimaryKeyField()
     username = CharField(null=True)
-    # saved_articles= TextField(null=True) # TODO: ADD THIS
+    collections = CharField(null=True)
 
     class Meta:
         db_table = 'users'
@@ -141,3 +141,4 @@ def coactivation(coordinate): # Yields around 11,000 coordinates
                 if location_sets.get("locations"):
                     coordinate_sets.append(location_sets["locations"])
     return coordinate_sets
+

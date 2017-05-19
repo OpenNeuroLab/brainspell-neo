@@ -4,7 +4,7 @@ import tornado
 from models import *
 import simplejson
 from torngithub import json_decode
-
+import tornado.web
 class BaseHandler(tornado.web.RequestHandler): 
     """
     TODO: need to establish standard way of: 
@@ -92,3 +92,70 @@ def register_user(username,email,password):
         return True
     else:
         return False
+
+def register_github_user(user_dict):
+    user_dict = json_decode(user_dict)
+    if (User.select().where(User.username == user_dict["login"]).execute().count == 0):
+        username = user_dict["login"]
+        password = str(user_dict["id"]) #Password is a hash of the Github ID
+        email = user_dict["email"]
+        hasher = hashlib.sha1()
+        hasher.update(password.encode('utf-8'))
+        password = hasher.hexdigest()
+        User.create(username=username,emailaddress=email,password=password)
+        return True
+    else:
+        return False #User already exists
+
+def new_repo(name,username):
+    user = User.select().where(User.username == username).execute()
+    if user.count > 0:
+        user = list(user)[0]
+    else:
+        return False #Failure TODO: Indicate Failure
+    target = eval(user.collections)
+    if not target:
+        target = {}
+    if name in target:
+        return False #Trying to create a pre-existing repo, TODO: Indicate Failure
+    target[name] = []
+    q = User.update(collections = target).where(User.username == username)
+    q.execute()
+    return True
+
+def add_to_repo(collection, pmid, username):
+    collection = collection.replace("brainspell-collection-","")
+    user = User.select().where(User.username == username).execute()
+    if user.count > 0:
+        user = list(user)[0]
+    else:
+        return False
+    target = eval(user.collections)
+    target[collection].append(pmid)
+    q = User.update(collections = target).where(User.username == username)
+    q.execute()
+    return True
+
+
+def remove_from_repo(collection, pmid, username):
+    collection = collection.replace("brainspell-collection-","")
+    user = User.select().where(User.username == username).execute()
+    if user.count > 0:
+        user = list(user)[0]
+    else:
+        return False #Incorrect Username passed
+    target = eval(user.collections)
+    if pmid in target[collection]:
+        target[collection].remove(pmid)
+    else:
+        return False #Trying to remove an article that's not there
+    q = User.update(collections = target).where(User.username == username)
+    q.execute()
+    return True
+
+
+
+
+
+
+

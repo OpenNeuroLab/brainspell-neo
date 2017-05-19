@@ -22,7 +22,7 @@
         /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
     }
 
-    {% if title=="" %}
+    {% if github_user =="" %}
     .must-login {
         display: none;
     }
@@ -257,7 +257,7 @@
             var name = $.trim($('#newPMID').val());
             var pattern = new RegExp("[0-9]{8}");
             if (pattern.test(name)) {
-                alert("OK!")
+                alert("OK!");
                 
                 // TODO: make an add-article UI
                $.ajax({
@@ -279,18 +279,21 @@
         function saveCollection() {
             var articles = [];
             $.each($("input[name='collection']:checked"), function(){
+                console.log($(this).val());
                 articles.push($(this).val());
             });
-
             collectionName = prompt("Enter the collection name:", "");
 
-            //alert("Articles to save: " + articles.join(", "));
-
+            alert("Articles to save: " + articles.join(", "));
+            articles = JSON.stringify(articles);
+            console.log("Articles and CollectionNames are");
+            console.log(articles);
+            console.log(collectionName);
             $.ajax({
                 type: "POST",
-                url: "/save-collection",
+                url: "/save-bulk",
                 data: {
-                    "articles": articles,
+                    "pmids": articles,
                     "collection": collectionName
                 }
             }).complete(function(o) {

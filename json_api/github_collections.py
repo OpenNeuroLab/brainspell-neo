@@ -5,6 +5,8 @@ from torngithub import json_encode
 from user_accounts import BaseHandler
 import os
 from search import *
+from user_accounts import *
+import tornado.web
 
 # BEGIN: read environment variables
 
@@ -42,10 +44,13 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             )
             if user:
                 self.set_secure_cookie("user", json_encode(user))
+                register_github_user(json_encode(user))
             else:
                 self.clear_cookie("user")
             self.redirect(self.get_argument("next", "/"))
             return
+
+
 
         # otherwise we need to request an authorization code
         yield self.authorize_redirect(
@@ -96,9 +101,10 @@ def get_my_repos(http_client, access_token):
     raise tornado.gen.Return(data)
 
 
+
+
 class ReposHandler(BaseHandler, torngithub.GithubMixin):
     """TODO: We should update the database if there is a discrepency"""
-
     # @tornado.web.authenticated
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -112,7 +118,6 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
         except tornado.web.MissingArgumentError:  # AK: This is again hacky.
             pmid = False
 
-
         gh_user = self.get_current_github_user()
         if gh_user["access_token"]:
             #get all repos for an authenticated user
@@ -120,12 +125,15 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                                   gh_user['access_token'])
             repos = [d for d in data if d["name"].startswith("brainspell-collection")]
 
+
             # TODO: Ideally this information would be store in the database
             # this is pretty hacky. I'm checking gathering info for each pmid in
             # each collection. If the user speficified a pmid in the REST call, then
             # check if the pmid exists in the collection
+
             for repo in repos:
                 #this is the name w/out the brainspell-collection in it
+
                 repo["pretty_name"] = repo["name"].replace("brainspell-collection-", "")
 
                 #get file list content for each repo
@@ -196,6 +204,7 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
             self.write("")
         else:
             gh_user = self.get_current_github_user()
+            new_repo(name,gh_user["login"]) #Update database with new Collection
             body = {
                 "name": "brainspell-collection-{}".format(name),
                 "description": desc,
@@ -236,7 +245,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
                  "notes": "Here are my notes on this article"}
         content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
         gh_user = self.get_current_github_user()
-
+        add_to_repo(collection,pmid,gh_user["login"])
         body = {
             "message": "adding {} to collection".format(pmid),
             "content": content
@@ -269,6 +278,8 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
         content = b64encode(json_encode(entry).encode("utf=8"))
         gh_user = self.get_current_github_user()
 
+        remove_from_repo(collection,pmid,gh_user["login"])
+
         body = {
             "message": "deleting {} to collection".format(pmid),
         }
@@ -291,3 +302,44 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
             access_token=gh_user['access_token'],
             method="DELETE",
             body={"sha": sha, "message": "removing {} from collection".format(pmid)})]
+
+class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        startime = time.time()
+        collection = self.get_argument("collection")
+        pmids = self.get_argument("pmids")
+        user_info = self.get_current_github_user()["login"]
+        print(self.get_current_github_user())
+        if collection in next(User.select().where(User.username == user_info).execute()).collections:
+            for pmid in pmids:
+                article = next(get_article(pmid))
+                entry = {"pmid": pmid,
+                        "title": article.title,
+                        "reference": article.reference,
+                        "doi": article.doi,
+                         "notes": "Here are my notes on this article"}
+                content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
+                gh_user = self.get_current_github_user()
+                add_to_repo(collection,pmid,gh_user["login"])
+                body = {
+                    "message": "adding {} to collection".format(pmid),
+                    "content": content
+                }
+                ress = yield [torngithub.github_request(
+                    self.get_auth_http_client(),
+                    '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                   repo=collection,
+                                                                   path="{}.json".format(pmid)),
+                    access_token=gh_user['access_token'],
+                    method="PUT",
+                    body=body)]
+                data = []
+                for res in ress:
+                    data.extend(res.body)
+
+                endtime = time.time()
+        else:
+            print("Your collection doesn't exist")
+            return False #TODO: Tell user the collection doesn't exist

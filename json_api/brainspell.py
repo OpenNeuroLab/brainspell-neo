@@ -13,7 +13,6 @@ from models import *
 import subprocess
 import hashlib
 from base64 import b64encode
-
 from article_helpers import *
 from json_api import *
 from user_accounts import *
@@ -25,7 +24,7 @@ class MainHandler(BaseHandler):
     def get(self):
         email = self.get_current_email()
         gh_user = self.get_current_github_user()
-        print(gh_user)
+        #Save user to database if logged in:
         try:  # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
@@ -301,10 +300,11 @@ def make_app():
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
-        (r"/add-table-text", AddTableTextHandler), # TODO: what does this do?
+        (r"/add-table-text", AddTableTextHandler), # TODO: what does this do? Does this change the table captions?
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
-        (r"/save-collection", SaveCollectionHandler),
+        # (r"/save-collection", SaveCollectionHandler),
+        (r"/save-bulk",BulkNewFileHandler),
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),
         (r"/add-to-collection", NewFileHandler),

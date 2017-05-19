@@ -335,6 +335,7 @@ class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):
                     "message": "adding {} to collection".format(pmid),
                     "content": content
                 }
+                collection = "brainspell-collection-" + collection
                 ress = yield [
                     torngithub.github_request(
                         self.get_auth_http_client(),

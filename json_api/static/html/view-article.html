@@ -198,7 +198,7 @@
             //var loc = v.split(",")
             return {"x":parseFloat(loc[0]), "y":parseFloat(loc[1]), "z":parseFloat(loc[2])}
           })
-          $(selector).jsGrid({
+          window.myGrid = $(selector).jsGrid({
             width: "50%",
             //height: "400px",
 
@@ -223,7 +223,9 @@
               mouseenter: function(){
                   var item = $(this).data("JSGridItem");
                   var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
-                  var index = this.rowIndex
+                  var pageNo = $("#jsGrid"+whichTable+" .jsgrid-pager-current-page")[0].innerText //DISGUSTING
+                  console.log(pageNo)
+                  var index = 7*(pageNo-1) + this.rowIndex
                   console.log("index is", index)
                   var sphereObj = experimentsObj[whichTable].locations[index].sph
 

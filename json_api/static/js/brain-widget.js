@@ -234,8 +234,11 @@ function onDocumentMouseDown(event, eid, ex) {
     $("#container"+eid+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
     for(var i=0;i<ex.locations.length;i++){
         if(ex.locations[i].sph==intersects[0].object) {
-            console.log("clicked row", i)
-            console.log("guess page", Math.floor((i+1)/7)+1)
+            //console.log("clicked row", i)
+            var selectPage = Math.floor((i+1)/7)+1
+            var tableSelector = $("#container"+eid)[0].children[1].id
+            console.log(tableSelector, selectPage, i)
+            $("#"+tableSelector).jsGrid({pageIndex:selectPage})
             clickedRow = $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")");
             /*$("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
             $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop()

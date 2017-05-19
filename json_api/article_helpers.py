@@ -195,7 +195,13 @@ def split_table(pmid, exp, row):
     locations1 = locations[0:int(row)]
     locations2 = locations[int(row):]
     elem["locations"] = locations1
-    secondTable = {"title": "", "caption": "", "locations": locations2, "id": (max([exp["id"] for exp in experiments]) + 1)}
+    highestID = int(max([exp["id"] for exp in experiments])) + 1
+    secondTable = {
+        "title": "", 
+        "caption": "", 
+        "locations": locations2, 
+        "id": highestID
+    }
     experiments.insert(int(exp) + 1, secondTable)
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 

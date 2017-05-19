@@ -25,10 +25,10 @@ function render(experiment) {
     var scene = experiment.render.scene;
     var camera = experiment.render.camera;
     var trackball = experiment.render.cameraControls;
-    
+
     // update camera controls
     trackball.update();
-    
+
     // the scene object contains the element object, which is the div in which
     // 3d data is displayed.
     var element = experiment.render.container[0];
@@ -42,7 +42,7 @@ function render(experiment) {
     var height = rect.bottom - rect.top;
     var left   = rect.left;
     var bottom = renderer.domElement.clientHeight - rect.bottom;
-    
+
     // compensate for window springiness
     var dy=window.pageYOffset;
     if(dy<0) {
@@ -53,13 +53,13 @@ function render(experiment) {
             bottom-=dy;
         }
     }
-    
+
     // place viewport
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setViewport( left, bottom, width, height );
     renderer.setScissor( left, bottom, width, height );
-    
+
     renderer.render(scene, camera);
 }
 
@@ -92,10 +92,10 @@ function initTranslucentBrain(eid, ex)
     var container=ex.render.container;
     var width=container.width();
     var height=container.height();
-    
+
     // create a scene
     ex.render.scene = new THREE.Scene();
-    
+
     // create raycaster (for hit detection)
     container[0].addEventListener('mousedown', function(e){onDocumentMouseDown(e, eid, ex);}, false);
 
@@ -111,7 +111,7 @@ function initTranslucentBrain(eid, ex)
 
     // allow 'p' to make screenshot
     //THREEx.Screenshot.bindKey(renderer);
-    
+
     // Add lights
     var light   = new THREE.AmbientLight( 0x3f3f3f);
     ex.render.scene.add(light );
@@ -130,11 +130,11 @@ function initTranslucentBrain(eid, ex)
     {
         var tmp=this.response;
         var modifier = new THREE.SubdivisionModifier(1);
-        
+
         ex.render.material=new THREE.ShaderMaterial({
-            uniforms: { 
+            uniforms: {
                 coeficient  : {
-                    type    : "f", 
+                    type    : "f",
                     value   : 1.0
                 },
                 power       : {
@@ -170,10 +170,10 @@ function initTranslucentBrain(eid, ex)
             transparent : true,
             depthWrite  : false,
         });
-        
+
         ex.render.geometry=new THREE.PLYLoader().parse(tmp);
         ex.render.geometry.sourceType = "ply";
-        
+
         modifier.modify(ex.render.geometry);
         for(i=0;i<ex.render.geometry.vertices.length;i++)
         {
@@ -222,7 +222,7 @@ function onDocumentMouseDown(event, eid, ex) {
     mouseVector = new THREE.Vector3();
     mouseVector.x= ((event.clientX-r.left) / event.target.clientWidth ) * 2 - 1;
     mouseVector.y=-((event.clientY-r.top) / event.target.clientHeight ) * 2 + 1;
-    
+
     var raycaster=new THREE.Raycaster();
     raycaster.setFromCamera(mouseVector.clone(), ex.render.camera);
     var intersects = raycaster.intersectObjects( ex.render.spheres.children );
@@ -234,10 +234,12 @@ function onDocumentMouseDown(event, eid, ex) {
     $("#container"+eid+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
     for(var i=0;i<ex.locations.length;i++){
         if(ex.locations[i].sph==intersects[0].object) {
+            console.log("clicked row", i)
+            console.log("guess page", Math.floor((i+1)/7)+1)
             clickedRow = $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")");
-            $("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
-            $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop() 
-                + clickedRow.position().top - clickedRow.height());
+            /*$("#container"+eid+" table tbody .experiment-table-row:eq("+i+")").css({"background-color":"lightGreen"});
+            $("#container"+eid+" table .experiments-tbody").scrollTop($("#container"+eid+" table .experiments-tbody").scrollTop()
+                + clickedRow.position().top - clickedRow.height());*/
         }
     }
 }
@@ -245,9 +247,10 @@ function onDocumentMouseDown(event, eid, ex) {
 function rowClicked(row, element) {
     var ex = exp[element];
     var i = $(row).index() - 1;
-    $("#container"+ex.id+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
+    //$("#container"+ex.id+" table tbody .experiment-table-row").css({'background-color':'#e8edff'});
+
     ex.render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
-    
+
     if(i >= 0) {
         $(row).css({'background-color':'lightGreen'});
         ex.locations[i].sph.material.color.setRGB(0,1,0);

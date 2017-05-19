@@ -224,6 +224,7 @@
                   var item = $(this).data("JSGridItem");
                   var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
                   var index = this.rowIndex
+                  console.log("index is", index)
                   var sphereObj = experimentsObj[whichTable].locations[index].sph
 
                   experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
@@ -237,9 +238,8 @@
 
                   var whichTable = parseInt(this.parentNode.parentNode.parentNode.parentNode.id.replace("jsGrid","")) //omg WHY??
                   var index = this.rowIndex
-                  var sphereObj = experimentsObj[whichTable].locations[index].sph
+                  experimentsObj[whichTable].render.spheres.children.forEach(function( sph ) { sph.material.color.setRGB( 1,0,0 );});
 
-                  sphereObj.material.color.setRGB(0,1,0);
               }
           }, "tr");
 

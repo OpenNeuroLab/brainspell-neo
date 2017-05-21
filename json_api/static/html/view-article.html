@@ -314,7 +314,7 @@
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
-                {% if github_user== "" %}
+                {% if not github_user %}
                 $("#agree").hide();
                 $("#disagree").hide();
                 $("#closer").before("Please login to vote  ");
@@ -413,7 +413,7 @@
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
-            {% if github_user !="" %}
+            {% if github_user %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
 
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
@@ -658,12 +658,12 @@
             }
 
 
-            {% if github_user != ""%}
+            {% if github_user  %}
             contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
             {% end %}
 
             table.append(contents);
-            {% if github_user != ""%}
+            {% if github_user  %}
             var footer = $("<tfoot>");
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));

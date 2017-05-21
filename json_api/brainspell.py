@@ -24,6 +24,7 @@ class MainHandler(BaseHandler):
     def get(self):
         email = self.get_current_email()
         gh_user = self.get_current_github_user()
+        print(gh_user)
         #Save user to database if logged in:
         try:  # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))

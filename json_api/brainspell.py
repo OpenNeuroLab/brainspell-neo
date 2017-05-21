@@ -204,7 +204,8 @@ class AccountHandler(BaseHandler):
 class ContributionHandler(BaseHandler):
     def get(self):
         name = self.get_current_email()
-        self.render('static/html/contribute.html', title=name)
+        gh_user = self.get_current_github_user()
+        self.render('static/html/contribute.html', title=name,github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
 
 
 # takes a file in JSON format and adds the articles to our database (called from the contribute page)

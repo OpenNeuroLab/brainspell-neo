@@ -244,6 +244,8 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
         starttime = time.time()
         collection = self.get_argument("collection")
         pmid = self.get_argument("pmid")
+        print("Collection is {0} and PMID is {1}".format(collection,pmid))
+        print("Type of collection is {0} and type of PMID is {1}".format(type(collection),type(pmid)))
         article = list(get_article(pmid))[0]
         entry = {"pmid": pmid,
                 "title": article.title,

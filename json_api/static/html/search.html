@@ -261,14 +261,6 @@
                 document.getElementById("pmid-warning").style.display = "block";
             }
         }
-        function sleep(milliseconds) {
-          var start = new Date().getTime();
-          for (var i = 0; i < 1e7; i++) {
-            if ((new Date().getTime() - start) > milliseconds){
-              break;
-            }
-          }
-        }
 
         function saveCollection() {
             var articles = [];
@@ -280,13 +272,25 @@
 
 //            alert("Articles to save: " + articles.join(", "));
             for (var i = 0; i < articles.length; i++) {
-            $.post("/add-to-collection?"+$.param({pmid: eval(articles[i]),
-           collection:"brainspell-collection-"+collectionName}), function(data, err){
-             console.log(err)
+                $.post("/add-to-collection?"+$.param({pmid: articles[i],
+                collection:"brainspell-collection-"+collectionName}), function(data, err){
+                    console.log(err)
             });
 
 
             }
+//            //Collection is brainspell-collection-Trial4 and PMID is 19560547
+//            for (var i = 0; i < articles.length; i++) {
+//                $.ajax({
+//                    type: "POST",
+//                    url: "/add-to-collection",
+//                    data: {
+//                        "pmid": "" + articles[i],
+//                        "collection": "brainspell-collection-" + collectionName
+//                    }
+//                })
+//            }
+
         }
 
         // brain widgets

@@ -12,7 +12,7 @@ script: cd json_api && pytest
 
 addons:
   sauce_connect:
-    username: "Sharabesh"
-    access_key: "42bc2c2b-f383-4e18-b530-5d85c203101d"
+    username: "brainspell"
+    access_key: "56abf217-04be-441a-b624-1f889a4e237f"
 
 

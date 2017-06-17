@@ -1,83 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends base.html %}
 
-<head>
-    <link rel="icon" href="/static/img/favicon.png">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+
+{% block header %}
 
     <title>Contribute</title>
-
-    <!-- Bootstrap Core CSS -->
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <!-- TODO: move to separate file to benefit from caching -->
-    <style>
-    body {
-        padding-top: 70px;
-        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
-    }
-
-    code, samp, kbd {
-        font-family: "Courier New", Courier, monospace, sans-serif;
-        text-align: left;
-        color: #555;
-    }
-    
-    pre code {
-        line-height: 1.6em;
-        font-size: 11px;
-    }
-    
-    pre {
-        padding: 0.1em 0.5em 0.3em 0.7em;
-        border-left: 11px solid #ccc;
-        margin: 1.7em 0 1.7em 0.3em;
-        overflow: auto;
-        width: 80%;
-        margin-left:10%;
-    }
-    
-    /* target IE7 and IE6 */
-    *:first-child+html pre {
-        padding-bottom: 2em;
-        overflow-y: hidden;
-        overflow: visible;
-        overflow-x: auto;
-    }
-    
-    * html pre {
-        padding-bottom: 2em;
-        overflow: visible;
-        overflow-x: auto;
-    }
-    
-    .btn-file {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .btn-file input[type=file] {
-        position: absolute;
-        top: 0;
-        right: 0;
-        min-width: 100%;
-        min-height: 100%;
-        font-size: 100px;
-        text-align: right;
-        filter: alpha(opacity=0);
-        opacity: 0;
-        outline: none;
-        background: white;
-        cursor: inherit;
-        display: block;
-    }
-    </style>
-
+    <link href="static/css/contribute.css" rel="stylesheet">
 
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -97,51 +24,11 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-</head>
+{% end %}
 
-<body>
 
-    <!-- Navigation -->
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
-            <!-- Brand and toggle get grouped for better mobile display -->
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="./">Brainspell</a>
-            </div>
-            <!-- Collect the nav links, forms, and other content for toggling -->
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <a href="./contribute">Contribute</a>
-                    </li>
-                    <li>
-                        <a href="https://github.com/OpenNeuroLab/brainspell-neo">GitHub</a>
-                    </li>
-                </ul>
-                {% if title!="" %}
-                    <a href="./account" class="navbar-brand navbar-right"style="font-size:1em;">Welcome {{ title }}</a>
-                {% end %}
-                {% if github_user %}
-                <img class="navbar-brand navbar-right img-circle" src="{{github_avatar}}"/>
-                <div class="navbar-brand navbar-right" style="font-size:1em;">
-                  Welcome <a href="/repos">{{ github_user }}</a>, <a href="/github_logout?next=/view-article?id={{id}}">logout</a>
-                </div>
-                {% else %}
-                <div class="navbar-brand navbar-right" style="font-size:1em;">
-                  <a href="/oauth?next=view-article?id={{id}}">login with GitHub</a>
-                </div>
-                {% end %}
-            </div>
-            <!-- /.navbar-collapse -->
-        </div>
-        <!-- /.container -->
-    </nav>
+{% block content %}
+
 
     <!-- Page Content -->
     <div class="container">
@@ -236,5 +123,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% end %}

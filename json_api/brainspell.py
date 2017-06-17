@@ -303,7 +303,7 @@ def make_app():
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
         (r"/save-article", SaveArticleHandler),
-        (r"/add-table-text", AddTableTextHandler), # TODO: what does this do? Does this change the table captions?
+        (r"/add-table-text", AddTableTextHandler), # TODO: what does this do? --> Does this change the table captions?
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
         # (r"/save-collection", SaveCollectionHandler),

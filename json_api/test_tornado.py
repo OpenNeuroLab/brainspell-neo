@@ -42,12 +42,38 @@ def test_procfile():
     filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
     assert filename in os.listdir()
 
-def test_row_add(): #Using selenium testing
+def test_existence(): #Using selenium testing
     driver.get("https://brainspell.herokuapp.com")
     assert "Brainspell" in driver.title #Checks website title is accurate
+
+    #Ensuring elements of view article page are all present
     driver.get("https://brainspell.herokuapp.com/view-article?id=00000000")
     meshButtons = driver.find_elements_by_class_name("dropbtn")
     assert meshButtons != None #Ensure Mesh terms are included
+    table = driver.find_elements_by_class_name("experiment-table-row")
+    assert table != None
+
+    #Click and vote on a MeSH tag
+    buttons = driver.find_elements_by_class_name("dropbtn")
+    buttons[0].click()
+    assert "modal-body" in driver.page_source
+    driver.find_element_by_id("closer").click()
+
+    #Test search page
+    driver.get("https://brainspell.herokuapp.com/search?q=brain&req=t")
+    items = driver.find_elements_by_class_name("must-login")
+    assert len(items) > 9
+
+    #Make sure showing the widget doesn't break regardless of article
+    driver.find_element_by_id("widgetOption").click()
+
+
+
+
+
+
+
+
 
 
 

@@ -35,7 +35,9 @@ class BaseHandler(tornado.web.RequestHandler):
             "github_avatar": self.get_current_github_avatar(),
             "api_key": self.get_current_api_key()
         }
-        self.render(url, **params, **login_dict)
+        for k in params:
+            login_dict[k] = params[k] # rather than passing both dicts, make it 3.4 compatible by merging
+        self.render(url, **login_dict)
 
     def __get_current_github_object__(self):
         # returns an object representing the user's name, avatar, and access_token, or None is the user is not logged in

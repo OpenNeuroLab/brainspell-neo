@@ -112,9 +112,7 @@ class ArticleHandler(BaseHandler):
 # contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
-        self.render('static/html/contribute.html',
-            github_name=self.get_current_github_name(), 
-            github_avatar=self.get_current_github_avatar())
+        self.render_with_user_info('static/html/contribute.html')
 
 # takes a file in JSON format and adds the articles to our database (called from the contribute page)
 class BulkAddHandler(BaseHandler):

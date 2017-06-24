@@ -105,7 +105,7 @@ def get_my_repos(http_client, access_token):
 
 
 class ReposHandler(BaseHandler, torngithub.GithubMixin):
-    """TODO: We should update the database if there is a discrepency"""
+    """ TODO: We should update the database if there is a discrepency"""
     # @tornado.web.authenticated
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -192,7 +192,9 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                 self.render("static/html/github-account.html",
                                 info=repos,
                                 github_user=gh_user["name"],
-                                github_avatar=gh_user["avatar_url"])
+                                github_avatar=gh_user["avatar_url"],
+                                title=self.get_current_email()
+                            )
 
         #if you're not authorized, redirect to oauth
         else:

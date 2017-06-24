@@ -270,7 +270,7 @@ assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs
 
 settings = {
     "cookie_secret": public_key,
-    "login_url": "/login",
+    "login_url": "/oauth",
     "compress_response": True
 }
 

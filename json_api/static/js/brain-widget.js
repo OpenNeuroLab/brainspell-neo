@@ -68,8 +68,8 @@ function render(experiment) {
 // call when the brain template is loaded
 function addExperiment(eid, experiment) {
     // add title/caption
-    var title=(experiment.title)?experiment.title:"";
-    var caption=(experiment.caption)?experiment.caption:"";
+    var title=(experiment.title)?experiment.title:"No Title";
+    var caption=(experiment.caption)?experiment.caption:"No caption";
     $(".experiment#"+eid+" .title").append(title);
     $(".experiment#"+eid+" .caption").append(caption);
 

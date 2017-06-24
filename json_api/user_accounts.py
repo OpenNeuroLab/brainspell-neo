@@ -39,7 +39,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_user(self):
         if self.is_logged_in():
-            for user in get_user(self.get_current_email()):
+            for user in get_user(self.get_current_github_user()):
                 return user.username
         return ""
 

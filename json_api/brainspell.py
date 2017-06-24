@@ -285,7 +285,8 @@ def make_app():
         (r"/add-to-collection", NewFileHandler),
         (r"/add-user-data", AddUserDataHandler),
         (r"/update-table-vote", TableVoteUpdateHandler),
-        (r"/remove-from-collection", DeleteFileHandler)
+        (r"/remove-from-collection", DeleteFileHandler),
+        (r"/search-add",SearchAddEndpoint),
     ], debug=True, **settings)
 
 

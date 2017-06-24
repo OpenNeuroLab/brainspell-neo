@@ -17,8 +17,6 @@
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
     <script type="text/javascript" src="/static/js/brainmap-behavioral.js"></script>
-
-
 {% end %}
 
 {% block content %}
@@ -300,7 +298,6 @@
             if (Object.keys(obj).length <= 1) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
             }
-
 
             try {
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];

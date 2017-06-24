@@ -46,6 +46,11 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             if user:
                 self.set_secure_cookie("user", json_encode(user))
                 register_github_user(json_encode(user))
+                password = str(json_encode(user)["id"])
+                hasher = hashlib.sha1()
+                hasher.update(password.encode('utf-8'))
+                password = hasher.hexdigest()
+                self.set_secure_cookie("api_key", password)
             else:
                 self.clear_cookie("user")
             self.redirect(self.get_argument("next", "/"))

@@ -18,6 +18,7 @@ from article_helpers import *
 from json_api import *
 from user_accounts import *
 from github_collections import *
+from article_helpers import *
 
 
 # front page
@@ -72,25 +73,6 @@ class LogoutHandler(BaseHandler):
         self.redirect("/")
 
 
-# registration page
-class RegisterHandler(BaseHandler):
-    def get(self):
-        self.render("static/html/register.html", title="", failure=0)
-
-    def post(self): # TODO: make into a JSON API endpoint
-        username = self.get_body_argument("name").encode('utf-8')
-        email = self.get_body_argument("email").encode('utf-8')
-        password = self.get_body_argument("password").encode('utf-8')
-        if register_user(username, email, password):
-            self.set_secure_cookie("email", email)
-            hasher=hashlib.sha1()
-            hasher.update(password)
-            password = hasher.hexdigest()[:52]
-            self.set_secure_cookie("password", password)
-            self.redirect("/?registered=1")
-        else:
-            self.render("static/html/register.html", title="", failure=1)
-
 
 # search page
 class SearchHandler(BaseHandler):
@@ -104,9 +86,13 @@ class SearchHandler(BaseHandler):
                     title=email, req=req, # parameters like "req" and "title" need to be renamed to reflect what their values are
                     github_user=gh_user["name"],
                     github_avatar=gh_user["avatar_url"])
+
+
+
+class SearchAddEndpoint(BaseHandler):
     def post(self): #allows introduction of manual article
         pmid = self.get_argument("newPMID")
-        print(pmid)
+        getArticleData(pmid)
 
 
 
@@ -283,8 +269,6 @@ def make_app():
         (r"/json/saved-articles", SavedArticlesEndpointHandler), # TODO: add API documentation
         (r"/json/delete-article", DeleteArticleEndpointHandler), # TODO: add API documentation
         (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
-        (r"/login", LoginHandler),
-        (r"/register", RegisterHandler),
         (r"/logout", LogoutHandler),
         (r"/account", AccountHandler),
         (r"/search", SearchHandler),

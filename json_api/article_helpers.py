@@ -90,7 +90,7 @@ def getArticleData(article_id):
     articleInfo = {}
     articleInfo["title"] = records.get("TI")
     articleInfo["PMID"] = pmid
-    articleInfo["authors"] = records.get("AU")
+    articleInfo["authors"] = ', '.join(records.get("AU"))
     articleInfo["abstract"] = records.get("AB")
     articleInfo["DOI"] = getDOI(records.get("AID"))
     articleInfo["experiments"] = ""
@@ -99,7 +99,6 @@ def getArticleData(article_id):
         articleInfo["experiments"] = {"locations": eval(urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + str(pmid) + "/").read().decode())["data"]}
         k = articleInfo["experiments"]["locations"]
         for i in range(len(k)):
-            print("KI is ",k[i])
             if len(k[i]) == 4:
                 identity = k[0]
                 k[i] = k[i][1:]
@@ -107,6 +106,11 @@ def getArticleData(article_id):
     except:
         pass
     articleInfo["id"] = identity
+    articleInfo["experiments"] = [articleInfo["experiments"]]
+    Articles.create(abstract=articleInfo["abstract"],authors=articleInfo["authors"],
+                    doi=articleInfo["DOI"],experiments=articleInfo["experiments"],
+                    pmid=articleInfo["PMID"],title=articleInfo["title"]
+                    )
     return articleInfo
 
 def getDOI(lst):

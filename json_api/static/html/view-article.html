@@ -296,7 +296,6 @@
             url: "/json/article?pmid={{id}}"
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
-            console.log(j);
             obj = JSON.parse(j);
             if (Object.keys(obj).length <= 1) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
@@ -579,11 +578,6 @@
             flagTableElem.append($("<td>").append(linkElem));
             footer.append(flagTableElem);
             footer.append($("<button>", {"id":"cognitive","onclick": "meshAdder(cogAtlas_cognitive," + experimentNumber + ", 'C'" + ")", "data-toggle":"modal","data-target":".bs-example-modal-lg", "class":"dropbtn"}).text("Cognitive: "));
-
-
-
-
-
 
 
             //Add in table specific descriptors;

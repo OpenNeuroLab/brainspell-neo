@@ -69,7 +69,7 @@ class GithubLogoutHandler(BaseHandler):
 def parse_link(link):
     linkmap = {}
     for s in link.split(","):
-        s = s.strip();
+        s = s.strip()
         linkmap[s[-5:-1]] = s.split(";")[0].rstrip()[1:-1]
     return linkmap
 

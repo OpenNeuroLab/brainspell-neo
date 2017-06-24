@@ -62,10 +62,10 @@ class SearchHandler(BaseHandler):
 
 
 
-class SearchAddEndpoint(BaseHandler):
+class AddArticleFromSearchPageHandler(BaseHandler):
     def post(self): #allows introduction of manual article
         pmid = self.get_argument("newPMID")
-        getArticleData(pmid)
+        add_pmid_article_to_database(pmid)
 
 
 # Handler for the textbox to add a table of coordinates on view-article page
@@ -193,7 +193,7 @@ def make_app():
         (r"/add-user-data", AddUserTagToArticleHandler),
         (r"/update-table-vote", TableVoteUpdateHandler),
         (r"/remove-from-collection", DeleteFileHandler),
-        (r"/search-add",SearchAddEndpoint),
+        (r"/search-add", AddArticleFromSearchPageHandler), # TODO: rename to something more descriptive ("add-article-from-search-page")
     ], debug=True, **settings)
 
 

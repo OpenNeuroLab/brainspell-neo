@@ -81,7 +81,7 @@ def add_user_tag(user_tag,id):
 
 # BEGIN: add article functions
 
-def getArticleData(article_id):
+def add_pmid_article_to_database(article_id):
     # TODO: add empty metadata field, add reference
     pmid = str(article_id)
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")

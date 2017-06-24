@@ -6,6 +6,8 @@ import models
 import search
 import selenium
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 application = brainspell.make_app()
 
@@ -54,8 +56,12 @@ def test_existence(): #Using selenium testing
     assert table != None
 
     #Click and vote on a MeSH tag
-    buttons = driver.find_elements_by_class_name("dropbtn")
-    buttons[0].click()
+    try:
+        myElem = WebDriverWait(driver,5)
+        buttons = driver.find_elements_by_class_name("dropbtn")
+        buttons[0].click()
+    except:
+        pass
     assert "modal-body" in driver.page_source
     driver.find_element_by_id("closer").click()
 

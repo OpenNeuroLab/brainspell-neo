@@ -60,9 +60,9 @@ def test_existence(): #Using selenium testing
         myElem = WebDriverWait(driver,5)
         buttons = driver.find_elements_by_class_name("dropbtn")
         buttons[0].click()
+        assert "modal-body" in driver.page_source
     except:
         pass
-    assert "modal-body" in driver.page_source
     driver.find_element_by_id("closer").click()
 
     #Test search page TODO: Only works when user logged in
@@ -75,23 +75,12 @@ def test_existence(): #Using selenium testing
     # driver.find_element_by_id("widgetOption").click()
 
 
-
-
-
-
-
-
-
-
-
-
-
-# TODO: What does this test do?
+# tests that the Tornado application is successfully built
 @pytest.fixture
 def app():
     return application
 
-# TODO: What does this test do?
+# tests that the base_url is returning a 200 code (good)
 @pytest.mark.gen_test
 def test_front_page(http_client, base_url):
     response = yield http_client.fetch(base_url)

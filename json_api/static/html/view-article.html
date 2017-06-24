@@ -149,12 +149,12 @@
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
-                        if (votes["up"][i]["email"] == "{{title}}") {
+                        if (votes["up"][i]["email"] == "{{email}}") {
                             userVotedAgree = " (including you)"
                         }
                     }
                     for (var i = 0; i < disagree; i++) {
-                        if (votes["down"][i]["email"] == "{{title}}") {
+                        if (votes["down"][i]["email"] == "{{email}}") {
                             userVotedDisagree = " (including you)"
                         }
                     }
@@ -830,7 +830,7 @@
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
-                url: "/json/toggle-user-vote?email={{title}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
+                url: "/json/toggle-user-vote?email={{email}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);

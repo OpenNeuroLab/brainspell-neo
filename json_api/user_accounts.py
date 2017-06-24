@@ -59,6 +59,13 @@ class BaseHandler(tornado.web.RequestHandler):
     def is_logged_in(self):
         return user_login(self.get_secure_cookie("email"), self.get_current_password())
 
+
+    def set_default_headers(self):
+        origin = self.request.headers.get('Origin')
+        if origin:
+            self.set_header('Access-Control-Allow-Origin', origin)
+        self.set_header('Access-Control-Allow-Credentials', 'true')
+
 def user_login(email, password):
     user = User.select().where((User.emailaddress == email) & (User.password == password))
     return user.execute().count == 1
@@ -152,10 +159,3 @@ def remove_from_repo(collection, pmid, username):
     q = User.update(collections = target).where(User.username == username)
     q.execute()
     return True
-
-
-
-
-
-
-

@@ -296,7 +296,6 @@
             url: "/json/article?pmid={{id}}"
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
-            console.log(j);
             obj = JSON.parse(j);
             if (Object.keys(obj).length <= 1) {
                  window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");

@@ -54,7 +54,7 @@
           <div>
             {{i["description"]}}
 
-                             {% for c in i["contributors"] %}
+             {% for c in i["contributors"] %}
                   <img class=" img-circle" src="{{c["avatar_url"]}}" width="25px" height="25px">
                   {% end for %}
               </div>
@@ -89,14 +89,14 @@
     <script>
         function addRepo(){
 
-          var form_data = $("#new_repo").serializeArray()
-          var url = "/create_repo?"
-          var formatted_data = {}
+          var form_data = $("#new_repo").serializeArray();
+          var url = "/create_repo?";
+          var formatted_data = {};
           form_data.forEach(function(val, idx, arr){
             formatted_data[val.name] = val.value
           });
           url = url + $.param(formatted_data);
-          console.log(url, formatted_data, $.param(formatted_data))
+          console.log(url, formatted_data, $.param(formatted_data));
           $.post(url,
             null,
             function(msg){

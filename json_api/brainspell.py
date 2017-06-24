@@ -222,17 +222,6 @@ class BulkAddHandler(BaseHandler):
             # data is malformed
             self.redirect("/?failure=1")
 
-
-# save an article to a user's account
-class SaveArticleHandler(BaseHandler):  # TODO: change to a JSON endpoint
-    def get(self):
-        value = self.get_query_argument("id")
-        if self.is_logged_in():
-            User_metadata.insert(user_id=self.get_current_email(), article_pmid=value).execute()
-            self.redirect("/account")
-        else:
-            self.redirect("/view-article?id=" + str(value))
-
 # update a vote on a table tag
 class TableVoteUpdateHandler(BaseHandler): # TODO: what is element? also, make into a JSON API endpoint
     def post(self):
@@ -302,7 +291,6 @@ def make_app():
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
-        (r"/save-article", SaveArticleHandler),
         (r"/add-table-text", AddTableTextBoxHandler),
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),

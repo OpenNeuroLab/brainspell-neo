@@ -17,7 +17,7 @@ def update_authors(pmid, authors):
     Articles.update(authors = authors).where(Articles.pmid == pmid).execute()
 
 # toggles a vote on an article tag
-def toggle_vote(pmid, topic, email, direction):
+def toggle_vote(pmid, topic, username, direction):
     fullArticle = next(Articles.select(Articles.metadata).where(Articles.pmid == pmid).execute())
 
     target = eval(fullArticle.metadata)['meshHeadings']
@@ -43,19 +43,19 @@ def toggle_vote(pmid, topic, email, direction):
     # toggle the vote
     toggled = False
     for v in range(len(target[entry]["vote"][direction])):
-        if target[entry]["vote"][direction][v]["email"] == email:
+        if target[entry]["vote"][direction][v]["username"] == username:
             del target[entry]["vote"][direction][v]
             toggled = True
     if not toggled:
         target[entry]["vote"][direction].append({
-            "email": email # leave open for any other metadata we may eventually want to include
+            "username": username # leave open for any other metadata we may eventually want to include
         })
 
     # delete any votes in the opposite direction
     otherDirectionLst = ["up", "down"]
     otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
     for v in range(len(target[entry]["vote"][otherDirection])):
-        if target[entry]["vote"][otherDirection][v]["email"] == email:
+        if target[entry]["vote"][otherDirection][v]["username"] == username:
             del target[entry]["vote"][otherDirection][v]
 
     updatedMetadata = {
@@ -107,10 +107,12 @@ def getArticleData(article_id):
         pass
     article_info["id"] = identity
     article_info["experiments"] = [article_info["experiments"]]
-    Articles.create(abstract=article_info["abstract"],authors=article_info["authors"],
-                    doi=article_info["DOI"],experiments=article_info["experiments"],
-                    pmid=article_info["PMID"],title=article_info["title"]
-                    )
+    Articles.create(abstract=article_info["abstract"],
+        authors=article_info["authors"],
+        doi=article_info["DOI"],
+        experiments=article_info["experiments"],
+        pmid=article_info["PMID"],
+        title=article_info["title"])
     return article_info
 
 def getDOI(lst):
@@ -247,24 +249,26 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         query = Articles.update(experiments=experiments).where(Articles.pmid == id)
         query.execute()
 
-def update_table_vote(tagName,direction,table_num,pmid,column,username): # TODO: needs to be commented more thoroughly
+def update_table_vote(tag_name,direction,table_num,pmid,column,username): # TODO: needs to be commented more thoroughly
     table_num = eval(table_num)
-    target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
-    target = next(target)
-    target = eval(target.experiments)
+    article_obj = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
+    article_obj = next(article_obj)
+    article_obj = eval(article_obj.experiments)
 
     # get the table object
-    table_obj = target[table_num]
+    table_obj = article_obj[table_num]
     entry = -1
     if not table_obj.get(column):
         table_obj[column] = []
+
     for i in range(len(table_obj[column])):
-        if table_obj[column][i]["element"] == tagName:
-            entry = i
-            break
+        if "tag" in table_obj[column][i]:
+            if table_obj[column][i]["tag"] == tag_name:
+                entry = i
+                break
     if entry == -1: # if the tag hasn't been added yet, then add it
         table_obj[column].append({
-            "element": tagName,
+            "tag": tag_name,
         })
         entry = len(table_obj[column]) - 1
 
@@ -273,9 +277,26 @@ def update_table_vote(tagName,direction,table_num,pmid,column,username): # TODO:
         table_obj[column][entry]["vote"]["up"] = []
         table_obj[column][entry]["vote"]["down"] = []
 
-    table_obj[column][entry]["vote"][direction].append(username)
+    # toggle the vote
+    toggled = False
+    for v in range(len(table_obj[column][entry]["vote"][direction])):
+        if table_obj[column][entry]["vote"][direction][v]["username"] == username:
+            del table_obj[column][entry]["vote"][direction][v]
+            toggled = True
 
-    target[table_num] = table_obj
+    if not toggled:
+        table_obj[column][entry]["vote"][direction].append({
+            "username": username
+        })
 
-    query = Articles.update(experiments = target).where(Articles.pmid == pmid)
+    # delete any votes in the opposite direction
+    otherDirectionLst = ["up", "down"]
+    otherDirection = otherDirectionLst[-1 * otherDirectionLst.index(direction) + 1]
+    for v in range(len(table_obj[column][entry]["vote"][otherDirection])):
+        if table_obj[column][entry]["vote"][otherDirection][v]["username"] == username:
+            del table_obj[column][entry]["vote"][otherDirection][v]
+
+    article_obj[table_num] = table_obj
+
+    query = Articles.update(experiments = article_obj).where(Articles.pmid == pmid)
     query.execute()

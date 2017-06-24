@@ -147,12 +147,12 @@
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
-                        if (votes["up"][i]["user"] == "{{api_key}}") {
+                        if (votes["up"][i]["username"] == "{{github_username}}") {
                             userVotedAgree = " (including you)"
                         }
                     }
                     for (var i = 0; i < disagree; i++) {
-                        if (votes["down"][i]["user"] == "{{api_key}}") {
+                        if (votes["down"][i]["username"] == "{{github_username}}") {
                             userVotedDisagree = " (including you)"
                         }
                     }
@@ -295,7 +295,7 @@
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
             obj = JSON.parse(j);
-            if (Object.keys(obj).length <= 1) {
+            if (Object.keys(obj).length <= 1) { // TODO: what is this? should comment
                  window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
             }
 
@@ -331,7 +331,7 @@
             $("#articleContents").append(tableInputForm);
             
             var dropper = $("<div/>");
-            if (metadata != undefined) {
+            if (metadata != undefined) { // TODO: what does this do?
                 var metadataStr = "";
                 for (var i = 0; i < metadata.length; i++) {
                     if (metadataStr != "") {
@@ -786,13 +786,13 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
-        // Updates the vote of a single Table Element
-        function updateTableVote(element,direction,tableNum,column) {
+        // Updates the vote of a single table tag
+        function updateTableVote(tagName,direction,tableNum,column) {
             $.ajax({
                 type: "POST",
                 url: "/update-table-vote",
                 data: {
-                    "element": element,
+                    "tag_name": tagName,
                     "direction":direction,
                     "table_num":tableNum,
                     "id": getID(),

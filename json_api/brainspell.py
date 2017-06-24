@@ -139,7 +139,7 @@ class BulkAddHandler(BaseHandler):
 # update a vote on a table tag
 class TableVoteUpdateHandler(BaseHandler): # TODO: make into a JSON API endpoint
     def post(self):
-        tag_name = self.get_argument("element")
+        tag_name = self.get_argument("tag_name")
         direction = self.get_argument("direction")
         table_num = self.get_argument("table_num")
         pmid = self.get_argument("id")

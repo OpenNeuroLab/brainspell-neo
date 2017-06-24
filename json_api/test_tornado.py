@@ -44,6 +44,7 @@ def test_procfile():
     filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
     assert filename in os.listdir()
 
+""" TODO: get selenium testing working
 def test_existence(): #Using selenium testing
     driver.get("https://brainspell.herokuapp.com")
     assert "Brainspell" in driver.title #Checks website title is accurate
@@ -73,7 +74,7 @@ def test_existence(): #Using selenium testing
     #Make sure showing the widget doesn't break regardless of article
     #TODO: Find a way to wait until the page is ready
     # driver.find_element_by_id("widgetOption").click()
-
+"""
 
 # tests that the Tornado application is successfully built
 @pytest.fixture

@@ -15,12 +15,7 @@
     {% end %}
     </style>
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+
 
 {% end %}
 
@@ -156,7 +151,7 @@
                     $("#searchResults").append($("<p>").css("color", "#c0c0c0").text("Showing results "
                             + (parseInt(obj["start_index"]) + 1) + " - " + (parseInt(obj["start_index"])
                             + obj["articles"].length) + "."));
-                    $("#searchResults").append("<input type='submit' onclick='saveCollection()' class='must-login btn btn-default' value='Save collection'>"); // TODO: make this correct DOM generation
+                    $("#searchResults").append($("<input>", {"type":"submit","onclick":"saveCollection()","class":"must-login btn btn-default","value":"Save Collection"})); // TODO: make this correct DOM generation
 
                 } else {
                     document.getElementById("add-article-form").style.display = "block";

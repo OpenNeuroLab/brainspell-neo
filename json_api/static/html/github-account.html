@@ -94,8 +94,8 @@
           var formatted_data = {}
           form_data.forEach(function(val, idx, arr){
             formatted_data[val.name] = val.value
-          })
-          url = url + $.param(formatted_data)
+          });
+          url = url + $.param(formatted_data);
           console.log(url, formatted_data, $.param(formatted_data))
           $.post(url,
             null,

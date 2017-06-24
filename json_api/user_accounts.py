@@ -42,23 +42,28 @@ class BaseHandler(tornado.web.RequestHandler):
         github_user_object = self.__get_current_github_object__();
         if github_user_object:
             return github_user_object["name"]
-        return None
+        return ""
+
+    def get_current_github_username(self):
+        github_user_object = self.__get_current_github_object__();
+        if github_user_object:
+            return github_user_object["login"]
+        return ""
 
     def get_current_github_avatar(self):
         github_user_object = self.__get_current_github_object__();
         if github_user_object:
             return github_user_object["avatar_url"]
-        return None
+        return ""
 
     def get_current_github_access_token(self):
         github_user_object = self.__get_current_github_object__();
         if github_user_object:
             return github_user_object["access_token"]
-        return None
+        return ""
 
     def get_current_api_key(self):
-        # TODO: save the API key (a hash of the GitHub id) as a cookie and return the value in this function
-        pass
+        return self.get_secure_cookie("api_key")
 
     # allow CORS
     def set_default_headers(self):

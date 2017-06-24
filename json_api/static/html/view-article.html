@@ -12,7 +12,7 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
-    <meta id="user_logged_in" data-name="{{ github_user }}">
+    <meta id="user_logged_in" data-name="{{ api_key }}">
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
@@ -28,7 +28,7 @@
             <div class="col-lg-12 text-center">
                 <h1>Brainspell</h1>
                 <p class="lead">An open, human-curated classification of neuroimaging literature.</p>
-                {% if github_user %}
+                {% if api_key != "" %}
                 <div id="github_collections_div">
                   <label for="id_label_multiple">
                     Add to Github Collections:
@@ -147,12 +147,12 @@
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
-                        if (votes["up"][i]["email"] == "{{email}}") {
+                        if (votes["up"][i]["user"] == "{{api_key}}") {
                             userVotedAgree = " (including you)"
                         }
                     }
                     for (var i = 0; i < disagree; i++) {
-                        if (votes["down"][i]["email"] == "{{email}}") {
+                        if (votes["down"][i]["user"] == "{{api_key}}") {
                             userVotedDisagree = " (including you)"
                         }
                     }
@@ -219,7 +219,7 @@
 
             $("#articleContents").append(first);
             if ($("#user_logged_in").data()["name"] == "None") {
-                {% if not github_user %}
+                {% if api_key == "" %}
                 $("#agree").hide();
                 $("#disagree").hide();
                 $("#closer").before("Please login to vote  ");
@@ -314,7 +314,7 @@
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
-            {% if github_user %}
+            {% if api_key != "" %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
             {% end %}
 
@@ -557,12 +557,12 @@
             }
 
 
-            {% if github_user  %}
+            {% if api_key != ""  %}
             contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
             {% end %}
 
             table.append(contents);
-            {% if github_user  %}
+            {% if api_key != ""  %}
             var footer = $("<tfoot>");
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));
@@ -807,7 +807,7 @@
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
-                url: "/json/toggle-user-vote?email={{email}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
+                url: "/json/toggle-user-vote?username={{github_username}}&pmid={{id}}&key={{api_key}}&direction=" + direction + "&topic=" + topic
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);

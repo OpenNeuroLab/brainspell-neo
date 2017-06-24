@@ -580,9 +580,10 @@
             //Add in table specific descriptors;
             if (experimentsObj[experimentNumber]["C"] != undefined) {
                 var keys = experimentsObj[experimentNumber]["C"];
+                console.log(keys);
                 for (var k = 0; k < keys.length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + experimentNumber + ',' + JSON.stringify('C') + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    var temp = JSON.stringify(keys[k]["tag"]);
+                    var term = $("<button>").text(keys[k]["tag"]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + experimentNumber + ',' + JSON.stringify('C') + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                     if ( keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
                         term.css("color","green");
                     }
@@ -596,8 +597,8 @@
             if (experimentsObj[experimentNumber]["B"] != undefined) {
                 var keys = experimentsObj[experimentNumber]["B"];
                 for (var k = 0; k < experimentsObj[experimentNumber]["B"].length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    var temp = JSON.stringify(keys[k]["tag"]);
+                    var term = $("<button>").text(keys[k]["tag"]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                     if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
                         term.css("color","green");
                     }
@@ -611,8 +612,8 @@
             if (experimentsObj[experimentNumber]["T"] != undefined) {
                 var keys = experimentsObj[experimentNumber]["T"];
                 for (var k = 0; k < experimentsObj[experimentNumber]["T"].length; k++) {
-                    var temp = JSON.stringify(keys[k]['element']);
-                    var term = $("<button>").text(keys[k]['element']).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                    var temp = JSON.stringify(keys[k]["tag"]);
+                    var term = $("<button>").text(keys[k]["tag"]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "'" + ',' + undefined + ',' + undefined + ',' + keys[k]["vote"]["up"].length + ',' + keys[k]["vote"]["down"].length + ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                     if (keys[k]["vote"]["up"].length > keys[k]["vote"]["down"].length) {
                         term.css("color","green");
                     }

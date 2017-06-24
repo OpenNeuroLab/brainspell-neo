@@ -24,11 +24,7 @@ from article_helpers import *
 # front page
 class MainHandler(BaseHandler):
     def get(self):
-        email = self.get_current_email()
-        gh_user = self.get_current_github_user()
-        print(gh_user)
-        #Save user to database if logged in:
-        try:  # handle failures in bulk_add
+        try: # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
         except:
             submitted = 0
@@ -40,37 +36,8 @@ class MainHandler(BaseHandler):
             registered = int(self.get_argument("registered", 0))
         except:
             registered = 0
-        self.render("static/html/index.html", title=email,
-                    github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-                    queries=Articles.select().wrapped_count(), success=submitted,
-                    failure=failure, registered=registered, pw=self.get_current_password())
 
 
-# login page
-class LoginHandler(BaseHandler):
-    def get(self):
-        self.render("static/html/login.html", message="None", title="", failure=0)
-
-    def post(self):
-        email = self.get_argument("email")
-        password = self.get_argument("password").encode("utf-8")
-        hasher=hashlib.sha1()
-        hasher.update(password)
-        password = hasher.hexdigest()[:52]
-        if user_login(email, password):
-            self.set_secure_cookie("email", email)
-            self.set_secure_cookie("password", password)
-            self.redirect("/")
-        else:
-            self.render("static/html/login.html", message="Invalid", title="", failure=1)
-
-
-# log the user out
-class LogoutHandler(BaseHandler):
-    def get(self):
-        self.clear_cookie("email")
-        self.clear_cookie("password")
-        self.redirect("/")
 
 
 
@@ -80,8 +47,6 @@ class SearchHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         req = self.get_query_argument("req", "t")
-        email = self.get_current_email()
-        gh_user = self.get_current_github_user()
         self.render("static/html/search.html", query=q, start=start,
                     title=email, req=req, # parameters like "req" and "title" need to be renamed to reflect what their values are
                     github_user=gh_user["name"],
@@ -107,30 +72,31 @@ class AddTableTextBoxHandler(BaseHandler):
 
 
 # Adds a custom user Tag to the database
-class AddUserDataHandler(BaseHandler):
+class AddUserTagToArticleHandler(BaseHandler):
     def post(self):
-        id = self.get_argument("pmid")
+        pmid = self.get_argument("pmid")
         user_tag = self.get_argument("values")
-        print(user_tag)
-        add_user_tag(user_tag, id) # TODO: needs to verify API key
-        self.redirect("/view-article?id=" +id)
+        add_user_tag(user_tag, pmid) # TODO: needs to verify API key
+        self.redirect("/view-article?id=" + pmid)
 
 
 # view-article page
 class ArticleHandler(BaseHandler):
     def get(self):
-        articleId = -1
+        article_id = -1
         try:
-            articleId = self.get_query_argument("id")
+            article_id = self.get_query_argument("id")
         except:
-            self.redirect("/")  # id wasn't passed; redirect to home page
-        gh_user = self.get_current_github_user()
-        self.render("static/html/view-article.html", id=articleId,
-                    github_user=gh_user["name"], github_avatar=gh_user["avatar_url"],
-                    email=self.get_current_email(), key=self.get_current_password()) # TODO: rename all of the "title"s to "email", and change the HTML templates accordingly
+            self.redirect("/") # id wasn't passed; redirect to home page
+        self.render("static/html/view-article.html", 
+            article_id=article_id,
+            github_name=self.get_current_github_name(), 
+            github_avatar=gh_user["avatar_url"],
+            api_key=self.get_current_api_key())
 
     def post(self):  # TODO: make its own endpoint; does not belong in this handler
-        id = self.get_body_argument('id')
+    # right now, this updates z scores
+        article_id = self.get_body_argument('id')
         email = self.get_current_email()
         values = ""
 
@@ -141,59 +107,16 @@ class ArticleHandler(BaseHandler):
         except:
             pass
         if values:
-            update_z_scores(id, email, values)
-            self.redirect("/view-article?id=" + str(id))
-
-# account page
-class AccountHandler(BaseHandler):
-    def get(self):
-        if self.is_logged_in():
-            email = self.get_current_email()
-            user = self.get_current_user()
-            self.render('static/html/account.html', title=self.get_current_email(), username=user, message="",
-                        password=self.get_current_password())
-        else:
-            self.redirect("/register")
-
-    def post(self): # TODO: make into a JSON API endpoint "change-username-password"
-        hasher = hashlib.sha1()
-        hasher2 = hashlib.sha1()
-        newUsername = self.get_argument("newUserName")
-        currPassword = self.get_argument("currentPassword").encode('utf-8')
-        newPass = self.get_argument("newPassword").encode('utf-8')
-        confirmPass = self.get_argument("confirmedPassword")
-        name = self.get_current_email()
-        user = self.get_current_user()
-        hasher.update(currPassword)
-        currPassword = hasher.hexdigest()
-        username = self.get_current_email()
-
-        """Checks for valid user entries"""
-        if newUsername == None and currPassword == None:
-            self.render('static/html/account.html', title=name, username=username, message="NoInfo")
-        if newPass != confirmPass:
-            self.render('static/html/account.html', title=name, username=username, message="mismatch")
-        if currPassword != user.password:
-            self.render('static/html/account.html', title=name, username=username, message="badPass")
-
-        if newUsername:
-            update = User.update(username=newUsername).where(User.emailaddress == name)
-            update.execute()
-        if newPass:
-            hasher.update(newPass)
-            newPass = hasher2.hexdigest()
-            update = User.update(password=newPass).where(User.emailaddress == name)
-            update.execute()
-        self.redirect("/")
-
+            update_z_scores(article_id, email, values)
+            self.redirect("/view-article?id=" + str(article_id))
 
 # contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
         name = self.get_current_email()
-        gh_user = self.get_current_github_user()
-        self.render('static/html/contribute.html', title=name,github_user=gh_user["name"], github_avatar=gh_user["avatar_url"])
-
+        self.render('static/html/contribute.html',
+            github_name=self.get_current_github_name(), 
+            github_avatar=self.get_current_github_avatar())
 
 # takes a file in JSON format and adds the articles to our database (called from the contribute page)
 class BulkAddHandler(BaseHandler):
@@ -209,32 +132,16 @@ class BulkAddHandler(BaseHandler):
             self.redirect("/?failure=1")
 
 # update a vote on a table tag
-class TableVoteUpdateHandler(BaseHandler): # TODO: what is element? also, make into a JSON API endpoint
+class TableVoteUpdateHandler(BaseHandler): # TODO: make into a JSON API endpoint
     def post(self):
-        element = self.get_argument("element")
+        tag_name = self.get_argument("element")
         direction = self.get_argument("direction")
         table_num = self.get_argument("table_num")
         pmid = self.get_argument("id")
         column = self.get_argument("column")
         user = self.get_current_email()
-        update_table_vote(element,direction,table_num,pmid,column,user)
+        update_table_vote(tag_name,direction,table_num,pmid,column,user)
         self.redirect("/view-article?id=" + pmid)
-
-# save an article to a user's account
-class SaveCollectionHandler(BaseHandler):
-    def post(self):
-        if self.is_logged_in():
-            articles_encoded = self.request.arguments["articles[]"]  # TODO: look into "get_arguments" function
-            collection_name = self.request.arguments["collection"][0].decode("utf-8")
-            articles_decoded = []
-            for a in articles_encoded:
-                article = a.decode('utf-8')  # TODO: move save article operations to models.py
-                User_metadata.insert(user_id=self.get_current_email(),
-                                     article_pmid=article, collection=collection_name).execute()
-        else:
-            pass # TODO: what happens if a user is not logged in? needs to handle this case
-            # self.redirect("/view-article?id=" + str(value))
-
 
 # BEGIN: init I/O loop
 
@@ -269,8 +176,6 @@ def make_app():
         (r"/json/saved-articles", SavedArticlesEndpointHandler), # TODO: add API documentation
         (r"/json/delete-article", DeleteArticleEndpointHandler), # TODO: add API documentation
         (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
-        (r"/logout", LogoutHandler),
-        (r"/account", AccountHandler),
         (r"/search", SearchHandler),
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
@@ -283,7 +188,7 @@ def make_app():
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),
         (r"/add-to-collection", NewFileHandler),
-        (r"/add-user-data", AddUserDataHandler),
+        (r"/add-user-data", AddUserTagToArticleHandler),
         (r"/update-table-vote", TableVoteUpdateHandler),
         (r"/remove-from-collection", DeleteFileHandler),
         (r"/search-add",SearchAddEndpoint),

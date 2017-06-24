@@ -213,7 +213,7 @@ def add_coordinate(pmid, exp, coords): # adds a coordinate row to the end of a t
     elem["locations"].append(coords)
     Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
-def add_table_text(pmid, values):
+def add_table_through_text_box(pmid, values):
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)
     experiments = eval(target.experiments)
@@ -243,35 +243,36 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         query = Articles.update(experiments=experiments).where(Articles.pmid == id)
         query.execute()
 
-def update_table_vote(element,direction,table_num,pmid,column,email): # TODO: needs to be commented more thoroughly
-    print("here")
+def update_table_vote(tagName,direction,table_num,pmid,column,email): # TODO: needs to be commented more thoroughly
     table_num = eval(table_num)
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)
     target = eval(target.experiments)
     email = email.decode()
-    k = target[table_num]
+
+    # get the table object
+    tableObj = target[table_num]
     entry = -1
-    if not k.get(column):
-        k[column] = []
-    for i in range(len(k[column])):
-        if k[column][i]['element'] == element:
+    if not tableObj.get(column):
+        tableObj[column] = []
+    for i in range(len(tableObj[column])):
+        if tableObj[column][i]["element"] == tagName:
             entry = i
             break
     if entry == -1: # if the tag hasn't been added yet, then add it
-        k[column].append({
-            "element": element,
+        tableObj[column].append({
+            "element": tagName,
         })
-        entry = len(k[column]) - 1
+        entry = len(tableObj[column]) - 1
 
-    if "vote" not in k[column][entry]: # if no one has voted, then add voting structures
-        k[column][entry]["vote"] = {}
-        k[column][entry]["vote"]["up"] = []
-        k[column][entry]["vote"]["down"] = []
+    if "vote" not in tableObj[column][entry]: # if no one has voted, then add voting structures
+        tableObj[column][entry]["vote"] = {}
+        tableObj[column][entry]["vote"]["up"] = []
+        tableObj[column][entry]["vote"]["down"] = []
 
-    k[column][entry]["vote"][direction].append(email)
+    tableObj[column][entry]["vote"][direction].append(email)
 
-    target[table_num] = k
+    target[table_num] = tableObj
 
     query = Articles.update(experiments = target).where(Articles.pmid == pmid)
     query.execute()

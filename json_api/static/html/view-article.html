@@ -149,12 +149,12 @@
                         disagree = votes["down"].length;
                     }
                     for (var i = 0; i < agreements; i++) {
-                        if (votes["up"][i]["email"] == "{{title}}") {
+                        if (votes["up"][i]["email"] == "{{email}}") {
                             userVotedAgree = " (including you)"
                         }
                     }
                     for (var i = 0; i < disagree; i++) {
-                        if (votes["down"][i]["email"] == "{{title}}") {
+                        if (votes["down"][i]["email"] == "{{email}}") {
                             userVotedDisagree = " (including you)"
                         }
                     }
@@ -319,8 +319,6 @@
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
             {% if github_user %}
-            linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "document.location.href=getaURL('id')").text("Add Article to Docket"));
-
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
             {% end %}
 
@@ -778,18 +776,6 @@
                 }
             });
         }
-        // Returns the current article location
-        function getaURL(name, url) {
-            if (!url) {
-              url = window.location.href;
-            }
-            name = name.replace(/[\[\]]/g, "\\$&");
-            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-                results = regex.exec(url);
-            if (!results) return null;
-            if (!results[2]) return '';
-            return "/save-article" + "?id=" +  decodeURIComponent(results[2].replace(/\+/g, " "));
-        }
 
         //Returns the PMID of the current Article
         function getID(url) {
@@ -825,7 +811,7 @@
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
-                url: "/json/toggle-user-vote?email={{title}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
+                url: "/json/toggle-user-vote?email={{email}}&pmid={{id}}&key={{key}}&direction=" + direction + "&topic=" + topic
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);

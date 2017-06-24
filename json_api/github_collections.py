@@ -124,7 +124,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
         except tornado.web.MissingArgumentError:  # AK: This is again hacky.
             pmid = False
 
-        gh_user = self.get_current_github_user()
+        gh_user = self.__get_current_github_object__()
         if gh_user["access_token"]:
             #get all repos for an authenticated user
             data = yield get_my_repos(self.get_auth_http_client(),

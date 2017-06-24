@@ -90,7 +90,7 @@
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       console.log(spinner);
-      $.get("/repos?list=1&pmid={{id}}", function(data, err){
+      $.get("/repos?list=1&pmid={{article_id}}", function(data, err){
         var data = JSON.parse(data);
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
@@ -99,15 +99,15 @@
         $("#github_collections").val(in_collection).trigger("change")
         spinner.stop(target)
 		$("#github_collections").on("select2:select", function (e) {
-		  console.log("You want to add this pmid {{id}} to collection:", e.params.data.id)
-		  $.post("/add-to-collection?"+$.param({pmid: {{id}},
+		  console.log("You want to add this pmid {{article_id}} to collection:", e.params.data.id)
+		  $.post("/add-to-collection?"+$.param({pmid: {{article_id}},
 		   collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
 			 console.log(err)
 		   })
 		});
 	 $("#github_collections").on("select2:unselect", function (e) {
-        console.log("You want to remove this pmid {{id}} from collection:", e.params.data.id)
-		  $.post("/remove-from-collection?"+$.param({pmid: {{id}},
+        console.log("You want to remove this pmid {{article_id}} from collection:", e.params.data.id)
+		  $.post("/remove-from-collection?"+$.param({pmid: {{article_id}},
 		   collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
 			 console.log(err)
 		   })
@@ -291,12 +291,12 @@
         $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("Loading..."));
         $($.ajax({
             type: "GET",
-            url: "/json/article?pmid={{id}}"
+            url: "/json/article?pmid={{article_id}}"
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
             obj = JSON.parse(j);
             if (Object.keys(obj).length <= 1) {
-                 window.location.replace("/search?q=%5BPMID%5D{{id}}&req=t");
+                 window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
             }
 
             try {
@@ -324,7 +324,7 @@
                 $("<p>").text("Each coordinate should be on its own line, in the format \"x, y, z\" (without quotes).")
             ).append(
                 $("<textarea>").attr("name", "values")
-            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{id}}")).append(
+            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{article_id}}")).append(
                 $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
             );
             tableInputForm.append(tableForm);
@@ -389,7 +389,7 @@
             var user_data = $("<form>").attr("action", "/add-user-data").attr("method", "post").append(
                     $("<p>",{"value":"Add Tag below"})).append(
                 $("<input>").attr("name", "values")
-            ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{id}}")).append(
+            ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{article_id}}")).append(
                 $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
             );
             user_input.append(user_data);
@@ -473,8 +473,8 @@
         <script>
 
         var disqus_config = function () {
-        this.page.url = "https://brainspell.herokuapp.com/view-article?id={{id}}";
-        this.page.identifier = "{{id}}";
+        this.page.url = "https://brainspell.herokuapp.com/view-article?id={{article_id}}";
+        this.page.identifier = "{{article_id}}";
         };
         
         (function() { // DON'T EDIT BELOW THIS LINE
@@ -697,7 +697,7 @@
                 var coords = inputs[0].value + "," + inputs[1].value + "," + inputs[2].value;
                 $.ajax({
                     type: "GET",
-                    url: "/json/add-row?pmid={{id}}&key={{key}}&experiment=" + experiment + "&coordinates=" + coords
+                    url: "/json/add-row?pmid={{article_id}}&key={{api_key}}&experiment=" + experiment + "&coordinates=" + coords
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -718,7 +718,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/json/delete-row?pmid={{id}}&key={{key}}&experiment=" + element + "&row=" + r
+                    url: "/json/delete-row?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row=" + r
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -740,7 +740,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/json/split-table?pmid={{id}}&key={{key}}&experiment=" + element + "&row=" + r
+                    url: "/json/split-table?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row=" + r
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -757,7 +757,7 @@
             //var z = exp[element].locations[r][2];
             $.ajax({
                 type: "GET",
-                url: "/json/flag-table?pmid={{id}}&key={{key}}&experiment=" + element
+                url: "/json/flag-table?pmid={{article_id}}&key={{api_key}}&experiment=" + element
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);
@@ -807,7 +807,7 @@
         function updateVote(topic, direction) {
             $.ajax({
                 type: "GET",
-                url: "/json/toggle-user-vote?username={{github_username}}&pmid={{id}}&key={{api_key}}&direction=" + direction + "&topic=" + topic
+                url: "/json/toggle-user-vote?username={{github_username}}&pmid={{article_id}}&key={{api_key}}&direction=" + direction + "&topic=" + topic
             }).complete(function(o) {
                 j = o.responseText;
                 console.log(j);
@@ -820,7 +820,7 @@
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
 
-        //TODO Renders BrainSprite Graphics, Currently not used:
+//TODO Renders BrainSprite Graphics, Currently not used:
 //        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
 //        function startloader() {
 //            $(window).load(function () {

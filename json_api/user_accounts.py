@@ -5,11 +5,7 @@ from models import *
 import simplejson
 from torngithub import json_decode
 import tornado.web
-class BaseHandler(tornado.web.RequestHandler): 
-    """
-    TODO: need to establish standard way of: 
-    1) verifying that a user is logged in before showing them a UI page (currently we don't do this)
-    """
+class BaseHandler(tornado.web.RequestHandler):
     push_api = None
     pull_api = None
 
@@ -30,6 +26,16 @@ class BaseHandler(tornado.web.RequestHandler):
             self.write(json.dumps(response))
         else:
             print("GET endpoint undefined.")
+
+    def render_with_user_info(self, url, params):
+        # a helper function that renders a Tornado HTML template, automatically appending user information
+        login_dict = {
+            "github_name": self.get_current_github_name(),
+            "github_username": self.get_current_github_username(), 
+            "github_avatar": self.get_current_github_avatar(),
+            "api_key": self.get_current_api_key()
+        }
+        self.render(url, **params, **login_dict)
 
     def __get_current_github_object__(self):
         # returns an object representing the user's name, avatar, and access_token, or None is the user is not logged in

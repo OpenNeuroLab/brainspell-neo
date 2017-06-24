@@ -37,15 +37,14 @@ class MainHandler(BaseHandler):
         except:
             registered = 0
 
+        custom_params = {
+            "number_of_queries": Articles.select().wrapped_count(), # TODO: move to DAO (data access object)
+            "success": submitted, # TODO: name these variables better (they refer to bulk_add success/failure)
+            "failure": failure,
+            "registered": registered # boolean that indicates if someone has just registered
+        }
 
-        self.render("static/html/index.html", 
-            github_name=self.get_current_github_name(), 
-            github_avatar=self.get_current_github_avatar(),
-            api_key=self.get_current_api_key(),
-            number_of_queries=Articles.select().wrapped_count(),
-            success=submitted,
-            failure=failure,
-            registered=registered)
+        self.render_with_user_info("static/html/index.html", custom_params)
 
 
 # search page
@@ -54,10 +53,12 @@ class SearchHandler(BaseHandler):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
         req = self.get_query_argument("req", "t")
-        self.render("static/html/search.html", query=q, start=start,
-                    title=email, req=req, # parameters like "req" and "title" need to be renamed to reflect what their values are
-                    github_user=gh_user["name"],
-                    github_avatar=gh_user["avatar_url"])
+        custom_params = {
+            "query": q,
+            "start": start,
+            "req": req, # TODO: parameters like "req" and "title" need to be renamed to reflect what their values are)
+        }
+        self.render_with_user_info("static/html/search.html", custom_params)
 
 
 
@@ -94,12 +95,10 @@ class ArticleHandler(BaseHandler):
             article_id = self.get_query_argument("id")
         except:
             self.redirect("/") # id wasn't passed; redirect to home page
-        self.render("static/html/view-article.html", 
-            article_id=article_id,
-            github_name=self.get_current_github_name(), 
-            github_username=self.get_current_github_username(), 
-            github_avatar=self.get_current_github_avatar(),
-            api_key=self.get_current_api_key())
+        article_dict = {
+            "article_id": article_id
+        }
+        self.render_with_user_info("static/html/view-article.html", article_dict)
 
     def post(self):  # TODO: make its own endpoint; does not belong in this handler
     # right now, this updates z scores

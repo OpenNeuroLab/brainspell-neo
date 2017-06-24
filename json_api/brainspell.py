@@ -178,8 +178,6 @@ def make_app():
         (r"/json/add-row", AddCoordinateEndpointHandler), # adds a single coordinate row to the end of an experiment table
         (r"/json/flag-table", FlagTableEndpointHandler), # TODO: add API documentation
         (r"/json/bulk-add", BulkAddEndpointHandler),
-        (r"/json/saved-articles", SavedArticlesEndpointHandler), # TODO: add API documentation
-        (r"/json/delete-article", DeleteArticleEndpointHandler), # TODO: add API documentation
         (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
         (r"/search", SearchHandler),
         (r"/view-article", ArticleHandler),
@@ -188,7 +186,6 @@ def make_app():
         (r"/add-table-text", AddTableTextBoxHandler),
         (r"/oauth", GithubLoginHandler),
         (r"/github_logout", GithubLogoutHandler),
-        # (r"/save-collection", SaveCollectionHandler),
         # (r"/save-bulk",BulkNewFileHandler),
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),

@@ -46,11 +46,11 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             if user:
                 self.set_secure_cookie("user", json_encode(user))
                 register_github_user(json_encode(user))
-                password = str(json_encode(user)["id"])
+                api_key = str(user["id"])
                 hasher = hashlib.sha1()
-                hasher.update(password.encode('utf-8'))
-                password = hasher.hexdigest()
-                self.set_secure_cookie("api_key", password)
+                hasher.update(api_key.encode('utf-8'))
+                api_key = hasher.hexdigest()
+                self.set_secure_cookie("api_key", api_key)
             else:
                 self.clear_cookie("user")
             self.redirect(self.get_argument("next", "/"))
@@ -217,7 +217,7 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
         if not name:
             self.write("")
         else:
-            gh_user = self.get_current_github_user()
+            gh_user = self.__get_current_github_object__()
             new_repo(name,gh_user["login"]) #Update database with new Collection
             body = {
                 "name": "brainspell-collection-{}".format(name),
@@ -260,7 +260,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
                 "doi": article.doi,
                  "notes": "Here are my notes on this article"}
         content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
-        gh_user = self.get_current_github_user()
+        gh_user = self.__get_current_github_object__()
         add_to_repo(collection,pmid,gh_user["login"])
         body = {
             "message": "adding {} to collection".format(pmid),
@@ -292,7 +292,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
         entry = {"pmid": pmid,
                  "notes": "Here are my notes on this article"}
         content = b64encode(json_encode(entry).encode("utf=8"))
-        gh_user = self.get_current_github_user()
+        gh_user = self.__get_current_github_object__()
 
         remove_from_repo(collection,pmid,gh_user["login"])
 
@@ -327,7 +327,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
 #         collection = self.get_argument("collection")
 #         pmids = self.get_argument("pmids")
 #         pmids = eval(pmids)
-#         user_info = self.get_current_github_user()["login"]
+#         user_info = self.__get_current_github_object__()["login"]
 #         if collection in next(User.select().where(User.username == user_info).execute()).collections: #If collection exists
 #             collection = "brainspell-collection-" + collection
 #             for pmid in pmids:
@@ -339,7 +339,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
 #                         "doi": article.doi,
 #                          "notes": "Here are my notes on this article"}
 #                 content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
-#                 gh_user = self.get_current_github_user()
+#                 gh_user = self.__get_current_github_object__()
 #                 add_to_repo(collection,pmid,gh_user["login"])
 #                 body = {
 #                     "message": "adding {} to collection".format(pmid),

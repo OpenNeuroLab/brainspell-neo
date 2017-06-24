@@ -78,12 +78,17 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
     
-def get_user_object(user): # TODO: have a naming convention for functions that return PeeWee objects
+def get_user_object(user): # TODO: have a naming convention for functions that return PeeWee objects (*_object?)
     q = User.select().where(User.emailaddress==user)
     return q.execute()
 
+def get_github_username_from_api_key(api_key):
+    user = User.select().where((User.password == api_key))
+    user_obj = next(user.execute())
+    return user_obj.username
+
 def valid_api_key(api_key):
-    user = User.select().where((User.password == api_key)) # using password hashes as API keys for now; can change later
+    user = User.select().where((User.password == api_key))
     return user.execute().count >= 1
 
 def register_github_user(user_dict):

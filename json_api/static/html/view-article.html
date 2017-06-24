@@ -800,7 +800,7 @@
                 }
             }).complete(function(o) {
                 //console.log(o);
-                window.location = window.location;
+                location.reload();
             });
         }
         //Updates votes for MeshDescriptors as a whole
@@ -812,7 +812,7 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                window.location = window.location; // Faster update mechanism
+                location.reload();
             });
         }
 

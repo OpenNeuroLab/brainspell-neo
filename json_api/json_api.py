@@ -116,9 +116,12 @@ class BulkAddEndpointHandler(BaseHandler):
 class AddArticleEndpointHandler(BaseHandler):
     def push_api(self, response):
         pmid = self.get_query_argument("pmid", "")
-        x = getArticleData(pmid) # TODO: name this variable correctly
-        request = Articles.insert(abstract=x["abstract"], doi=x["DOI"], authors=x["authors"],
-                                  experiments=x["coordinates"], title=x["title"])
+        article_obj = getArticleData(pmid)
+        request = Articles.insert(abstract=article_obj["abstract"], 
+            doi=article_obj["DOI"], 
+            authors=article_obj["authors"],
+            experiments=article_obj["coordinates"], 
+            title=article_obj["title"])
         request.execute()
         return response
 
@@ -133,12 +136,11 @@ class ArticleAuthorEndpointHandler(BaseHandler):
 # endpoint for a user to vote on an article tag
 class ToggleUserVoteEndpointHandler(BaseHandler):
     def push_api(self, response):
-        email = get_email_from_api_key(self.get_query_argument("key", ""))
+        username = get_github_username_from_api_key(self.get_query_argument("key", ""))
         topic = self.get_query_argument("topic", "")
         pmid = self.get_query_argument("pmid", "")
         direction = self.get_query_argument("direction", "")
-        # exp = int(self.get_query_argument("experiment", ""))
-        toggle_vote(pmid, topic, email, direction)
+        toggle_vote(pmid, topic, username, direction)
         return response
 
 # BEGIN: table API endpoints
@@ -177,42 +179,3 @@ class AddCoordinateEndpointHandler(BaseHandler):
         coords = self.get_query_argument("coordinates", "").replace(" ", "")
         add_coordinate(pmid, exp, coords)
         return response
-
-# BEGIN: non-Github collections API endpoints
-
-# delete a saved article
-class DeleteArticleEndpointHandler(BaseHandler):
-    def get(self):
-        if self.is_logged_in(): # TODO: should take a username/key, rather than checking cookies
-            value = self.get_query_argument("article")
-            User_metadata.delete().where(User_metadata.user_id == self.get_current_email(),
-                                         User_metadata.metadata_id == value).execute()
-            self.write(json.dumps({"success": 1}))
-        else:
-            self.write(json.dumps({"success": 0}))
-
-
-# access a user's saved articles
-class SavedArticlesEndpointHandler(BaseHandler):
-    def post(self):
-        email = self.get_argument("email").encode("utf-8")
-        password = self.get_argument("password").encode("utf-8")
-        if user_login(email, password):
-            articles = get_saved_articles(email)
-            response = {}
-            output_list = []
-            for a in articles:
-                pmid = a.article_pmid
-                info = next(get_article(pmid))
-                articleDict = {}
-                articleDict["id"] = a.metadata_id
-                articleDict["pmid"] = pmid
-                articleDict["title"] = info.title
-                articleDict["collection"] = a.collection
-                output_list.append(articleDict)
-            response["articles"] = output_list
-            self.write(json.dumps(response))
-        else:
-            self.write(json.dumps({"success": 0}))
-
-

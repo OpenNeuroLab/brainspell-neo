@@ -87,17 +87,17 @@ def getArticleData(article_id):
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
     records =  list(Medline.parse(handle))
     records =  records[0]
-    articleInfo = {}
-    articleInfo["title"] = records.get("TI")
-    articleInfo["PMID"] = pmid
-    articleInfo["authors"] = ', '.join(records.get("AU"))
-    articleInfo["abstract"] = records.get("AB")
-    articleInfo["DOI"] = getDOI(records.get("AID"))
-    articleInfo["experiments"] = ""
+    article_info = {}
+    article_info["title"] = records.get("TI")
+    article_info["PMID"] = pmid
+    article_info["authors"] = ', '.join(records.get("AU"))
+    article_info["abstract"] = records.get("AB")
+    article_info["DOI"] = getDOI(records.get("AID"))
+    article_info["experiments"] = ""
     identity = "" 
     try:
-        articleInfo["experiments"] = {"locations": eval(urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + str(pmid) + "/").read().decode())["data"]}
-        k = articleInfo["experiments"]["locations"]
+        article_info["experiments"] = {"locations": eval(urllib.request.urlopen("http://neurosynth.org/api/studies/peaks/" + str(pmid) + "/").read().decode())["data"]}
+        k = article_info["experiments"]["locations"]
         for i in range(len(k)):
             if len(k[i]) == 4:
                 identity = k[0]
@@ -105,13 +105,13 @@ def getArticleData(article_id):
             k[i] = ",".join([str(x) for x in (k[i])])
     except:
         pass
-    articleInfo["id"] = identity
-    articleInfo["experiments"] = [articleInfo["experiments"]]
-    Articles.create(abstract=articleInfo["abstract"],authors=articleInfo["authors"],
-                    doi=articleInfo["DOI"],experiments=articleInfo["experiments"],
-                    pmid=articleInfo["PMID"],title=articleInfo["title"]
+    article_info["id"] = identity
+    article_info["experiments"] = [article_info["experiments"]]
+    Articles.create(abstract=article_info["abstract"],authors=article_info["authors"],
+                    doi=article_info["DOI"],experiments=article_info["experiments"],
+                    pmid=article_info["PMID"],title=article_info["title"]
                     )
-    return articleInfo
+    return article_info
 
 def getDOI(lst):
     pattern = r"([0-9]{2}\.[0-9]*\/[a-z]*\.[0-9]*\.[0-9]*)[ ]\[doi\]"

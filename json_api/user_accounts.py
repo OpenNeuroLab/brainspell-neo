@@ -30,75 +30,50 @@ class BaseHandler(tornado.web.RequestHandler):
             self.write(json.dumps(response))
         else:
             print("GET endpoint undefined.")
-    
-    def get_current_email(self):  # TODO: add password checking (currently not actually logged in)
-        value = self.get_secure_cookie("email")
-        if value and self.is_logged_in():
-            return value
-        return ""
 
-    def get_current_user(self):
-        if self.is_logged_in():
-            for user in get_user(self.get_current_github_user()):
-                return user.username
-        return ""
+    def __get_current_github_object__(self):
+        # returns an object representing the user's name, avatar, and access_token, or None is the user is not logged in
+        try:
+            return json_decode(self.get_secure_cookie("user"))
+        except:
+            return None
 
-    def get_current_github_user(self):
-        user_json = self.get_secure_cookie("user")
-        if not user_json:
-            return {"name": None, "avatar_url": None, "access_token":None}
-        else:
-            try:
-                return json_decode(user_json)
-            except simplejson.scanner.JSONDecodeError:
-                return {"name": None, "avatar_url": None, "access_token":None}
+    def get_current_github_name(self):
+        github_user_object = self.__get_current_github_object__();
+        if github_user_object:
+            return github_user_object["name"]
+        return None
 
-    def get_current_password(self):
-        return self.get_secure_cookie("password")
+    def get_current_github_avatar(self):
+        github_user_object = self.__get_current_github_object__();
+        if github_user_object:
+            return github_user_object["avatar_url"]
+        return None
 
-    def is_logged_in(self):
-        return user_login(self.get_secure_cookie("email"), self.get_current_password())
+    def get_current_github_access_token(self):
+        github_user_object = self.__get_current_github_object__();
+        if github_user_object:
+            return github_user_object["access_token"]
+        return None
 
+    def get_current_api_key(self):
+        # TODO: save the API key (a hash of the GitHub id) as a cookie and return the value in this function
+        pass
 
+    # allow CORS
     def set_default_headers(self):
         origin = self.request.headers.get('Origin')
         if origin:
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
-
-def user_login(email, password):
-    user = User.select().where((User.emailaddress == email) & (User.password == password))
-    return user.execute().count == 1
-
-def get_saved_articles(email):
-    return User_metadata.select().where(User_metadata.user_id==email).execute()
     
-def get_user(user): # TODO: have a naming convention for functions that return PeeWee objects
+def get_user_object(user): # TODO: have a naming convention for functions that return PeeWee objects
     q = User.select().where(User.emailaddress==user)
     return q.execute()
-
-def get_email_from_api_key(api_key):
-    user = User.select().where((User.password == api_key)) # using password hashes as API keys for now; can change later
-    userInfo = next(user.execute())
-    return userInfo.emailaddress
 
 def valid_api_key(api_key):
     user = User.select().where((User.password == api_key)) # using password hashes as API keys for now; can change later
     return user.execute().count >= 1
-
-def insert_user(user, pw, email): # TODO: what is the difference between this and "register_user"? this is just the more dangerous option?
-    q = User.create(username = user, password = pw, emailaddress = email)
-    q.execute()
-
-def register_user(username,email,password):
-    if (User.select().where((User.emailaddress == email)).execute().count == 0):
-        hasher=hashlib.sha1()
-        hasher.update(password)
-        password = hasher.hexdigest()
-        User.create(username = username, emailaddress = email, password = password)
-        return True
-    else:
-        return False
 
 def register_github_user(user_dict):
     user_dict = json_decode(user_dict)

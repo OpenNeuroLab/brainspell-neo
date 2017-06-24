@@ -76,7 +76,7 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                var holder = {{ queries }};
+                var holder = {{ number_of_queries }};
                 $("#randomResults").html("");
                 $("#randomResults").append($("<p>").css("color", "#c0c0c0").text(holder + " articles indexed"));
                 $("#randomResults").append($("<p>").css("color", "#c0c0c0").text("Randomly selected articles:"));
@@ -92,7 +92,7 @@
         );
 
         function showAPIKey(box) {
-            box.innerHTML = "Your API key is: {{pw}}";
+            box.innerHTML = "Your API key is: {{api_key}}";
             box.onclick = function() { };
         }
     </script>

@@ -243,36 +243,35 @@ def update_z_scores(id,user,values): #TODO maybe save the user that inserted the
         query = Articles.update(experiments=experiments).where(Articles.pmid == id)
         query.execute()
 
-def update_table_vote(tagName,direction,table_num,pmid,column,email): # TODO: needs to be commented more thoroughly
+def update_table_vote(tagName,direction,table_num,pmid,column,username): # TODO: needs to be commented more thoroughly
     table_num = eval(table_num)
     target = Articles.select(Articles.experiments).where(Articles.pmid == pmid).execute()
     target = next(target)
     target = eval(target.experiments)
-    email = email.decode()
 
     # get the table object
-    tableObj = target[table_num]
+    table_obj = target[table_num]
     entry = -1
-    if not tableObj.get(column):
-        tableObj[column] = []
-    for i in range(len(tableObj[column])):
-        if tableObj[column][i]["element"] == tagName:
+    if not table_obj.get(column):
+        table_obj[column] = []
+    for i in range(len(table_obj[column])):
+        if table_obj[column][i]["element"] == tagName:
             entry = i
             break
     if entry == -1: # if the tag hasn't been added yet, then add it
-        tableObj[column].append({
+        table_obj[column].append({
             "element": tagName,
         })
-        entry = len(tableObj[column]) - 1
+        entry = len(table_obj[column]) - 1
 
-    if "vote" not in tableObj[column][entry]: # if no one has voted, then add voting structures
-        tableObj[column][entry]["vote"] = {}
-        tableObj[column][entry]["vote"]["up"] = []
-        tableObj[column][entry]["vote"]["down"] = []
+    if "vote" not in table_obj[column][entry]: # if no one has voted, then add voting structures
+        table_obj[column][entry]["vote"] = {}
+        table_obj[column][entry]["vote"]["up"] = []
+        table_obj[column][entry]["vote"]["down"] = []
 
-    tableObj[column][entry]["vote"][direction].append(email)
+    table_obj[column][entry]["vote"][direction].append(username)
 
-    target[table_num] = tableObj
+    target[table_num] = table_obj
 
     query = Articles.update(experiments = target).where(Articles.pmid == pmid)
     query.execute()

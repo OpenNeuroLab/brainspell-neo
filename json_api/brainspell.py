@@ -39,6 +39,7 @@ class MainHandler(BaseHandler):
         self.render("static/html/index.html", 
             github_name=self.get_current_github_name(), 
             github_avatar=self.get_current_github_avatar(),
+            api_key=self.get_current_api_key(),
             number_of_queries=Articles.select().wrapped_count(),
             success=submitted,
             failure=failure,
@@ -61,7 +62,6 @@ class SearchHandler(BaseHandler):
     def post(self): #allows introduction of manual article
         pmid = self.get_argument("newPMID")
         print(pmid)
-
 
 
 # Handler for the textbox to add a table of coordinates on view-article page
@@ -94,7 +94,8 @@ class ArticleHandler(BaseHandler):
         self.render("static/html/view-article.html", 
             article_id=article_id,
             github_name=self.get_current_github_name(), 
-            github_avatar=gh_user["avatar_url"],
+            github_username=self.get_current_github_username(), 
+            github_avatar=self.get_current_github_avatar(),
             api_key=self.get_current_api_key())
 
     def post(self):  # TODO: make its own endpoint; does not belong in this handler
@@ -116,7 +117,6 @@ class ArticleHandler(BaseHandler):
 # contribute page
 class ContributionHandler(BaseHandler):
     def get(self):
-        name = self.get_current_email()
         self.render('static/html/contribute.html',
             github_name=self.get_current_github_name(), 
             github_avatar=self.get_current_github_avatar())
@@ -142,8 +142,8 @@ class TableVoteUpdateHandler(BaseHandler): # TODO: make into a JSON API endpoint
         table_num = self.get_argument("table_num")
         pmid = self.get_argument("id")
         column = self.get_argument("column")
-        user = self.get_current_email()
-        update_table_vote(tag_name,direction,table_num,pmid,column,user)
+        user = self.get_current_github_username()
+        update_table_vote(tag_name, direction, table_num, pmid, column, user)
         self.redirect("/view-article?id=" + pmid)
 
 # BEGIN: init I/O loop

@@ -23,6 +23,7 @@ settings = {
     "compress_response": True
 }
 
+
 def make_app():
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
@@ -30,15 +31,18 @@ def make_app():
                                'static')}),
         (r"/", MainHandler),
         (r"/json/query", SearchEndpointHandler),
-        (r"/json/coordinates", CoordinatesEndpointHandler),  # TODO: add to API documentation on wiki
+        # TODO: add to API documentation on wiki
+        (r"/json/coordinates", CoordinatesEndpointHandler),
         (r"/json/random-query", RandomEndpointHandler),
         (r"/json/add-article", AddArticleEndpointHandler),
         (r"/json/set-article-authors", ArticleAuthorEndpointHandler),
         (r"/json/article", ArticleEndpointHandler),
         (r"/json/delete-row", DeleteRowEndpointHandler),
         (r"/json/split-table", SplitTableEndpointHandler),
-        (r"/json/add-row", AddCoordinateEndpointHandler), # adds a single coordinate row to the end of an experiment table
-        (r"/json/flag-table", FlagTableEndpointHandler), # TODO: add API documentation
+        # adds a single coordinate row to the end of an experiment table
+        (r"/json/add-row", AddCoordinateEndpointHandler),
+        # TODO: add API documentation
+        (r"/json/flag-table", FlagTableEndpointHandler),
         (r"/json/bulk-add", BulkAddEndpointHandler),
         (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
         (r"/search", SearchHandler),
@@ -55,13 +59,16 @@ def make_app():
         (r"/add-user-data", AddUserTagToArticleHandler),
         (r"/update-table-vote", TableVoteUpdateHandler),
         (r"/remove-from-collection", DeleteFileHandler),
-        (r"/search-add", AddArticleFromSearchPageHandler), # TODO: rename to something more descriptive ("add-article-from-search-page")
+        # TODO: rename to something more descriptive
+        # ("add-article-from-search-page")
+        (r"/search-add", AddArticleFromSearchPageHandler),
     ], debug=True, **settings)
 
 
 if __name__ == "__main__":
-    tornado.httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient",
-                                                 defaults={"allow_nonstandard_methods": True})
+    tornado.httpclient.AsyncHTTPClient.configure(
+        "tornado.curl_httpclient.CurlAsyncHTTPClient", defaults={
+            "allow_nonstandard_methods": True})
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
     port = int(os.environ.get("PORT", 5000))

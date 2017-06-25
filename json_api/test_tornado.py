@@ -3,16 +3,19 @@ import os
 import pytest
 import brainspell
 import models
-import search
-import selenium
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
+from search import *
+#import selenium
+#from selenium import webdriver
+#from selenium.webdriver.support.ui import WebDriverWait
+import autopep8
 
 
 application = brainspell.make_app()
 
 
 """Configuring SauceLabs for Selenium Testing"""
+
+"""
 capabilities = {}
 username = os.environ["SAUCE_USERNAME"]
 access_key = os.environ["SAUCE_ACCESS_KEY"]
@@ -21,11 +24,15 @@ hub_url = "%s:%s@localhost:4445" % (username, access_key)
 capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
 capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
 capabilities["browserName"] = "firefox"
-driver = webdriver.Remote(desired_capabilities=capabilities, command_executor="http://%s/wd/hub" % hub_url)
+driver = webdriver.Remote(
+    desired_capabilities=capabilities,
+    command_executor="http://%s/wd/hub" %
+    hub_url)
+"""
 
 """
 TODO: need to make tests for:
-1) user creation 
+1) user creation
 2) user login
 3) adding and deleting a row of coordinates
 4) splitting, flagging a table
@@ -33,16 +40,34 @@ TODO: need to make tests for:
 6) setting the authors for an article
 7) saving to a brainspell.org collection, and to a GitHub collection
 """
-# Asserts search results appearing for commonly found target
-def test_search():
-    assert len(search.formatted_search("brain", 0)) > 0
 
-#Asserts Procfile in proper place. (Required for Heroku build)
+# Tests for PEP8 style
+
+
+def test_style_check():
+    style_check_good = True
+    files_in_directory = os.listdir()
+    for f in files_in_directory:
+        if os.path.splitext(f)[1] == ".py":
+            with open(f, "r") as python_file_handler:
+                python_contents = f.read()
+                assert autopep8.fix_code(python_contents) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
+
+# Asserts search results appearing for commonly found target
+
+
+def test_search():
+    assert len(formatted_search("brain", 0)) > 0
+
+# Asserts Procfile in proper place. (Required for Heroku build)
+
+
 def test_procfile():
-    f = open("../Procfile", "r")
-    contents = f.read()
-    filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
-    assert filename in os.listdir()
+    with open("../Procfile", "r") as f:
+        contents = f.read()
+        filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
+        assert filename in os.listdir()
+
 
 """ TODO: get selenium testing working
 def test_existence(): #Using selenium testing
@@ -77,13 +102,16 @@ def test_existence(): #Using selenium testing
 """
 
 # tests that the Tornado application is successfully built
+
+
 @pytest.fixture
 def app():
     return application
 
 # tests that the base_url is returning a 200 code (good)
+
+
 @pytest.mark.gen_test
 def test_front_page(http_client, base_url):
     response = yield http_client.fetch(base_url)
     assert response.code == 200
-

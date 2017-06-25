@@ -11,10 +11,10 @@ from base64 import b64encode
 
 # BEGIN: read environment variables
 
-if not "github_client_id" in os.environ:
+if "github_client_id" not in os.environ:
     print("set your github_client_id env variable, and register your app at https://github.com/settings/developers")
     os.environ["github_client_id"] = "gh_client_id"
-if not "github_client_secret" in os.environ:
+if "github_client_secret" not in os.environ:
     print("set your github_client_secret env variable, and register your app at https://github.com/settings/developers")
     os.environ["github_client_secret"] = "github_client_secret"
 
@@ -24,6 +24,7 @@ settings = {
 }
 
 # BEGIN: GitHub repo handlers
+
 
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     @tornado.gen.coroutine
@@ -55,8 +56,6 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
                 self.clear_cookie("user")
             self.redirect(self.get_argument("next", "/"))
             return
-
-
 
         # otherwise we need to request an authorization code
         yield self.authorize_redirect(
@@ -107,8 +106,6 @@ def get_my_repos(http_client, access_token):
     raise tornado.gen.Return(data)
 
 
-
-
 class ReposHandler(BaseHandler, torngithub.GithubMixin):
     """ TODO: We should update the database if there is a discrepency"""
     # @tornado.web.authenticated
@@ -126,11 +123,11 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
 
         gh_user = self.__get_current_github_object__()
         if gh_user["access_token"]:
-            #get all repos for an authenticated user
+            # get all repos for an authenticated user
             data = yield get_my_repos(self.get_auth_http_client(),
-                                  gh_user['access_token'])
-            repos = [d for d in data if d["name"].startswith("brainspell-collection")]
-
+                                      gh_user['access_token'])
+            repos = [d for d in data if d["name"].startswith(
+                "brainspell-collection")]
 
             # TODO: Ideally this information would be store in the database
             # this is pretty hacky. I'm checking gathering info for each pmid in
@@ -138,76 +135,79 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             # check if the pmid exists in the collection
 
             for repo in repos:
-                #this is the name w/out the brainspell-collection in it
+                # this is the name w/out the brainspell-collection in it
 
-                repo["pretty_name"] = repo["name"].replace("brainspell-collection-", "")
+                repo["pretty_name"] = repo["name"].replace(
+                    "brainspell-collection-", "")
 
-                #get file list content for each repo
+                # get file list content for each repo
                 try:
                     content_data = yield torngithub.github_request(
-                                      self.get_auth_http_client(),
-                                      '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
-                                      repo=repo["name"],
-                                      #path="{}.json".format(pmid)
-                                      path=""
-                                      ),
-                    access_token=gh_user['access_token'],
-                    method="GET")
+                        self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                                                                       repo=repo["name"],
+                                                                       # path="{}.json".format(pmid)
+                                                                       path=""
+                                                                       ),
+                        access_token=gh_user['access_token'],
+                        method="GET")
 
                     print(repo["contributors_url"])
                     contrib = yield torngithub.github_request(self.get_auth_http_client(),
                                                               repo["contributors_url"].replace("https://api.github.com", ""),
                                                               access_token=gh_user['access_token'],
-                                                              method = "GET")
+                                                              method="GET")
                     repo["contributors"] = contrib["body"]
-
 
                     # print(content_data)
 
                     content = content_data["body"]
 
-
-                    #extract pmids from content body
+                    # extract pmids from content body
                     pmids = [c["name"].replace(".json", "") for c in content]
 
-                    #get article information from each pmid from the database
+                    # get article information from each pmid from the database
                     all_contents = [next(get_article(pmid)) for pmid in pmids]
-                except: #TODO This is hacky, Empty Repos break the code!
+                except BaseException:  # TODO This is hacky, Empty Repos break the code!
                     all_contents = []
                     repo["contributors"] = {}
 
-
-
-                #Convert to a dict the info we want (so it can be JSON serialized later)
+                # Convert to a dict the info we want (so it can be JSON
+                # serialized later)
                 def article_content_dict(cont):
-                    return dict(title= cont.title, reference= cont.reference, pmid=cont.pmid)
-                repo["contents"] = [article_content_dict(cont) for cont in all_contents]
+                    return dict(
+                        title=cont.title,
+                        reference=cont.reference,
+                        pmid=cont.pmid)
+                repo["contents"] = [
+                    article_content_dict(cont) for cont in all_contents]
 
-                #If we are looking for a certaim pmid, add a tag for if it exists in the collection
+                # If we are looking for a certaim pmid, add a tag for if it
+                # exists in the collection
                 if pmid:
                     if pmid in pmids:
                         repo["in_collection"] = True
                     else:
                         repo["in_collection"] = False
 
-            #if we want to return a JSON instead or a page render
+            # if we want to return a JSON instead or a page render
             if return_list:
                 self.write(json_encode(repos))
             else:
                 self.render("static/html/github-account.html",
-                                info=repos,
-                                github_user=gh_user["name"],
-                                github_avatar=gh_user["avatar_url"],
-                                title=self.get_current_email()
+                            info=repos,
+                            github_user=gh_user["name"],
+                            github_avatar=gh_user["avatar_url"],
+                            title=self.get_current_email()
                             )
 
-        #if you're not authorized, redirect to oauth
+        # if you're not authorized, redirect to oauth
         else:
             self.redirect("/oauth?next=/repos")
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
-    #TODO Again update the database
+    # TODO Again update the database
     @tornado.web.asynchronous
     @tornado.gen.coroutine
     def post(self):
@@ -218,7 +218,8 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
             self.write("")
         else:
             gh_user = self.__get_current_github_object__()
-            new_repo(name,gh_user["login"]) #Update database with new Collection
+            # Update database with new Collection
+            new_repo(name, gh_user["login"])
             body = {
                 "name": "brainspell-collection-{}".format(name),
                 "description": desc,
@@ -243,7 +244,7 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
 
 
 class NewFileHandler(BaseHandler, torngithub.GithubMixin):
-    #Adds a json file to github repository
+    # Adds a json file to github repository
     # Add to database as well
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -251,17 +252,20 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
         starttime = time.time()
         collection = self.get_argument("collection")
         pmid = self.get_argument("pmid")
-        print("Collection is {0} and PMID is {1}".format(collection,pmid))
-        print("Type of collection is {0} and type of PMID is {1}".format(type(collection),type(pmid)))
+        print("Collection is {0} and PMID is {1}".format(collection, pmid))
+        print(
+            "Type of collection is {0} and type of PMID is {1}".format(
+                type(collection),
+                type(pmid)))
         article = list(get_article(pmid))[0]
         entry = {"pmid": pmid,
-                "title": article.title,
-                "reference": article.reference,
-                "doi": article.doi,
+                 "title": article.title,
+                 "reference": article.reference,
+                 "doi": article.doi,
                  "notes": "Here are my notes on this article"}
         content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
         gh_user = self.__get_current_github_object__()
-        add_to_repo(collection,pmid,gh_user["login"])
+        add_to_repo(collection, pmid, gh_user["login"])
         body = {
             "message": "adding {} to collection".format(pmid),
             "content": content
@@ -294,7 +298,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
         content = b64encode(json_encode(entry).encode("utf=8"))
         gh_user = self.__get_current_github_object__()
 
-        remove_from_repo(collection,pmid,gh_user["login"])
+        remove_from_repo(collection, pmid, gh_user["login"])
 
         body = {
             "message": "deleting {} to collection".format(pmid),

@@ -16,24 +16,31 @@ import json
 
 from peewee import DateTimeField, CharField, IntegerField
 
-url = urlparse("postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35") # in case no DATABASE_URL is specified, default to Heroku
+# in case no DATABASE_URL is specified, default to Heroku
+url = urlparse(
+    "postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
 if "DATABASE_URL" in os.environ:
     url = urlparse(os.environ["DATABASE_URL"])
 
 
-if "HEROKU_DB" in os.environ: # for Heroku to work
+if "HEROKU_DB" in os.environ:  # for Heroku to work
     url = urlparse(os.environ["HEROKU_DB"])
 
 config = dict(
-    database = url.path[1:],
-    user = url.username,
-    password = url.password,
-    host= url.hostname,
-    port= url.port,
-    sslmode = 'require'
+    database=url.path[1:],
+    user=url.username,
+    password=url.password,
+    host=url.hostname,
+    port=url.port,
+    sslmode='require'
 )
 
-conn = PostgresqlExtDatabase(autocommit= True, autorollback = True, register_hstore = False, **config)
+conn = PostgresqlExtDatabase(
+    autocommit=True,
+    autorollback=True,
+    register_hstore=False,
+    **config)
+
 
 class BaseModel(signals.Model):
     """
@@ -59,7 +66,7 @@ class Articles(BaseModel):
     abstract = CharField(null=True)
     authors = CharField(null=True)
     doi = CharField(null=True)
-    experiments = CharField(null = True)
+    experiments = CharField(null=True)
     metadata = CharField(null=True)
     neurosynthid = CharField(null=True)
     pmid = CharField(null=True, unique=True)
@@ -70,6 +77,7 @@ class Articles(BaseModel):
     class Meta:
         db_table = 'articles'
 
+
 class Concepts(BaseModel):
     name = CharField(db_column='Name', null=True)
     definition = CharField(null=True)
@@ -79,6 +87,7 @@ class Concepts(BaseModel):
 
     class Meta:
         db_table = 'concepts'
+
 
 class Log(BaseModel):
     data = CharField(db_column='Data', null=True)
@@ -91,6 +100,7 @@ class Log(BaseModel):
 
     class Meta:
         db_table = 'log'
+
 
 class User(BaseModel):
     password = CharField(db_column='Password', null=True)
@@ -113,23 +123,24 @@ class User_metadata(BaseModel):
         db_table = 'user_metadata'
 
 
+# TODO: move the following two functions to the appropriate file (doesn't
+# belong in models.py)
 
-
-# TODO: move the following two functions to the appropriate file (doesn't belong in models.py)
-
-# Specifies a range around a given coordinate to search the database 
-def generate_circle(coordinate): #Coordinate of form "-26,54,14"
-    ordered = [int(x) for x in coordinate.split(",")][0:3] #Ignore z-score
+# Specifies a range around a given coordinate to search the database
+def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
+    ordered = [int(x) for x in coordinate.split(",")][0:3]  # Ignore z-score
     search_terms = []
     for i in range(len(ordered)):
-        for j in range(-1,2,1):
+        for j in range(-1, 2, 1):
             val = list(ordered)
             val[i] = val[i] + j
             search_terms.append(",".join([str(x) for x in val]))
     return search_terms
 
-# Finds coordinates associated with a range around a given coordinate. 
-def coactivation(coordinate): # Yields around 11,000 coordinates
+# Finds coordinates associated with a range around a given coordinate.
+
+
+def coactivation(coordinate):  # Yields around 11,000 coordinates
     coordinate_sets = []
     search_circle = generate_circle(coordinate)
     for item in search_circle:
@@ -142,4 +153,3 @@ def coactivation(coordinate): # Yields around 11,000 coordinates
                 if location_sets.get("locations"):
                     coordinate_sets.append(location_sets["locations"])
     return coordinate_sets
-

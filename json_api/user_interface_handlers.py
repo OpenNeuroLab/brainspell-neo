@@ -15,26 +15,31 @@ from article_helpers import *
 from user_accounts import *
 
 # front page
+
+
 class MainHandler(BaseHandler):
     def get(self):
-        try: # handle failures in bulk_add
+        try:  # handle failures in bulk_add
             submitted = int(self.get_argument("success", 0))
-        except:
+        except BaseException:
             submitted = 0
         try:
             failure = int(self.get_argument("failure", 0))
-        except:
+        except BaseException:
             failure = 0
         try:  # handle registration
             registered = int(self.get_argument("registered", 0))
-        except:
+        except BaseException:
             registered = 0
 
         custom_params = {
-            "number_of_queries": Articles.select().wrapped_count(), # TODO: move to DAO (data access object)
-            "success": submitted, # TODO: name these variables better (they refer to bulk_add success/failure)
+            # TODO: move to DAO (data access object)
+            "number_of_queries": Articles.select().wrapped_count(),
+            # TODO: name these variables better (they refer to bulk_add
+            # success/failure)
+            "success": submitted,
             "failure": failure,
-            "registered": registered # boolean that indicates if someone has just registered
+            "registered": registered  # boolean that indicates if someone has just registered
         }
 
         self.render_with_user_info("static/html/index.html", custom_params)
@@ -49,14 +54,13 @@ class SearchHandler(BaseHandler):
         custom_params = {
             "query": q,
             "start": start,
-            "req": req, # TODO: parameters like "req" and "title" need to be renamed to reflect what their values are)
+            "req": req,  # TODO: parameters like "req" and "title" need to be renamed to reflect what their values are)
         }
         self.render_with_user_info("static/html/search.html", custom_params)
 
 
-
 class AddArticleFromSearchPageHandler(BaseHandler):
-    def post(self): #allows introduction of manual article
+    def post(self):  # allows introduction of manual article
         pmid = self.get_argument("newPMID")
         add_pmid_article_to_database(pmid)
 
@@ -76,7 +80,7 @@ class AddUserTagToArticleHandler(BaseHandler):
     def post(self):
         pmid = self.get_argument("pmid")
         user_tag = self.get_argument("values")
-        add_user_tag(user_tag, pmid) # TODO: needs to verify API key
+        add_user_tag(user_tag, pmid)  # TODO: needs to verify API key
         self.redirect("/view-article?id=" + pmid)
 
 
@@ -86,40 +90,47 @@ class ArticleHandler(BaseHandler):
         article_id = -1
         try:
             article_id = self.get_query_argument("id")
-        except:
-            self.redirect("/") # id wasn't passed; redirect to home page
+        except BaseException:
+            self.redirect("/")  # id wasn't passed; redirect to home page
         article_dict = {
             "article_id": article_id
         }
-        self.render_with_user_info("static/html/view-article.html", article_dict)
+        self.render_with_user_info(
+            "static/html/view-article.html", article_dict)
 
     def post(self):  # TODO: make its own endpoint; does not belong in this handler
-    # right now, this updates z scores
+        # right now, this updates z scores
         article_id = self.get_body_argument('id')
         email = self.get_current_email()
         values = ""
 
-        try: # TODO: get rid of try/catch and write correctly
+        try:  # TODO: get rid of try/catch and write correctly
             values = self.get_body_argument("dbChanges")
             values = json.loads(values)  # z-values in dictionary
             print(values)
-        except:
+        except BaseException:
             pass
         if values:
             update_z_scores(article_id, email, values)
             self.redirect("/view-article?id=" + str(article_id))
 
 # contribute page
+
+
 class ContributionHandler(BaseHandler):
     def get(self):
         self.render_with_user_info('static/html/contribute.html')
 
-# takes a file in JSON format and adds the articles to our database (called from the contribute page)
+# takes a file in JSON format and adds the articles to our database
+# (called from the contribute page)
+
+
 class BulkAddHandler(BaseHandler):
     def post(self):
-        file_body = self.request.files['articlesFile'][0]['body'].decode('utf-8')
+        file_body = self.request.files['articlesFile'][0]['body'].decode(
+            'utf-8')
         contents = json.loads(file_body)
-        if type(contents) == list:
+        if isinstance(contents, list):
             clean_articles = clean_bulk_add(contents)
             add_bulk(clean_articles)
             self.redirect("/?success=1")
@@ -128,7 +139,10 @@ class BulkAddHandler(BaseHandler):
             self.redirect("/?failure=1")
 
 # update a vote on a table tag
-class TableVoteUpdateHandler(BaseHandler): # TODO: make into a JSON API endpoint
+
+
+class TableVoteUpdateHandler(
+        BaseHandler):  # TODO: make into a JSON API endpoint
     def post(self):
         tag_name = self.get_argument("tag_name")
         direction = self.get_argument("direction")

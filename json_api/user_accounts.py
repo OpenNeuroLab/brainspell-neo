@@ -5,6 +5,8 @@ from models import *
 import simplejson
 from torngithub import json_decode
 import tornado.web
+
+
 class BaseHandler(tornado.web.RequestHandler):
     push_api = None
     pull_api = None
@@ -28,44 +30,47 @@ class BaseHandler(tornado.web.RequestHandler):
             print("GET endpoint undefined.")
 
     def render_with_user_info(self, url, params):
-        # a helper function that renders a Tornado HTML template, automatically appending user information
+        # a helper function that renders a Tornado HTML template, automatically
+        # appending user information
         login_dict = {
             "github_name": self.get_current_github_name(),
-            "github_username": self.get_current_github_username(), 
+            "github_username": self.get_current_github_username(),
             "github_avatar": self.get_current_github_avatar(),
             "api_key": self.get_current_api_key()
         }
         for k in params:
-            login_dict[k] = params[k] # rather than passing both dicts, make it 3.4 compatible by merging
+            # rather than passing both dicts, make it 3.4 compatible by merging
+            login_dict[k] = params[k]
         self.render(url, **login_dict)
 
     def __get_current_github_object__(self):
-        # returns an object representing the user's name, avatar, and access_token, or None is the user is not logged in
+        # returns an object representing the user's name, avatar, and
+        # access_token, or None is the user is not logged in
         try:
             return json_decode(self.get_secure_cookie("user"))
-        except:
+        except BaseException:
             return None
 
     def get_current_github_name(self):
-        github_user_object = self.__get_current_github_object__();
+        github_user_object = self.__get_current_github_object__()
         if github_user_object:
             return github_user_object["name"]
         return ""
 
     def get_current_github_username(self):
-        github_user_object = self.__get_current_github_object__();
+        github_user_object = self.__get_current_github_object__()
         if github_user_object:
             return github_user_object["login"]
         return ""
 
     def get_current_github_avatar(self):
-        github_user_object = self.__get_current_github_object__();
+        github_user_object = self.__get_current_github_object__()
         if github_user_object:
             return github_user_object["avatar_url"]
         return ""
 
     def get_current_github_access_token(self):
-        github_user_object = self.__get_current_github_object__();
+        github_user_object = self.__get_current_github_object__()
         if github_user_object:
             return github_user_object["access_token"]
         return ""
@@ -79,52 +84,61 @@ class BaseHandler(tornado.web.RequestHandler):
         if origin:
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
-    
-def get_user_object(user): # TODO: have a naming convention for functions that return PeeWee objects (*_object?)
-    q = User.select().where(User.emailaddress==user)
+
+
+# TODO: have a naming convention for functions that return PeeWee objects
+# (*_object?)
+def get_user_object(user):
+    q = User.select().where(User.emailaddress == user)
     return q.execute()
+
 
 def get_github_username_from_api_key(api_key):
     user = User.select().where((User.password == api_key))
     user_obj = next(user.execute())
     return user_obj.username
 
+
 def valid_api_key(api_key):
     user = User.select().where((User.password == api_key))
     return user.execute().count >= 1
 
+
 def register_github_user(user_dict):
     user_dict = json_decode(user_dict)
-    if (User.select().where(User.username == user_dict["login"]).execute().count == 0):
+    if (User.select().where(User.username ==
+                            user_dict["login"]).execute().count == 0):
         username = user_dict["login"]
-        password = str(user_dict["id"]) #Password is a hash of the Github ID
+        password = str(user_dict["id"])  # Password is a hash of the Github ID
         email = user_dict["email"]
         hasher = hashlib.sha1()
         hasher.update(password.encode('utf-8'))
         password = hasher.hexdigest()
-        User.create(username=username,emailaddress=email,password=password)
+        User.create(username=username, emailaddress=email, password=password)
         return True
     else:
-        return False #User already exists
+        return False  # User already exists
 
-def new_repo(name,username):
+
+def new_repo(name, username):
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]
     else:
-        return False #Failure TODO: Indicate Failure
+        return False  # Failure TODO: Indicate Failure
     target = eval(user.collections)
     if not target:
         target = {}
     if name in target:
-        return False #Trying to create a pre-existing repo, TODO: Indicate Failure
+        return False  # Trying to create a pre-existing repo, TODO: Indicate Failure
     target[name] = []
-    q = User.update(collections = target).where(User.username == username)
+    q = User.update(collections=target).where(User.username == username)
     q.execute()
     return True
 
+
 def add_to_repo(collection, pmid, username):
-    collection = collection.replace("brainspell-collection-","")
+    collection = collection.replace("brainspell-collection-", "")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]
@@ -132,23 +146,23 @@ def add_to_repo(collection, pmid, username):
         return False
     target = eval(user.collections)
     target[collection].append(pmid)
-    q = User.update(collections = target).where(User.username == username)
+    q = User.update(collections=target).where(User.username == username)
     q.execute()
     return True
 
 
 def remove_from_repo(collection, pmid, username):
-    collection = collection.replace("brainspell-collection-","")
+    collection = collection.replace("brainspell-collection-", "")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]
     else:
-        return False #Incorrect Username passed
+        return False  # Incorrect Username passed
     target = eval(user.collections)
     if pmid in target[collection]:
         target[collection].remove(pmid)
     else:
-        return False #Trying to remove an article that's not there
-    q = User.update(collections = target).where(User.username == username)
+        return False  # Trying to remove an article that's not there
+    q = User.update(collections=target).where(User.username == username)
     q.execute()
     return True

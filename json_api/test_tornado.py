@@ -51,7 +51,8 @@ def test_style_check():
         if os.path.splitext(f)[1] == ".py":
             with open(f, "r") as python_file_handler:
                 python_contents = python_file_handler.read()
-                assert autopep8.fix_code(python_contents) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
+                assert autopep8.fix_code(
+                    python_contents) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
 
 # Asserts search results appearing for commonly found target
 
@@ -65,7 +66,11 @@ def test_search():
 def test_procfile():
     with open("../Procfile", "r") as f:
         contents = f.read()
-        filename = contents.replace("web: python3 json_api/", "").replace("\n", "")
+        filename = contents.replace(
+            "web: python3 json_api/",
+            "").replace(
+            "\n",
+            "")
         assert filename in os.listdir()
 
 

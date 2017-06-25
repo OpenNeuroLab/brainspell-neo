@@ -52,7 +52,8 @@ def test_style_check():
             with open(f, "r") as python_file_handler:
                 python_contents = python_file_handler.read()
                 assert autopep8.fix_code(
-                    python_contents) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
+                    python_contents, options={
+                        'aggressive': 2}) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
 
 # Asserts search results appearing for commonly found target
 

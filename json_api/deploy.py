@@ -19,34 +19,26 @@ import os
 from user_accounts import BaseHandler
 import tornado.ioloop
 from time import sleep
+import brainspell
 
 
 def subprocess_cmd_sync(command):
+    # synchronously run a bash command
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
 
 
 def subprocess_cmd_async(command):
+    # asynchronously run a bash command
     subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
 
 
 class DeployHandler(BaseHandler):
     def get(self):
         # get the port that is currently running
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            '-p',
-            metavar="--port",
-            type=int,
-            help='a port to run the server on',
-            default=5000)
-        args = parser.parse_args()
-        if args.p == 5000:
-            port_to_run = int(os.environ.get("PORT", args.p))
-        else:
-            port_to_run = args.p
+        port_to_run = brainspell.get_port_to_run()
 
-        if port_to_run == 5858:
+        if port_to_run == 5858:  # potentially change this to a flag, and make the port choice arbitrary
             # if the server is running on a debug port
             print(
                 "Debug server: Navigating into the parent directory, and pulling from the git repo.")

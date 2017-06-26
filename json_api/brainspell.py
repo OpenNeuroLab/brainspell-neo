@@ -68,13 +68,7 @@ def make_app():
     ], debug=True, **settings)
 
 
-if __name__ == "__main__":
-    tornado.httpclient.AsyncHTTPClient.configure(
-        "tornado.curl_httpclient.CurlAsyncHTTPClient", defaults={
-            "allow_nonstandard_methods": True})
-    app = make_app()
-    http_server = tornado.httpserver.HTTPServer(app)
-
+def get_port_to_run():
     # allow the user to specify a custom port by CLI
     parser = argparse.ArgumentParser(description="Run Brainspell locally.")
     parser.add_argument(
@@ -88,6 +82,17 @@ if __name__ == "__main__":
         port_to_run = int(os.environ.get("PORT", args.p))
     else:
         port_to_run = args.p
+    return port_to_run
+
+
+if __name__ == "__main__":
+    tornado.httpclient.AsyncHTTPClient.configure(
+        "tornado.curl_httpclient.CurlAsyncHTTPClient", defaults={
+            "allow_nonstandard_methods": True})
+    app = make_app()
+    http_server = tornado.httpserver.HTTPServer(app)
+
+    port_to_run = get_port_to_run()
 
     http_server.listen(port_to_run)  # runs at localhost:5000 by default
     print("Running Brainspell at http://localhost:" + str(port_to_run) + "...")

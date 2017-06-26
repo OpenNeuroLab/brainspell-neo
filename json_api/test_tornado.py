@@ -8,6 +8,7 @@ from search import *
 import autopep8
 import json_api
 import user_interface_handlers
+import hashlib
 #import selenium
 #from selenium import webdriver
 #from selenium.webdriver.support.ui import WebDriverWait
@@ -91,7 +92,14 @@ def test_python_style_check():
         if os.path.splitext(f)[1] == ".py":
             with open(f, "r") as python_file_handler:
                 python_contents = python_file_handler.read()
-                assert autopep8.fix_code(python_contents, options={'aggressive': 2}) == python_contents, "Style check failed on " + f + \
+                # compare the original file hash to the styled file hash
+                styled_hash = hashlib.md5(
+                    autopep8.fix_code(
+                        python_contents, options={
+                            'aggressive': 2}).encode()).hexdigest()
+                original_hash = hashlib.md5(
+                    python_contents.encode()).hexdigest()
+                assert styled_hash == original_hash, "Style check failed on " + f + \
                     ". Run `autopep8 --in-place --aggressive --aggressive " + f + "`, or `autopep8 --in-place --aggressive --aggressive *.py`"
 
 # Asserts search results appearing for commonly found target

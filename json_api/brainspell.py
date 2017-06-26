@@ -9,6 +9,8 @@ import tornado.escape
 from json_api import *
 from github_collections import *
 from user_interface_handlers import *
+from deploy import *
+import argparse
 
 # BEGIN: init I/O loop
 
@@ -22,7 +24,6 @@ settings = {
     "login_url": "/oauth",
     "compress_response": True
 }
-
 
 def make_app():
     return tornado.web.Application([
@@ -62,6 +63,7 @@ def make_app():
         # TODO: rename to something more descriptive
         # ("add-article-from-search-page")
         (r"/search-add", AddArticleFromSearchPageHandler),
+        (r"/deploy", DeployHandler)
     ], debug=True, **settings)
 
 
@@ -71,7 +73,16 @@ if __name__ == "__main__":
             "allow_nonstandard_methods": True})
     app = make_app()
     http_server = tornado.httpserver.HTTPServer(app)
-    port = int(os.environ.get("PORT", 5000))
-    http_server.listen(port)  # runs at localhost:5000
-    print("Running Brainspell at http://localhost:5000...")
+
+    # allow the user to specify a custom port by CLI
+    parser = argparse.ArgumentParser(description="Run Brainspell locally.")
+    parser.add_argument('-p', metavar="--port", type=int, help='a port to run the server on', default=5000)
+    args = parser.parse_args()
+    if args.p == 5000:
+        port_to_run = int(os.environ.get("PORT", args.p))
+    else:
+        port_to_run = args.p
+
+    http_server.listen(port_to_run)  # runs at localhost:5000 by default
+    print("Running Brainspell at http://localhost:" + str(port_to_run) + "...")
     tornado.ioloop.IOLoop.current().start()

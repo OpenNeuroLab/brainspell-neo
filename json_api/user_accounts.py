@@ -49,7 +49,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             print("POST endpoint undefined.")
 
-
     def render_with_user_info(self, url, params):
         # a helper function that renders a Tornado HTML template, automatically
         # appending user information

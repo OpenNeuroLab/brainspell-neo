@@ -9,6 +9,7 @@ from search import *
 #from selenium.webdriver.support.ui import WebDriverWait
 import autopep8
 from html5print import HTMLBeautifier
+import json_api
 
 
 application = brainspell.make_app()
@@ -42,6 +43,17 @@ TODO: need to make tests for:
 7) saving to a brainspell.org collection, and to a GitHub collection
 """
 
+# Tests that EndpointHandlers (JSON API endpoints) conform to the
+# specification by implementing either pull_api, push_api, post_pull_api,
+# or post_push_api
+
+
+def test_endpoint_handlers():
+    for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
+        func = eval("json_api." + endpoint)
+        assert func.pull_api or func.push_api or func.post_pull_api or func.post_push_api, "The function " + endpoint + \
+            " does not implement either pull_api, push_api, post_pull_api, or post_push_api. Please reimplement the function to conform to this specification."
+
 # Tests whether requirements.txt is alphabetized (important to identify
 # missing/redundant requirements)
 
@@ -62,7 +74,7 @@ def test_python_style_check():
                 python_contents = python_file_handler.read()
                 assert autopep8.fix_code(
                     python_contents, options={
-                        'aggressive': 2}) == python_contents, "Style check failed. Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
+                        'aggressive': 2}) == python_contents, "Style check failed on " + f + ". Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
 
 # Asserts search results appearing for commonly found target
 

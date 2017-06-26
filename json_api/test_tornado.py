@@ -10,6 +10,7 @@ from search import *
 import autopep8
 from html5print import HTMLBeautifier
 import json_api
+import user_interface_handlers
 
 
 application = brainspell.make_app()
@@ -43,16 +44,23 @@ TODO: need to make tests for:
 7) saving to a brainspell.org collection, and to a GitHub collection
 """
 
+# Tests that there are no EndpointHandlers in the user_interface_handlers file.
+
+
+def test_endpoint_handlers_are_in_the_correct_file():
+    assert len([f for f in dir(user_interface_handlers) if "EndpointHandler" in f]
+               ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api."
+
 # Tests that EndpointHandlers (JSON API endpoints) conform to the
 # specification by implementing either pull_api, push_api, post_pull_api,
 # or post_push_api
 
 
-def test_endpoint_handlers():
+def test_endpoint_handlers_implementation():
     for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
         func = eval("json_api." + endpoint)
-        assert func.pull_api or func.push_api or func.post_pull_api or func.post_push_api, "The function " + endpoint + \
-            " does not implement either pull_api, push_api, post_pull_api, or post_push_api. Please reimplement the function to conform to this specification."
+        assert func.pull_api or func.push_api or func.post_pull_api or func.post_push_api, "The class " + endpoint + \
+            " does not implement either pull_api, push_api, post_pull_api, or post_push_api. Please reimplement the class to conform to this specification."
 
 # Tests whether requirements.txt is alphabetized (important to identify
 # missing/redundant requirements)
@@ -74,7 +82,7 @@ def test_python_style_check():
                 python_contents = python_file_handler.read()
                 assert autopep8.fix_code(
                     python_contents, options={
-                        'aggressive': 2}) == python_contents, "Style check failed on " + f + ". Run `autopep8 --in-place --aggressive --aggressive {YOUR FILE}`"
+                        'aggressive': 2}) == python_contents, "Style check failed on " + f + ". Run `autopep8 --in-place --aggressive --aggressive " + f + "`"
 
 # Asserts search results appearing for commonly found target
 

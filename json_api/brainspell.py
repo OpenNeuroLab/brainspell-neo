@@ -25,6 +25,7 @@ settings = {
     "compress_response": True
 }
 
+
 def make_app():
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
@@ -76,7 +77,12 @@ if __name__ == "__main__":
 
     # allow the user to specify a custom port by CLI
     parser = argparse.ArgumentParser(description="Run Brainspell locally.")
-    parser.add_argument('-p', metavar="--port", type=int, help='a port to run the server on', default=5000)
+    parser.add_argument(
+        '-p',
+        metavar="--port",
+        type=int,
+        help='a port to run the server on',
+        default=5000)
     args = parser.parse_args()
     if args.p == 5000:
         port_to_run = int(os.environ.get("PORT", args.p))

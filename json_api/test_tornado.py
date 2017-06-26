@@ -8,6 +8,7 @@ from search import *
 #from selenium import webdriver
 #from selenium.webdriver.support.ui import WebDriverWait
 import autopep8
+from html5print import HTMLBeautifier
 
 
 application = brainspell.make_app()
@@ -41,11 +42,19 @@ TODO: need to make tests for:
 7) saving to a brainspell.org collection, and to a GitHub collection
 """
 
+# Tests whether requirements.txt is alphabetized (important to identify
+# missing/redundant requirements)
+
+
+def test_requirements_file_is_sorted():
+    with open('../requirements.txt') as f:
+        lines = f.readlines()
+    assert sorted(lines) == lines, "The requirements.txt file is not sorted."
+
 # Tests for PEP8 style
 
 
-def test_style_check():
-    style_check_good = True
+def test_python_style_check():
     files_in_directory = os.listdir()
     for f in files_in_directory:
         if os.path.splitext(f)[1] == ".py":

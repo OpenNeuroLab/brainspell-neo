@@ -109,8 +109,7 @@ class ArticleEndpointHandler(BaseHandler):
 
 
 class BulkAddEndpointHandler(BaseHandler):
-    def post(self):  # no wrapper method for POST push APIs yet
-        response = {}
+    def post_push_api(self, response):
         file_body = self.request.files['articlesFile'][0]['body'].decode(
             'utf-8')
         contents = json.loads(file_body)
@@ -121,7 +120,7 @@ class BulkAddEndpointHandler(BaseHandler):
         else:
             # data is malformed
             response["success"] = 0
-        self.write(json.dumps(response))
+        return response
 
 # fetch PubMed and Neurosynth data using a user specified PMID, and add
 # the article to our database

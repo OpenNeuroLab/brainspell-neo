@@ -10,6 +10,8 @@ import tornado.web
 class BaseHandler(tornado.web.RequestHandler):
     push_api = None
     pull_api = None
+    post_push_api = None
+    post_pull_api = None
 
     def get(self):
         assert not self.push_api or not self.pull_api, "You cannot set this endpoint as both a push API and pull API endpoint."
@@ -28,6 +30,25 @@ class BaseHandler(tornado.web.RequestHandler):
             self.write(json.dumps(response))
         else:
             print("GET endpoint undefined.")
+
+    def post(self):
+        assert not self.post_push_api or self.post_pull_api, "You cannot set this POST endpoint as both a push API and pull API endpoint."
+        self.set_header("Content-Type", "application/json")
+        if self.post_push_api:
+            api_key = self.get_argument("key", "")
+            if valid_api_key(api_key):
+                response = {"success": 1}
+                response = self.post_push_api(response)
+                self.write(json.dumps(response))
+            else:
+                self.write(json.dumps({"success": 0}))
+        elif self.post_pull_api:
+            response = {"success": 1}
+            response = self.post_pull_api(response)
+            self.write(json.dumps(response))
+        else:
+            print("POST endpoint undefined.")
+
 
     def render_with_user_info(self, url, params):
         # a helper function that renders a Tornado HTML template, automatically

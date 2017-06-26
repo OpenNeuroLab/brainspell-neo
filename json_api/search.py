@@ -1,5 +1,6 @@
 # functions related to search
 
+import re
 from functools import reduce
 
 from models import *

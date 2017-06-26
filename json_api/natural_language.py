@@ -1,3 +1,5 @@
+# A set of NLP functions, none of which are currently being used
+
 import nltk
 
 text = ""  # TO be included from the Article Abstract

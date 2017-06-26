@@ -96,7 +96,7 @@
             }
             if (file.size > 2000000) { // 2MB Limit
                 // TODO: do not use alerts; show a popup modal if you really need to
-                alert("File size too large. Please contact site administrators if you want to submit larger files.");
+                alert("File size too large. Please contact the site administrators via GitHub if you want to submit larger files.");
                 location.reload();
             } else {
                 $("#uploader").before($("<p>").text(label).css("padding-left","8%"));

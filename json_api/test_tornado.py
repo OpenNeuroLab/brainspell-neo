@@ -108,7 +108,7 @@ def test_python_style_check():
 def test_search():
     assert len(formatted_search("brain", 0)) > 0
 
-# Asserts Procfile in proper place. (Required for Heroku build)
+# asserts that the Procfile points to a valid python script
 
 
 def test_procfile():

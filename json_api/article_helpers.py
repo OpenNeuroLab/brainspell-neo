@@ -79,7 +79,8 @@ def toggle_vote(pmid, topic, username, direction):
     query.execute()
 
 
-# Adds a custom user tag to the Database
+# Adds a custom user tag to the database
+
 def add_user_tag(user_tag, id):
     main_target = next(
         Articles.select(
@@ -92,6 +93,12 @@ def add_user_tag(user_tag, id):
         target["user"] = [user_tag]
     query = Articles.update(metadata=target).where(Articles.pmid == id)
     query.execute()
+
+# get total number of articles in the database
+
+
+def get_number_of_articles():
+    return Articles.select().wrapped_count()
 
 # BEGIN: add article functions
 
@@ -306,7 +313,7 @@ def update_z_scores(id, user, values):  # TODO maybe save the user that inserted
         query.execute()
 
 
-# TODO: needs to be commented more thoroughly
+# TODO: needs to be commented more thoroughly, and potentially rewritten
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     table_num = eval(table_num)
     article_obj = Articles.select(

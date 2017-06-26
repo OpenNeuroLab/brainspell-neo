@@ -8,7 +8,6 @@ import os
 import json
 import peewee
 import psycopg2
-from models import *
 import hashlib
 from base64 import b64encode
 from article_helpers import *
@@ -20,26 +19,25 @@ from user_accounts import *
 class MainHandler(BaseHandler):
     def get(self):
         try:  # handle failures in bulk_add
-            submitted = int(self.get_argument("success", 0))
+            submitted_bulk_add = int(self.get_argument("success", 0))
         except BaseException:
-            submitted = 0
+            submitted_bulk_add = 0
         try:
-            failure = int(self.get_argument("failure", 0))
+            failure_in_submitting_bulk_add = int(
+                self.get_argument("failure", 0))
         except BaseException:
-            failure = 0
+            failure_in_submitting_bulk_add = 0
         try:  # handle registration
-            registered = int(self.get_argument("registered", 0))
+            registered_right_now = int(self.get_argument("registered", 0))
         except BaseException:
-            registered = 0
+            registered_right_now = 0
 
         custom_params = {
-            # TODO: move to DAO (data access object)
-            "number_of_queries": Articles.select().wrapped_count(),
-            # TODO: name these variables better (they refer to bulk_add
-            # success/failure)
-            "success": submitted,
-            "failure": failure,
-            "registered": registered  # boolean that indicates if someone has just registered
+            "number_of_queries": get_number_of_articles(),
+            "success": submitted_bulk_add,
+            "failure": failure_in_submitting_bulk_add,
+            # boolean that indicates if someone has just registered
+            "registered": registered_right_now
         }
 
         self.render_with_user_info("static/html/index.html", custom_params)

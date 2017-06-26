@@ -1,3 +1,5 @@
+""" To run this file, run `py.test -v test_tornado.py`. """
+
 import tornado.web
 import os
 import pytest

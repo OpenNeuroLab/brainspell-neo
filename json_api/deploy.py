@@ -60,7 +60,7 @@ class DeployHandler(BaseHandler):
             Note that all shell commands executed are idempotent. If a folder already exists, for example, mkdir does nothing.
             """
             print("Production server: Cloning the Brainspell git repo into a debug folder, if one doesn't already exist, then pulling...")
-            init_commands = "mkdir debug &>/dev/null; cd debug; git clone https://github.com/OpenNeuroLab/brainspell-neo.git &>/dev/null; git pull origin master"  # TODO: pull
+            init_commands = "mkdir debug &>/dev/null; cd debug; git clone https://github.com/OpenNeuroLab/brainspell-neo.git &>/dev/null; git pull origin master"
             # clone/pull the debug server
             subprocess_cmd_sync(init_commands)
 

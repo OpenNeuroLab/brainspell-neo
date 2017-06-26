@@ -8,11 +8,7 @@ import peewee
 import os
 from urllib.parse import urlparse
 import playhouse
-import hashlib
 from playhouse.postgres_ext import *
-import re
-from functools import reduce
-import json
 
 from peewee import DateTimeField, CharField, IntegerField
 
@@ -103,6 +99,7 @@ class Log(BaseModel):
 
 
 class User(BaseModel):
+    # TODO: change capitalization of this column for consistency
     password = CharField(db_column='Password', null=True)
     emailaddress = CharField(null=True)
     userid = peewee.PrimaryKeyField()
@@ -121,35 +118,3 @@ class User_metadata(BaseModel):
 
     class Meta:
         db_table = 'user_metadata'
-
-
-# TODO: move the following two functions to the appropriate file (doesn't
-# belong in models.py)
-
-# Specifies a range around a given coordinate to search the database
-def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
-    ordered = [int(x) for x in coordinate.split(",")][0:3]  # Ignore z-score
-    search_terms = []
-    for i in range(len(ordered)):
-        for j in range(-1, 2, 1):
-            val = list(ordered)
-            val[i] = val[i] + j
-            search_terms.append(",".join([str(x) for x in val]))
-    return search_terms
-
-# Finds coordinates associated with a range around a given coordinate.
-
-
-def coactivation(coordinate):  # Yields around 11,000 coordinates
-    coordinate_sets = []
-    search_circle = generate_circle(coordinate)
-    for item in search_circle:
-        val = Articles.select(Articles.experiments).where(
-            Match(Articles.experiments, item)
-        ).execute()
-        for item in val:
-            data_set = eval(item.experiments)
-            for location_sets in data_set:
-                if location_sets.get("locations"):
-                    coordinate_sets.append(location_sets["locations"])
-    return coordinate_sets

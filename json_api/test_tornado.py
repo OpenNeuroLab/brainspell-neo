@@ -4,14 +4,13 @@ import tornado.web
 import os
 import pytest
 import brainspell
-import models
 from search import *
-#import selenium
-#from selenium import webdriver
-#from selenium.webdriver.support.ui import WebDriverWait
 import autopep8
 import json_api
 import user_interface_handlers
+#import selenium
+#from selenium import webdriver
+#from selenium.webdriver.support.ui import WebDriverWait
 
 
 application = brainspell.make_app()
@@ -42,8 +41,19 @@ TODO: need to make tests for:
 4) splitting, flagging a table
 5) voting on table and article tags
 6) setting the authors for an article
-7) saving to a brainspell.org collection, and to a GitHub collection
+7) saving to a GitHub collection
 """
+
+# Enforces a data access object abstraction layer
+
+
+def test_no_reference_to_models_in_endpoints():
+    files_to_enforce = ["json_api.py", "user_interface_handlers.py"]
+    for f in files_to_enforce:
+        with open(f, "r") as python_file_handler:
+            python_contents = python_file_handler.read()
+            assert ("from models import" not in python_contents) and ("import models" not in python_contents), "You should not access the models directly in your handler. The file " + \
+                f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
 
 # Tests that there are no EndpointHandlers in the user_interface_handlers file.
 

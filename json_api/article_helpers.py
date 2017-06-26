@@ -1,12 +1,13 @@
 # functions related to adding and editing article data
 
-from models import *
-import Bio
-from Bio import Medline
-from Bio import Entrez
-from Bio.Entrez import efetch, read, esearch, parse
 import re
 import urllib.request
+
+import Bio
+from Bio import Entrez, Medline
+from Bio.Entrez import efetch, esearch, parse, read
+
+from models import *
 
 Entrez.email = "neel@berkeley.edu"
 

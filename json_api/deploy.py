@@ -13,13 +13,15 @@ i) The server can successfully run and
 ii) The deploy endpoint on the server still exists.
 """
 
-import subprocess
 import argparse
 import os
-from user_accounts import BaseHandler
-import tornado.ioloop
+import subprocess
 from time import sleep
+
+import tornado.ioloop
+
 import brainspell
+from user_accounts import BaseHandler
 
 
 def subprocess_cmd_sync(command):

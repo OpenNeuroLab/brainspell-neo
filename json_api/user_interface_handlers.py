@@ -1,15 +1,17 @@
 # handlers for the user-facing website
 
+import hashlib
+import json
+import os
+from base64 import b64encode
+
+import peewee
+import psycopg2
+import tornado.httpclient
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import tornado.httpclient
-import os
-import json
-import peewee
-import psycopg2
-import hashlib
-from base64 import b64encode
+
 from article_helpers import *
 from user_accounts import *
 

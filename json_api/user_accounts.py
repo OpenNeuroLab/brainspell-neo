@@ -1,10 +1,11 @@
 # all functions related to user accounts
 
-import tornado
-from models import *
 import simplejson
-from torngithub import json_decode
+import tornado
 import tornado.web
+from torngithub import json_decode
+
+from models import *
 
 
 class BaseHandler(tornado.web.RequestHandler):

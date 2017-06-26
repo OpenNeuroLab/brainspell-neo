@@ -1,8 +1,8 @@
 # JSON API classes
 
-from user_accounts import *
 from article_helpers import *
 from search import *
+from user_accounts import *
 
 # BEGIN: search API endpoints
 

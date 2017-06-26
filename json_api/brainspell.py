@@ -1,16 +1,18 @@
 # the Tornado I/O loop
 
+import argparse
+import os
+
+import tornado.escape
+import tornado.httpclient
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-import tornado.httpclient
-import os
-import tornado.escape
-from json_api import *
-from github_collections import *
-from user_interface_handlers import *
+
 from deploy import *
-import argparse
+from github_collections import *
+from json_api import *
+from user_interface_handlers import *
 
 # BEGIN: init I/O loop
 

@@ -1,13 +1,15 @@
-import tornado
-from tornado.httputil import url_concat
-import torngithub
-from torngithub import json_encode
-from user_accounts import BaseHandler
 import os
+from base64 import b64encode
+
+import tornado
+import tornado.web
+import torngithub
+from tornado.httputil import url_concat
+from torngithub import json_encode
+
 from search import *
 from user_accounts import *
-import tornado.web
-from base64 import b64encode
+from user_accounts import BaseHandler
 
 # BEGIN: read environment variables
 

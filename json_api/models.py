@@ -1,16 +1,15 @@
 # contains PeeWee database models (our ORM)
 
-import peewee
-import psycopg2
-from playhouse import signals
-import time
-import peewee
 import os
+import time
 from urllib.parse import urlparse
-import playhouse
-from playhouse.postgres_ext import *
 
-from peewee import DateTimeField, CharField, IntegerField
+import peewee
+import playhouse
+import psycopg2
+from peewee import CharField, DateTimeField, IntegerField
+from playhouse import signals
+from playhouse.postgres_ext import *
 
 # in case no DATABASE_URL is specified, default to Heroku
 url = urlparse(

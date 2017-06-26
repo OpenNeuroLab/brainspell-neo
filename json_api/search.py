@@ -1,7 +1,8 @@
 # functions related to search
 
-from models import *
 from functools import reduce
+
+from models import *
 
 
 def random_search():

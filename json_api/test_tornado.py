@@ -1,14 +1,17 @@
 """ To run this file, run `py.test -v test_tornado.py`. """
 
-import tornado.web
+import hashlib
 import os
-import pytest
-import brainspell
-from search import *
+
 import autopep8
+import pytest
+import tornado.web
+
+import brainspell
 import json_api
 import user_interface_handlers
-import hashlib
+from search import *
+
 #import selenium
 #from selenium import webdriver
 #from selenium.webdriver.support.ui import WebDriverWait

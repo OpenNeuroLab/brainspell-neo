@@ -13,6 +13,7 @@ from deploy import *
 from github_collections import *
 from json_api import *
 from user_interface_handlers import *
+from web_sockets import *
 
 # BEGIN: init I/O loop
 
@@ -63,10 +64,11 @@ def make_app():
         (r"/add-user-data", AddUserTagToArticleHandler),
         (r"/update-table-vote", TableVoteUpdateHandler),
         (r"/remove-from-collection", DeleteFileHandler),
-        # TODO: rename to something more descriptive
+        # TODO: rename route to something more descriptive
         # ("add-article-from-search-page")
         (r"/search-add", AddArticleFromSearchPageHandler),
-        (r"/deploy", DeployHandler)
+        (r"/deploy", DeployHandler),
+        (r"/view-article-socket", ViewArticleWebSocket)
     ], debug=True, **settings)
 
 

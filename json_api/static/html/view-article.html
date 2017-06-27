@@ -89,7 +89,7 @@
       };
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
-      console.log(spinner);
+      //console.log(spinner);
       $.get("/repos?list=1&pmid={{article_id}}", function(data, err){
         var data = JSON.parse(data);
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
@@ -132,8 +132,10 @@
             if (disagr != -1) {
                 disagree = disagr
             }
-            var userVotedAgree = "";
+            var userVotedAgree = ""; // TODO: clean all of this up
             var userVotedDisagree = "";
+            var votedAgree = false;
+            var votedDisagree = false;
             var element = targets;
             if (typeof(targets) == "object") { // Specifies votes were provided
                 element = targets[0];
@@ -149,11 +151,13 @@
                     for (var i = 0; i < agreements; i++) {
                         if (votes["up"][i]["username"] == "{{github_username}}") {
                             userVotedAgree = " (including you)"
+                            votedAgree = true;
                         }
                     }
                     for (var i = 0; i < disagree; i++) {
                         if (votes["down"][i]["username"] == "{{github_username}}") {
                             userVotedDisagree = " (including you)"
+                            votedDisagree = true;
                         }
                     }
                 }
@@ -181,14 +185,14 @@
                                             "id": "agree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','up')`
-                                        }).text("Agree: " + agreements + userVotedAgree);
-                                    } else {
+                                        }).text("Agree: " + agreements + userVotedAgree).attr("data-voted-agree", votedAgree);
+                                    } else { // TODO: move this somewhere else; not clear that this is for table votes vs non-table
                                         return $("<a>", {
                                             "type": "button",
                                             "id":"agree",
                                             "class":"btn btn-default",
-                                            "onclick":`updateTableVote('${element}','up', ${table_num},${column})`
-                                        }).text("Agree: " + agreements + userVotedAgree);
+                                            "onclick":`updateTableVote(this, '${element}','up', ${table_num},${column})`
+                                        }).text("Agree: " + agreements + userVotedAgree).attr("data-voted-agree", votedAgree);
                                     }
                                 }
                         ).append(
@@ -200,15 +204,15 @@
                                             "id": "disagree",
                                             "class": "btn btn-default",
                                             "onclick": `updateVote('${element}','down')`
-                                        }).text("Disagree: " + disagree + userVotedDisagree);
+                                        }).text("Disagree: " + disagree + userVotedDisagree).attr("data-voted-disagree", votedDisagree);
 
                                     } else {
                                         return $("<a>", {
                                             "type": "button",
                                             "id":"disagree",
                                             "class":"btn btn-default",
-                                            "onclick":`updateTableVote('${element}','down',${table_num},${column})`
-                                        }).text("Disagree: " + disagree + userVotedDisagree);
+                                            "onclick":`updateTableVote(this, '${element}','down',${table_num},${column})`
+                                        }).text("Disagree: " + disagree + userVotedDisagree).attr("data-voted-disagree", votedDisagree);
                                     }
                                 }
 
@@ -788,7 +792,9 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
         // Updates the vote of a single table tag
-        function updateTableVote(tagName,direction,tableNum,column) {
+        function updateTableVote(btn, tagName,direction,tableNum,column) {
+            /*
+            Example of AJAX to Websocket:
             $.ajax({
                 type: "POST",
                 url: "/update-table-vote",
@@ -803,6 +809,47 @@
                 //console.log(o);
                 location.reload();
             });
+            */
+            var ws = new WebSocket("ws://localhost:5000/view-article-socket");
+            ws.onopen = function() {
+                var message = {
+                    "type": "update-table-vote",
+                    "payload": {
+                        "tag_name": tagName,
+                        "direction": direction,
+                        "table_num": tableNum,
+                        "id": getID(),
+                        "column": column,
+                        "username": "{{github_username}}"
+                    }
+                }
+                ws.send(JSON.stringify(message));
+            };
+            ws.onmessage = function (evt) {
+                responseObj = JSON.parse(evt.data);
+                // responseObj is the dictionary that the WebSocket returned
+                if (responseObj["success"] == 1) {
+                    // if success, update the UI
+                    // TODO: add a helper function to refresh the tag colors/counts
+                    /*
+                    if ($(btn).attr("data-voted-agree") == "true") {
+                        // if they've already voted, then undo the vote in the UI
+                        $(btn).attr("data-voted-agree", "false");
+                        $(btn).text($(btn).text().replace(" (including you)", ""));
+                        var votes = parseInt($(btn).text().replace("Agree: ", ""));
+                        votes -= 1;
+                        $(btn).text("Agree: " + votes);
+                    } else {
+                        $(btn).attr("data-voted-agree", "true");
+                        var votes = parseInt($(btn).text().replace("Agree: ", ""));
+                        votes += 1;
+                        $(btn).text("Agree: " + votes + " (including you)");
+                    }
+                    */
+                    // for now, just reloading
+                    location.reload();
+                }
+            };
         }
         //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {

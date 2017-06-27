@@ -316,7 +316,6 @@ def update_z_scores(id, user, values):  # TODO maybe save the user that inserted
 
 # TODO: needs to be commented more thoroughly, and potentially rewritten
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
-    table_num = eval(table_num)
     article_obj = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()

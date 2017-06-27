@@ -810,7 +810,7 @@
                 location.reload();
             });
             */
-            var ws = new WebSocket("ws://localhost:5000/view-article-socket");
+            var ws = new WebSocket("wss://brainspell.herokuapp.com/view-article-socket");
             ws.onopen = function() {
                 var message = {
                     "type": "update-table-vote",

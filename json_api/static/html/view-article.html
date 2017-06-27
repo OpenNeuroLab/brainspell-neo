@@ -495,6 +495,33 @@
 
     <script>
     // TODO: make the voting, adding coordinates, deleting coordinates, etc. stay on the same page, and update the page on callback
+        var ws = new WebSocket("wss://brainspell.herokuapp.com/view-article-socket");
+
+        ws.onmessage = function (evt) {
+            responseObj = JSON.parse(evt.data);
+            // responseObj is the dictionary that the WebSocket returned
+            if (responseObj["success"] == 1) {
+                // if success, update the UI
+                // TODO: add a helper function to refresh the entire UI
+                /*
+                if ($(btn).attr("data-voted-agree") == "true") {
+                    // if they've already voted, then undo the vote in the UI
+                    $(btn).attr("data-voted-agree", "false");
+                    $(btn).text($(btn).text().replace(" (including you)", ""));
+                    var votes = parseInt($(btn).text().replace("Agree: ", ""));
+                    votes -= 1;
+                    $(btn).text("Agree: " + votes);
+                } else {
+                    $(btn).attr("data-voted-agree", "true");
+                    var votes = parseInt($(btn).text().replace("Agree: ", ""));
+                    votes += 1;
+                    $(btn).text("Agree: " + votes + " (including you)");
+                }
+                */
+                // for now, just reloading
+                location.reload();
+            }
+        };
 
         function configureExperiments(exp) {
             $("#experiments").html("");
@@ -810,46 +837,18 @@
                 location.reload();
             });
             */
-            var ws = new WebSocket("wss://brainspell.herokuapp.com/view-article-socket");
-            ws.onopen = function() {
-                var message = {
-                    "type": "update-table-vote",
-                    "payload": {
-                        "tag_name": tagName,
-                        "direction": direction,
-                        "table_num": tableNum,
-                        "id": getID(),
-                        "column": column,
-                        "username": "{{github_username}}"
-                    }
+            var message = {
+                "type": "update-table-vote",
+                "payload": {
+                    "tag_name": tagName,
+                    "direction": direction,
+                    "table_num": tableNum,
+                    "id": getID(),
+                    "column": column,
+                    "username": "{{github_username}}"
                 }
-                ws.send(JSON.stringify(message));
-            };
-            ws.onmessage = function (evt) {
-                responseObj = JSON.parse(evt.data);
-                // responseObj is the dictionary that the WebSocket returned
-                if (responseObj["success"] == 1) {
-                    // if success, update the UI
-                    // TODO: add a helper function to refresh the tag colors/counts
-                    /*
-                    if ($(btn).attr("data-voted-agree") == "true") {
-                        // if they've already voted, then undo the vote in the UI
-                        $(btn).attr("data-voted-agree", "false");
-                        $(btn).text($(btn).text().replace(" (including you)", ""));
-                        var votes = parseInt($(btn).text().replace("Agree: ", ""));
-                        votes -= 1;
-                        $(btn).text("Agree: " + votes);
-                    } else {
-                        $(btn).attr("data-voted-agree", "true");
-                        var votes = parseInt($(btn).text().replace("Agree: ", ""));
-                        votes += 1;
-                        $(btn).text("Agree: " + votes + " (including you)");
-                    }
-                    */
-                    // for now, just reloading
-                    location.reload();
-                }
-            };
+            }
+            ws.send(JSON.stringify(message));
         }
         //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {

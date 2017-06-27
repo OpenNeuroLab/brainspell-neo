@@ -16,41 +16,92 @@ class BaseHandler(tornado.web.RequestHandler):
     post_push_api = None
     post_pull_api = None
 
+    def get_safe_arguments(self):
+        # enforce type safety
+        argumentSuccess = True
+        args = {}
+        for k in self.parameters:
+            if k not in self.request.arguments:
+                if "default" not in parameters[k]:
+                    self.write(json.dumps({
+                        "success": 0,
+                        "description": "Missing required parameter: " + k
+                    }))
+                    argumentSuccess = False
+                else:
+                    args[k] = self.parameters[k]["type"](
+                        self.parameters[k]["default"])
+            else:
+                try:
+                    args[k] = self.parameters[k]["type"](self.get_argument(k))
+                except BaseException:
+                    self.write(
+                        json.dumps(
+                            {
+                                "success": 0,
+                                "description": "Bad input for argument (type " +
+                                self.parameters[k]["type"].__name__ +
+                                "): " +
+                                k}))
+                    argumentSuccess = False
+
+        if self.push_api or self.post_push_api or (
+                "key" in self.request.arguments):
+            args["key"] = str(self.get_argument("key", ""))
+
+        return {
+            "success": argumentSuccess,
+            "args": args
+        }
+
     def get(self):
         assert not self.push_api or not self.pull_api, "You cannot set this endpoint as both a push API and pull API endpoint."
         self.set_header("Content-Type", "application/json")
-        if self.push_api:
-            api_key = self.get_query_argument("key", "")
-            if valid_api_key(api_key):
+
+        assert self.parameters is not None, "You haven't indicated the parameters for this endpoint."
+
+        argsDict = self.get_safe_arguments()
+
+        if argsDict["success"]:
+            if self.push_api:
+                api_key = self.get_query_argument("key", "")
+                if valid_api_key(argsDict["args"]["key"]):
+                    response = {"success": 1}
+                    response = self.push_api(response, argsDict["args"])
+                    self.write(json.dumps(response))
+                else:
+                    self.write(json.dumps({"success": 0}))
+            elif self.pull_api:
                 response = {"success": 1}
-                response = self.push_api(response)
+                response = self.pull_api(response, argsDict["args"])
                 self.write(json.dumps(response))
             else:
-                self.write(json.dumps({"success": 0}))
-        elif self.pull_api:
-            response = {"success": 1}
-            response = self.pull_api(response)
-            self.write(json.dumps(response))
-        else:
-            print("GET endpoint undefined.")
+                print("GET endpoint undefined.")
 
+    # TODO: at some point, we might want to consider making all GET and POST
+    # endpoints identical
     def post(self):
         assert not self.post_push_api or self.post_pull_api, "You cannot set this POST endpoint as both a push API and pull API endpoint."
         self.set_header("Content-Type", "application/json")
-        if self.post_push_api:
-            api_key = self.get_argument("key", "")
-            if valid_api_key(api_key):
+
+        assert self.parameters is not None, "You haven't indicated the parameters for this endpoint."
+
+        argsDict = self.get_safe_arguments()
+
+        if argsDict["success"]:
+            if self.post_push_api:
+                if valid_api_key(argsDict["args"]["key"]):
+                    response = {"success": 1}
+                    response = self.post_push_api(response, argsDict["args"])
+                    self.write(json.dumps(response))
+                else:
+                    self.write(json.dumps({"success": 0}))
+            elif self.post_pull_api:
                 response = {"success": 1}
-                response = self.post_push_api(response)
+                response = self.post_pull_api(response, argsDict["args"])
                 self.write(json.dumps(response))
             else:
-                self.write(json.dumps({"success": 0}))
-        elif self.post_pull_api:
-            response = {"success": 1}
-            response = self.post_pull_api(response)
-            self.write(json.dumps(response))
-        else:
-            print("POST endpoint undefined.")
+                print("POST endpoint undefined.")
 
     def render_with_user_info(self, url, params):
         # a helper function that renders a Tornado HTML template, automatically

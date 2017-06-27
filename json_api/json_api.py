@@ -10,12 +10,24 @@ from user_accounts import *
 
 
 class SearchEndpointHandler(BaseHandler):
-    def pull_api(self, response):
+    parameters = {
+        "q": {
+            "type": str,
+            "default": ""
+        },
+        "start": {
+            "type": int,
+            "default": 0
+        },
+        "req": {
+            "type": str,
+            "default": "t"
+        }
+    }
+
+    def pull_api(self, response, args):
         database_dict = {}
-        q = self.get_query_argument("q", "")
-        start = self.get_query_argument("start", 0)
-        option = self.get_query_argument("req", "t")
-        results = formatted_search(q, start, option)
+        results = formatted_search(args["q"], args["start"], args["req"])
         output_list = []
         for article in results:
             try:
@@ -34,19 +46,31 @@ class SearchEndpointHandler(BaseHandler):
             # TODO: consider returning the start/end indices for the range of
             # articles returned instead
         else:
-            response["start_index"] = start
+            response["start_index"] = args["start"]
         return response
 
 
 # API endpoint to fetch coordinates from all articles that match a query;
 # returns 200 sets of coordinates at a time
 class CoordinatesEndpointHandler(BaseHandler):
-    def pull_api(self, response):
+    parameters = {
+        "q": {
+            "type": str,
+            "default": ""
+        },
+        "start": {
+            "type": int,
+            "default": 0
+        },
+        "req": {
+            "type": str,
+            "default": "t"
+        }
+    }
+
+    def pull_api(self, response, args):
         database_dict = {}
-        q = self.get_query_argument("q", "")
-        start = self.get_query_argument("start", 0)
-        option = self.get_query_argument("req", "t")
-        results = formatted_search(q, start, option, True)
+        results = formatted_search(args["q"], args["start"], args["req"], True)
         output_list = []
         for article in results:
             try:
@@ -63,7 +87,9 @@ class CoordinatesEndpointHandler(BaseHandler):
 # API endpoint that returns five random articles; used on the front page
 # of Brainspell
 class RandomEndpointHandler(BaseHandler):
-    def pull_api(self, response):
+    parameters = {}
+
+    def pull_api(self, response, args):
         database_dict = {}
         results = random_search()
         output_list = []
@@ -86,10 +112,15 @@ class RandomEndpointHandler(BaseHandler):
 
 
 class ArticleEndpointHandler(BaseHandler):
-    def pull_api(self, response):
-        pmid = self.get_query_argument("pmid")
+    parameters = {
+        "pmid": {
+            "type": str
+        }
+    }
+
+    def pull_api(self, response, args):
         try:
-            article = next(get_article(pmid))
+            article = next(get_article(args["pmid"]))
             response["timestamp"] = article.timestamp
             response["abstract"] = article.abstract
             response["authors"] = article.authors
@@ -109,7 +140,10 @@ class ArticleEndpointHandler(BaseHandler):
 
 
 class BulkAddEndpointHandler(BaseHandler):
-    def post_push_api(self, response):
+    parameters = {}
+
+    def post_push_api(self, response, args):
+        # TODO: add better file parsing function
         file_body = self.request.files['articlesFile'][0]['body'].decode(
             'utf-8')
         contents = json.loads(file_body)
@@ -127,9 +161,15 @@ class BulkAddEndpointHandler(BaseHandler):
 
 
 class AddArticleEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        article_obj = getArticleData(pmid)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    def push_api(self, response, args):
+        article_obj = getArticleData(args["pmid"])
         request = Articles.insert(abstract=article_obj["abstract"],
                                   doi=article_obj["DOI"],
                                   authors=article_obj["authors"],
@@ -142,23 +182,47 @@ class AddArticleEndpointHandler(BaseHandler):
 
 
 class ArticleAuthorEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        authors = self.get_query_argument("authors", "")
-        update_authors(pmid, authors)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "authors": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    def push_api(self, response, args):
+        update_authors(args["pmid"], args["authors"])
         return response
 
 # endpoint for a user to vote on an article tag
 
 
 class ToggleUserVoteEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        username = get_github_username_from_api_key(
-            self.get_query_argument("key", ""))
-        topic = self.get_query_argument("topic", "")
-        pmid = self.get_query_argument("pmid", "")
-        direction = self.get_query_argument("direction", "")
-        toggle_vote(pmid, topic, username, direction)
+    parameters = {
+        "key": {
+            "type": str,
+            "default": ""
+        },
+        "topic": {
+            "type": str,
+            "default": ""
+        },
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "direction": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    def push_api(self, response, args):
+        username = get_github_username_from_api_key(args["key"])
+        toggle_vote(args["pmid"], args["topic"], username, args["direction"])
         return response
 
 # BEGIN: table API endpoints
@@ -167,41 +231,81 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 
 
 class FlagTableEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        exp = int(self.get_query_argument("experiment", ""))
-        flag_table(pmid, exp)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "experiment": {
+            "type": int
+        }
+    }
+
+    def push_api(self, response, args):
+        flag_table(args["pmid"], args["experiment"])
         return response
 
 # delete row from experiment table
 
 
 class DeleteRowEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        exp = self.get_query_argument("experiment", "")
-        row = self.get_query_argument("row", "")
-        delete_row(pmid, exp, row)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "experiment": {
+            "type": int
+        },
+        "row": {
+            "type": int
+        }
+    }
+
+    def push_api(self, response, args):
+        delete_row(args["pmid"], args["experiment"], args["row"])
         return response
 
 # split experiment table
 
 
 class SplitTableEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        exp = self.get_query_argument("experiment", "")
-        row = self.get_query_argument("row", "")
-        split_table(pmid, exp, row)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "experiment": {
+            "type": int
+        },
+        "row": {
+            "type": int
+        }
+    }
+
+    def push_api(self, response, args):
+        split_table(args["pmid"], args["experiment"], args["row"])
         return response
 
 # add one row of coordinates to an experiment table
 
 
 class AddCoordinateEndpointHandler(BaseHandler):
-    def push_api(self, response):
-        pmid = self.get_query_argument("pmid", "")
-        exp = self.get_query_argument("experiment", "")
-        coords = self.get_query_argument("coordinates", "").replace(" ", "")
-        add_coordinate(pmid, exp, coords)
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "experiment": {
+            "type": int
+        },
+        "coordinates": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    def push_api(self, response, args):
+        coords = args["coordinates"].replace(" ", "")
+        add_coordinate(args["pmid"], args["experiment"], coords)
         return response

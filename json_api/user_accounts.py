@@ -22,12 +22,16 @@ class BaseHandler(tornado.web.RequestHandler):
         args = {}
         for k in self.parameters:
             if k not in self.request.arguments:
-                if "default" not in parameters[k]:
+                if "default" not in self.parameters[k]:
                     self.write(json.dumps({
                         "success": 0,
                         "description": "Missing required parameter: " + k
                     }))
                     argumentSuccess = False
+                    return {
+                        "success": argumentSuccess,
+                        "args": args
+                    }
                 else:
                     args[k] = self.parameters[k]["type"](
                         self.parameters[k]["default"])
@@ -44,6 +48,10 @@ class BaseHandler(tornado.web.RequestHandler):
                                 "): " +
                                 k}))
                     argumentSuccess = False
+                    return {
+                        "success": argumentSuccess,
+                        "args": args
+                    }
 
         if self.push_api or self.post_push_api or (
                 "key" in self.request.arguments):

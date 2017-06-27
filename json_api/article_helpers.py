@@ -231,7 +231,6 @@ def flag_table(pmid, exp):
         elem["flagged"] = 1 - elem["flagged"]
     else:
         elem["flagged"] = 1
-    print(elem["flagged"])
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
@@ -289,7 +288,7 @@ def add_table_through_text_box(pmid, values):
         Articles.pmid == pmid).execute()
 
 
-def update_z_scores(id, user, values):  # TODO maybe save the user that inserted the data
+def update_z_scores(id, user, values):  # TODO: maybe save the user that inserted the data
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == id).execute()
@@ -314,7 +313,7 @@ def update_z_scores(id, user, values):  # TODO maybe save the user that inserted
         query.execute()
 
 
-# TODO: needs to be commented more thoroughly, and potentially rewritten
+# TODO: needs to be commented more thoroughly, and probably rewritten
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     article_obj = Articles.select(
         Articles.experiments).where(

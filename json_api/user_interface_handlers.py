@@ -53,6 +53,7 @@ class SearchHandler(BaseHandler):
 
 
 class AddArticleFromSearchPageHandler(BaseHandler):
+    # TODO: make JSON endpoint
     def post(self):  # allows introduction of manual article
         pmid = self.get_argument("newPMID")
         add_pmid_article_to_database(pmid)
@@ -60,6 +61,7 @@ class AddArticleFromSearchPageHandler(BaseHandler):
 
 # Handler for the textbox to add a table of coordinates on view-article page
 class AddTableTextBoxHandler(BaseHandler):
+    # TODO: make JSON endpoint
     def post(self):
         pmid = self.get_argument("pmid", "")
         vals = self.get_argument("values", "")
@@ -70,6 +72,7 @@ class AddTableTextBoxHandler(BaseHandler):
 
 # Adds a custom user Tag to the database
 class AddUserTagToArticleHandler(BaseHandler):
+    # TODO: make JSON endpoint
     def post(self):
         pmid = self.get_argument("pmid")
         user_tag = self.get_argument("values")
@@ -119,6 +122,7 @@ class ContributionHandler(BaseHandler):
 
 
 class BulkAddHandler(BaseHandler):
+    # TODO: make JSON endpoint
     def post(self):
         file_body = self.request.files['articlesFile'][0]['body'].decode(
             'utf-8')

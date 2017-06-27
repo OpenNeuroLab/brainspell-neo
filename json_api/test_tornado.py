@@ -54,7 +54,7 @@ TODO: need to make tests for:
 # specification by implementing the receive function.
 
 
-def test_endpoint_handlers_implementation():
+def test_web_sockets_implementation():
     for socket in [f for f in dir(web_sockets) if "WebSocket" in f]:
         func = eval("web_sockets." + socket)
         assert func.receive, "The class " + socket + \

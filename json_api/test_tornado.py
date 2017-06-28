@@ -67,15 +67,14 @@ def test_endpoint_handlers_are_in_the_correct_file():
                ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api."
 
 # Tests that EndpointHandlers (JSON API endpoints) conform to the
-# specification by implementing either pull_api, push_api, post_pull_api,
-# or post_push_api
+# specification by indicating the endpoint type
 
 
 def test_endpoint_handlers_implementation():
     for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
         func = eval("json_api." + endpoint)
-        assert func.pull_api or func.push_api or func.post_pull_api or func.post_push_api, "The class " + endpoint + \
-            " does not implement either pull_api, push_api, post_pull_api, or post_push_api. Please reimplement the class to conform to this specification."
+        assert func.endpoint_type, "The class " + endpoint + \
+            " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
 
 # Tests whether requirements.txt is alphabetized (important to identify
 # missing/redundant requirements)

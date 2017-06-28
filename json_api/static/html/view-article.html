@@ -495,7 +495,7 @@
 
     <script>
     // TODO: make the voting, adding coordinates, deleting coordinates, etc. stay on the same page, and update the page on callback
-        var ws = new WebSocket("ws://localhost:5000/api-socket");
+        var ws = new WebSocket("wss://brainspell.herokuapp.com/api-socket");
 
         ws.onmessage = function (evt) {
             responseObj = JSON.parse(evt.data);

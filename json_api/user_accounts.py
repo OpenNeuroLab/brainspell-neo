@@ -54,7 +54,9 @@ def new_repo(name, username):
     if name in target:
         return False  # Trying to create a pre-existing repo, TODO: Indicate Failure
     target[name] = []
-    q = User.update(collections=json_encode(target)).where(User.username == username)
+    q = User.update(
+        collections=json_encode(target)).where(
+        User.username == username)
     q.execute()
     return True
 
@@ -67,13 +69,15 @@ def add_to_repo(collection, pmid, username):
     else:
         return False
     if not user.collections:
-        target = { }
+        target = {}
     else:
         target = json_decode(user.collections)
     if collection not in target:
         target[collection] = []
     target[collection].append(pmid)
-    q = User.update(collections=json_encode(target)).where(User.username == username)
+    q = User.update(
+        collections=json_encode(target)).where(
+        User.username == username)
     q.execute()
     return True
 

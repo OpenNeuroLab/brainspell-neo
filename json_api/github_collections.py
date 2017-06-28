@@ -201,7 +201,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             else:
                 self.render_with_user_info("static/html/github-account.html", {
                     "info": repos
-                    })
+                })
 
         # if you're not authorized, redirect to oauth
         else:
@@ -349,6 +349,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
             access_token=self.get_current_github_access_token(),
             method="DELETE",
             body={"sha": sha, "message": "removing {} from collection".format(pmid)})]
+
 
 """
  class BulkNewFileHandler(BaseHandler, torngithub.GithubMixin):

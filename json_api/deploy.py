@@ -8,10 +8,14 @@ Sets up a handler for the endpoint /deploy, which when triggered on a production
 3) Triggers the /deploy endpoint on the debug server locally, which:
     a) Navigates out of the "debug" directory, and pulls a fresh copy of the GitHub repo for the production server.
 
-This process ensures that a GitHub push is only deployed to production if:
+This process ensures that a GitHub push is deployed to production only if:
 i) The server can successfully run and
 ii) The deploy endpoint on the server still exists.
+
+There is no guarantee that the deploy endpoint is functioning properly.
 """
+
+# TODO: set up SupervisorD
 
 import argparse
 import os
@@ -57,7 +61,8 @@ class DeployHandler(BaseHandler):
             init_commands = "mkdir debug &>/dev/null; cd debug; git clone https://github.com/OpenNeuroLab/brainspell-neo.git &>/dev/null; git pull origin master"
             # clone/pull the debug server
             subprocess_cmd_sync(init_commands)
-
+            subprocess_cmd_sync(
+                "cd debug/brainspell-neo; pip install -r requirements.txt")
             print("Production server: Starting debug server...")
             subprocess_cmd_async(
                 "cd debug/brainspell-neo; python3 json_api/brainspell.py -p 5858 &")

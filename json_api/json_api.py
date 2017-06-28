@@ -1,13 +1,14 @@
 # JSON API classes
 
 from article_helpers import *
+from base_handler import *
 from search import *
 from user_accounts import *
-from base_handler import *
 
 # BEGIN: search API endpoints
 
 # API endpoint to handle search queries; returns 10 results at a time
+
 
 class QueryEndpointHandler(BaseHandler):
     parameters = {
@@ -165,7 +166,7 @@ class BulkAddEndpointHandler(BaseHandler):
             else:
                 # data is malformed
                 response["success"] = 0
-        except:
+        except BaseException:
             response["success"] = 0
             response["description"] = "You must POST a file with the parameter name 'articlesFile' to this endpoint."
         return response
@@ -249,6 +250,7 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 
 # vote on a table tag
 
+
 class UpdateTableVoteEndpointHandler(BaseHandler):
     parameters = {
         "tag_name": {
@@ -274,7 +276,13 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        update_table_vote(args["tag_name"], args["direction"], args["table_num"], args["id"], args["column"], args["username"])
+        update_table_vote(
+            args["tag_name"],
+            args["direction"],
+            args["table_num"],
+            args["id"],
+            args["column"],
+            args["username"])
         return response
 
 # flag a table as inaccurate

@@ -1,13 +1,17 @@
+import json
+from enum import Enum, auto
+
 import tornado
 import tornado.web
-from enum import Enum, auto
-import json
 from torngithub import json_decode
+
 from user_accounts import *
+
 
 class Endpoint(Enum):
     PUSH_API = auto()
     PULL_API = auto()
+
 
 class BaseHandler(tornado.web.RequestHandler):
     endpoint_type = None
@@ -40,7 +44,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 "key" in self.request.arguments):
             try:
                 args["key"] = str(accessor("key"))
-            except:
+            except BaseException:
                 args["key"] = ""
 
         return {
@@ -49,7 +53,8 @@ class BaseHandler(tornado.web.RequestHandler):
         }
 
     def get(self):
-        # provides guarantee for API key on PUSH endpoints, and documentation at /help
+        # provides guarantee for API key on PUSH endpoints, and documentation
+        # at /help
         assert self.endpoint_type, "You must indicate what type of endpoint this is by setting the endpoint_type variable."
         self.set_header("Content-Type", "application/json")
 
@@ -74,14 +79,17 @@ class BaseHandler(tornado.web.RequestHandler):
             self.write(json.dumps({
                 "success": 1,
                 "parameters": formattedParameters
-                }))
+            }))
         else:
             # type check arguments
-            argsDict = self.get_safe_arguments(self.request.arguments, self.get_argument)
+            argsDict = self.get_safe_arguments(
+                self.request.arguments, self.get_argument)
 
             if argsDict["success"] == 1:
                 # validate API key if push endpoint
-                if self.endpoint_type == Endpoint.PULL_API or (self.endpoint_type == Endpoint.PUSH_API and valid_api_key(argsDict["args"]["key"])):
+                if self.endpoint_type == Endpoint.PULL_API or (
+                    self.endpoint_type == Endpoint.PUSH_API and valid_api_key(
+                        argsDict["args"]["key"])):
                     response = {"success": 1}
                     response = self.process(response, argsDict["args"])
                     self.write(json.dumps(response))

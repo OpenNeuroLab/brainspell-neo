@@ -288,7 +288,8 @@ def add_table_through_text_box(pmid, values):
         Articles.pmid == pmid).execute()
 
 
-def update_z_scores(id, user, values):  # TODO: maybe save the user that inserted the data
+# TODO: maybe save the user that inserted the data
+def update_z_scores(id, user, values):
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == id).execute()

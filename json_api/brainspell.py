@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 
 import tornado.escape
 import tornado.httpclient
@@ -9,12 +10,11 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+import json_api
 from deploy import *
 from github_collections import *
-import json_api
 from user_interface_handlers import *
 from web_sockets import *
-import re
 
 # BEGIN: init I/O loop
 
@@ -28,6 +28,7 @@ settings = {
     "login_url": "/oauth",
     "compress_response": True
 }
+
 
 def getJSONEndpoints():
     endpoints = []

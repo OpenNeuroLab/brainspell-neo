@@ -1,3 +1,4 @@
+import hashlib
 import os
 from base64 import b64encode
 
@@ -7,11 +8,9 @@ import torngithub
 from tornado.httputil import url_concat
 from torngithub import json_encode
 
-import hashlib
-
+from base_handler import *
 from search import *
 from user_accounts import *
-from base_handler import *
 
 # BEGIN: read environment variables
 
@@ -50,7 +49,9 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             )
             if user:
                 self.set_secure_cookie("user", json_encode(user))
-                register_github_user(json_encode(user)) # idempotent operation to make sure GitHub user is in our database
+                # idempotent operation to make sure GitHub user is in our
+                # database
+                register_github_user(json_encode(user))
                 api_key = str(user["id"])
                 hasher = hashlib.sha1()
                 hasher.update(api_key.encode('utf-8'))

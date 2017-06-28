@@ -6,8 +6,8 @@ import os
 from base64 import b64encode
 
 from article_helpers import *
-from user_accounts import *
 from base_handler import *
+from user_accounts import *
 
 # front page
 

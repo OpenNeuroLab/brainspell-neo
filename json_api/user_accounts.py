@@ -1,10 +1,13 @@
 # all functions related to user accounts
 
 from torngithub import json_decode
+
 from models import *
 
 # TODO: have a naming convention for functions that return PeeWee objects
 # (*_object?)
+
+
 def get_user_object(user):
     q = User.select().where(User.emailaddress == user)
     return q.execute()

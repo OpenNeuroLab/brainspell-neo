@@ -1,6 +1,7 @@
 # all functions related to user accounts
 
 from torngithub import json_decode
+from torngithub import json_encode
 
 from models import *
 
@@ -46,13 +47,14 @@ def new_repo(name, username):
         user = list(user)[0]
     else:
         return False  # Failure TODO: Indicate Failure
-    target = eval(user.collections)
-    if not target:
+    if not user.collections:
         target = {}
+    else:
+        target = json_decode(user.collections)
     if name in target:
         return False  # Trying to create a pre-existing repo, TODO: Indicate Failure
     target[name] = []
-    q = User.update(collections=target).where(User.username == username)
+    q = User.update(collections=json_encode(target)).where(User.username == username)
     q.execute()
     return True
 
@@ -64,9 +66,14 @@ def add_to_repo(collection, pmid, username):
         user = list(user)[0]
     else:
         return False
-    target = eval(user.collections)
+    if not user.collections:
+        target = { }
+    else:
+        target = json_decode(user.collections)
+    if collection not in target:
+        target[collection] = []
     target[collection].append(pmid)
-    q = User.update(collections=target).where(User.username == username)
+    q = User.update(collections=json_encode(target)).where(User.username == username)
     q.execute()
     return True
 

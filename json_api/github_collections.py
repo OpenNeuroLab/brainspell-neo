@@ -171,6 +171,14 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                     # extract pmids from content body
                     pmids = [c["name"].replace(".json", "") for c in content]
 
+                    # If we are looking for a certaim pmid, add a tag for if it
+                    # exists in the collection
+                    if pmid:
+                        if pmid in pmids:
+                            repo["in_collection"] = True
+                        else:
+                            repo["in_collection"] = False
+
                     # get article information from each pmid from the database
                     all_contents = [next(get_article(pmid)) for pmid in pmids]
                 except BaseException:  # TODO This is hacky, Empty Repos break the code!
@@ -186,14 +194,6 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                         pmid=cont.pmid)
                 repo["contents"] = [
                     article_content_dict(cont) for cont in all_contents]
-
-                # If we are looking for a certaim pmid, add a tag for if it
-                # exists in the collection
-                if pmid:
-                    if pmid in pmids:
-                        repo["in_collection"] = True
-                    else:
-                        repo["in_collection"] = False
 
             # if we want to return a JSON instead or a page render
             if return_list:

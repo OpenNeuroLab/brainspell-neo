@@ -1,5 +1,5 @@
 import json
-from enum import Enum, auto
+from enum import Enum
 
 import tornado
 import tornado.web
@@ -9,8 +9,8 @@ from user_accounts import *
 
 
 class Endpoint(Enum):
-    PUSH_API = auto()
-    PULL_API = auto()
+    PUSH_API = 1
+    PULL_API = 2
 
 
 class BaseHandler(tornado.web.RequestHandler):

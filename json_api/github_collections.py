@@ -7,9 +7,11 @@ import torngithub
 from tornado.httputil import url_concat
 from torngithub import json_encode
 
+import hashlib
+
 from search import *
 from user_accounts import *
-from user_accounts import BaseHandler
+from base_handler import *
 
 # BEGIN: read environment variables
 
@@ -48,7 +50,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             )
             if user:
                 self.set_secure_cookie("user", json_encode(user))
-                register_github_user(json_encode(user))
+                register_github_user(json_encode(user)) # idempotent operation to make sure GitHub user is in our database
                 api_key = str(user["id"])
                 hasher = hashlib.sha1()
                 hasher.update(api_key.encode('utf-8'))
@@ -124,10 +126,10 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             pmid = False
 
         gh_user = self.__get_current_github_object__()
-        if gh_user["access_token"]:
+        if self.get_current_github_access_token():
             # get all repos for an authenticated user
             data = yield get_my_repos(self.get_auth_http_client(),
-                                      gh_user['access_token'])
+                                      self.get_current_github_access_token())
             repos = [d for d in data if d["name"].startswith(
                 "brainspell-collection")]
 
@@ -146,18 +148,18 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                 try:
                     content_data = yield torngithub.github_request(
                         self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
                                                                        repo=repo["name"],
                                                                        # path="{}.json".format(pmid)
                                                                        path=""
                                                                        ),
-                        access_token=gh_user['access_token'],
+                        access_token=self.get_current_github_access_token(),
                         method="GET")
 
                     print(repo["contributors_url"])
                     contrib = yield torngithub.github_request(self.get_auth_http_client(),
                                                               repo["contributors_url"].replace("https://api.github.com", ""),
-                                                              access_token=gh_user['access_token'],
+                                                              access_token=self.get_current_github_access_token(),
                                                               method="GET")
                     repo["contributors"] = contrib["body"]
 
@@ -198,8 +200,8 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
             else:
                 self.render("static/html/github-account.html",
                             info=repos,
-                            github_user=gh_user["name"],
-                            github_avatar=gh_user["avatar_url"],
+                            github_user=self.get_current_github_name(),
+                            github_avatar=self.get_current_github_avatar(),
                             title=self.get_current_email()
                             )
 
@@ -221,7 +223,7 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
         else:
             gh_user = self.__get_current_github_object__()
             # Update database with new Collection
-            new_repo(name, gh_user["login"])
+            new_repo(name, self.get_current_github_username())
             body = {
                 "name": "brainspell-collection-{}".format(name),
                 "description": desc,
@@ -233,7 +235,7 @@ class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
             }
             ress = yield [torngithub.github_request(
                 self.get_auth_http_client(), '/user/repos',
-                access_token=gh_user['access_token'],
+                access_token=self.get_current_github_access_token(),
                 method="POST",
                 body=body)]
             data = []
@@ -267,17 +269,17 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
                  "notes": "Here are my notes on this article"}
         content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
         gh_user = self.__get_current_github_object__()
-        add_to_repo(collection, pmid, gh_user["login"])
+        add_to_repo(collection, pmid, self.get_current_github_username())
         body = {
             "message": "adding {} to collection".format(pmid),
             "content": content
         }
         ress = yield [torngithub.github_request(
             self.get_auth_http_client(),
-            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
                                                            repo=collection,
                                                            path="{}.json".format(pmid)),
-            access_token=gh_user['access_token'],
+            access_token=self.get_current_github_access_token(),
             method="PUT",
             body=body)]
         data = []
@@ -300,7 +302,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
         content = b64encode(json_encode(entry).encode("utf=8"))
         gh_user = self.__get_current_github_object__()
 
-        remove_from_repo(collection, pmid, gh_user["login"])
+        remove_from_repo(collection, pmid, self.get_current_github_username())
 
         body = {
             "message": "deleting {} to collection".format(pmid),
@@ -308,20 +310,20 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
 
         sha_data = yield [torngithub.github_request(
             self.get_auth_http_client(),
-            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
                                                            repo=collection,
                                                            path="{}.json".format(pmid)),
-            access_token=gh_user['access_token'],
+            access_token=self.get_current_github_access_token(),
             method="GET")]
 
         sha = [s["body"]["sha"] for s in sha_data][0]
 
         ress = yield [torngithub.github_request(
             self.get_auth_http_client(),
-            '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+            '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
                                                            repo=collection,
                                                            path="{}.json".format(pmid)),
-            access_token=gh_user['access_token'],
+            access_token=self.get_current_github_access_token(),
             method="DELETE",
             body={"sha": sha, "message": "removing {} from collection".format(pmid)})]
 
@@ -346,7 +348,7 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
 #                          "notes": "Here are my notes on this article"}
 #                 content = b64encode(json_encode(entry).encode("utf-8")).decode('utf-8')
 #                 gh_user = self.__get_current_github_object__()
-#                 add_to_repo(collection,pmid,gh_user["login"])
+#                 add_to_repo(collection,pmid,self.get_current_github_username())
 #                 body = {
 #                     "message": "adding {} to collection".format(pmid),
 #                     "content": content
@@ -354,10 +356,10 @@ class DeleteFileHandler(BaseHandler, torngithub.GithubMixin):
 #                 ress = yield [
 #                     torngithub.github_request(
 #                         self.get_auth_http_client(),
-#                         '/repos/{owner}/{repo}/contents/{path}'.format(owner=gh_user["login"],
+#                         '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
 #                                                                        repo=collection,
 #                                                                        path="{}.json".format(pmid)),
-#                         access_token=gh_user['access_token'],
+#                         access_token=self.get_current_github_access_token(),
 #                         method="PUT",
 #                         body=body
 #                     )

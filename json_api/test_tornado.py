@@ -9,7 +9,6 @@ import tornado.web
 
 import brainspell
 import json_api
-import web_sockets
 import user_interface_handlers
 from search import *
 
@@ -48,18 +47,6 @@ TODO: need to make tests for:
 6) setting the authors for an article
 7) saving to a GitHub collection
 """
-
-
-# Tests that WebSockets conform to the
-# specification by implementing the receive function.
-
-
-def test_web_sockets_implementation():
-    for socket in [f for f in dir(web_sockets) if "WebSocket" in f]:
-        func = eval("web_sockets." + socket)
-        assert func.receive, "The class " + socket + \
-            " does not implement the receive function. Please reimplement the class to conform to this specification."
-
 
 # Enforces a data access object abstraction layer
 

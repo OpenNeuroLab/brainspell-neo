@@ -11,9 +11,10 @@ import tornado.web
 
 from deploy import *
 from github_collections import *
-from json_api import *
+import json_api
 from user_interface_handlers import *
 from web_sockets import *
+import re
 
 # BEGIN: init I/O loop
 
@@ -28,6 +29,15 @@ settings = {
     "compress_response": True
 }
 
+def getJSONEndpoints():
+    endpoints = []
+    for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
+        func = eval("json_api." + endpoint)
+        name = convert(endpoint.replace("EndpointHandler", ""))
+        endpoints.append((r"/json/" + name, func))
+        endpoints.append((r"/json/" + name + "/help", func))
+    return endpoints
+
 
 def make_app():
     return tornado.web.Application([
@@ -35,21 +45,6 @@ def make_app():
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'static')}),
         (r"/", MainHandler),
-        (r"/json/query", SearchEndpointHandler),
-        # TODO: add to API documentation on wiki
-        (r"/json/coordinates", CoordinatesEndpointHandler),
-        (r"/json/random-query", RandomEndpointHandler),
-        (r"/json/add-article", AddArticleEndpointHandler),
-        (r"/json/set-article-authors", ArticleAuthorEndpointHandler),
-        (r"/json/article", ArticleEndpointHandler),
-        (r"/json/delete-row", DeleteRowEndpointHandler),
-        (r"/json/split-table", SplitTableEndpointHandler),
-        # adds a single coordinate row to the end of an experiment table
-        (r"/json/add-row", AddCoordinateEndpointHandler),
-        # TODO: add API documentation
-        (r"/json/flag-table", FlagTableEndpointHandler),
-        (r"/json/bulk-add", BulkAddEndpointHandler),
-        (r"/json/toggle-user-vote", ToggleUserVoteEndpointHandler),
         (r"/search", SearchHandler),
         (r"/view-article", ArticleHandler),
         (r"/contribute", ContributionHandler),
@@ -68,8 +63,8 @@ def make_app():
         # ("add-article-from-search-page")
         (r"/search-add", AddArticleFromSearchPageHandler),
         (r"/deploy", DeployHandler),
-        (r"/view-article-socket", ViewArticleWebSocket)
-    ], debug=True, **settings)
+        (r"/api-socket", EndpointWebSocket)
+    ] + getJSONEndpoints(), debug=True, **settings)
 
 
 def get_port_to_run():

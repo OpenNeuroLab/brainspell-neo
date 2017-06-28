@@ -1,14 +1,26 @@
 import json
 
 import tornado.websocket
+import json_api
 
 from article_helpers import *
+from user_accounts import *
+from base_handler import *
 
+first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+all_cap_re = re.compile('([a-z0-9])([A-Z])')
+def convert(name):
+    s1 = first_cap_re.sub(r'\1-\2', name)
+    return all_cap_re.sub(r'\1-\2', s1).lower()
 
-# abstract class for general WebSocket handler
-class BaseSocket(tornado.websocket.WebSocketHandler):
-    receive = None
+endpoints = {}
+for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
+    func = eval("json_api." + endpoint)
+    name = convert(endpoint.replace("EndpointHandler", ""))
+    endpoints[name] = func
 
+# WebSocket implementation of all JSON endpoints
+class EndpointWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         # setup
         pass
@@ -21,39 +33,32 @@ class BaseSocket(tornado.websocket.WebSocketHandler):
 
         messageDict = json.loads(message)
 
-        assert self.receive is not None, "You haven't implemented this WebSocket"
-        response = self.receive(messageDict, response)
+        if messageDict["type"] not in endpoints:
+            self.write_message({
+                "success": 0,
+                "description": "Endpoint undefined."
+                })
+        else:
+            func = endpoints[messageDict["type"]]
+            payload = { }
+            if "payload" in messageDict:
+                payload = messageDict["payload"]
 
-        self.write_message(response)
+            argsDict = BaseHandler.get_safe_arguments(func, payload, lambda k : payload[k])
+
+            if argsDict["success"] == 1:
+                # validate API key if push endpoint
+                if func.endpoint_type == Endpoint.PULL_API or (func.endpoint_type == Endpoint.PUSH_API and valid_api_key(argsDict["args"]["key"])):
+                    response = {"success": 1}
+                    response = func.process(func, response, argsDict["args"])
+                    self.write_message(json.dumps(response))
+                else:
+                    self.write_message(json.dumps({"success": 0,
+                        "description": "Invalid API key."}))
+            else:
+                # print the error message from argument parsing
+                self.write_message(json.dumps(argsDict))
 
     def on_close(self):
         # cleanup
         pass
-
-
-class ViewArticleWebSocket(BaseSocket):
-    def receive(self, message, response):
-
-        if message["type"] == "update-table-vote":
-            payload = message["payload"]
-            tag_name = payload["tag_name"]
-            direction = payload["direction"]
-            table_num = payload["table_num"]
-            pmid = payload["id"]
-            column = payload["column"]
-            user = payload["username"]
-            print(table_num)
-            update_table_vote(
-                tag_name,
-                direction,
-                table_num,
-                pmid,
-                column,
-                user)
-        elif message["type"] == "delete-row":
-            pass  # TODO: implement
-        else:
-            # message type is invalid
-            response["success"] = 0
-
-        return response

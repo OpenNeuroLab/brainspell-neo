@@ -21,7 +21,7 @@ from time import sleep
 import tornado.ioloop
 
 import brainspell
-from user_accounts import BaseHandler
+from base_handler import *
 
 
 def subprocess_cmd_sync(command):

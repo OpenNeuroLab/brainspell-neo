@@ -3,13 +3,13 @@
 from article_helpers import *
 from search import *
 from user_accounts import *
+from base_handler import *
 
 # BEGIN: search API endpoints
 
 # API endpoint to handle search queries; returns 10 results at a time
 
-
-class SearchEndpointHandler(BaseHandler):
+class QueryEndpointHandler(BaseHandler):
     parameters = {
         "q": {
             "type": str,
@@ -25,7 +25,9 @@ class SearchEndpointHandler(BaseHandler):
         }
     }
 
-    def pull_api(self, response, args):
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
         database_dict = {}
         results = formatted_search(args["q"], args["start"], args["req"])
         output_list = []
@@ -68,7 +70,9 @@ class CoordinatesEndpointHandler(BaseHandler):
         }
     }
 
-    def pull_api(self, response, args):
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
         database_dict = {}
         results = formatted_search(args["q"], args["start"], args["req"], True)
         output_list = []
@@ -86,10 +90,12 @@ class CoordinatesEndpointHandler(BaseHandler):
 
 # API endpoint that returns five random articles; used on the front page
 # of Brainspell
-class RandomEndpointHandler(BaseHandler):
+class RandomQueryEndpointHandler(BaseHandler):
     parameters = {}
 
-    def pull_api(self, response, args):
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
         database_dict = {}
         results = random_search()
         output_list = []
@@ -118,7 +124,9 @@ class ArticleEndpointHandler(BaseHandler):
         }
     }
 
-    def pull_api(self, response, args):
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
         try:
             article = next(get_article(args["pmid"]))
             response["timestamp"] = article.timestamp
@@ -142,18 +150,24 @@ class ArticleEndpointHandler(BaseHandler):
 class BulkAddEndpointHandler(BaseHandler):
     parameters = {}
 
-    def post_push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         # TODO: add better file parsing function
-        file_body = self.request.files['articlesFile'][0]['body'].decode(
-            'utf-8')
-        contents = json.loads(file_body)
-        if isinstance(contents, list):
-            clean_articles = clean_bulk_add(contents)
-            add_bulk(clean_articles)
-            response["success"] = 1
-        else:
-            # data is malformed
+        try:
+            file_body = self.request.files['articlesFile'][0]['body'].decode(
+                'utf-8')
+            contents = json.loads(file_body)
+            if isinstance(contents, list):
+                clean_articles = clean_bulk_add(contents)
+                add_bulk(clean_articles)
+                response["success"] = 1
+            else:
+                # data is malformed
+                response["success"] = 0
+        except:
             response["success"] = 0
+            response["description"] = "You must POST a file with the parameter name 'articlesFile' to this endpoint."
         return response
 
 # fetch PubMed and Neurosynth data using a user specified PMID, and add
@@ -168,7 +182,9 @@ class AddArticleEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         article_obj = getArticleData(args["pmid"])
         request = Articles.insert(abstract=article_obj["abstract"],
                                   doi=article_obj["DOI"],
@@ -181,7 +197,7 @@ class AddArticleEndpointHandler(BaseHandler):
 # edit the authors of an article
 
 
-class ArticleAuthorEndpointHandler(BaseHandler):
+class SetArticleAuthorsEndpointHandler(BaseHandler):
     parameters = {
         "pmid": {
             "type": str,
@@ -193,7 +209,9 @@ class ArticleAuthorEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         update_authors(args["pmid"], args["authors"])
         return response
 
@@ -220,12 +238,44 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         username = get_github_username_from_api_key(args["key"])
         toggle_vote(args["pmid"], args["topic"], username, args["direction"])
         return response
 
 # BEGIN: table API endpoints
+
+# vote on a table tag
+
+class UpdateTableVoteEndpointHandler(BaseHandler):
+    parameters = {
+        "tag_name": {
+            "type": str
+        },
+        "direction": {
+            "type": str
+        },
+        "table_num": {
+            "type": int
+        },
+        "id": {
+            "type": int
+        },
+        "column": {
+            "type": str
+        },
+        "username": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        update_table_vote(args["tag_name"], args["direction"], args["table_num"], args["id"], args["column"], args["username"])
+        return response
 
 # flag a table as inaccurate
 
@@ -241,7 +291,9 @@ class FlagTableEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         flag_table(args["pmid"], args["experiment"])
         return response
 
@@ -262,7 +314,9 @@ class DeleteRowEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         delete_row(args["pmid"], args["experiment"], args["row"])
         return response
 
@@ -283,14 +337,16 @@ class SplitTableEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         split_table(args["pmid"], args["experiment"], args["row"])
         return response
 
 # add one row of coordinates to an experiment table
 
 
-class AddCoordinateEndpointHandler(BaseHandler):
+class AddRowEndpointHandler(BaseHandler):
     parameters = {
         "pmid": {
             "type": str,
@@ -305,7 +361,9 @@ class AddCoordinateEndpointHandler(BaseHandler):
         }
     }
 
-    def push_api(self, response, args):
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
         coords = args["coordinates"].replace(" ", "")
         add_coordinate(args["pmid"], args["experiment"], coords)
         return response

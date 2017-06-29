@@ -18,6 +18,12 @@ Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell sho
 
 Having difficulty getting Brainspell running? Install [Conda](https://conda.io/docs/get-started.html), and create an environment for Python 3.5.
 
+## Runing Brainspell with Docker
+1) Navigate to brainspell directory 
+2) docker build -t brainspell .
+3) docker run -ti -d -p 5000:5000 brainspell
+4) Brainspell will be running at: http://192.168.99.100:5000/
+
 ## Code Organization
 
 `json_api/brainspell.py` runs the Tornado main event loop and contains all of the RequestHandlers. Our naming convention is to use `____EndpointHandler` for handlers related to the JSON API, and `____Handler` for web interface handlers.  

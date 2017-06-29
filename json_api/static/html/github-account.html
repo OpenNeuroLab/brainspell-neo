@@ -44,18 +44,16 @@
       {% for idx, i in enumerate(info) %}
       <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="heading{{idx}}">
-          <div class="col-md-2">
               <h4 class="panel-title">
               <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{idx}}" aria-expanded="{{str(idx == 0).lower()}}" aria-controls="collapse{{idx}}">
                 {{i["pretty_name"]}}
               </a>
             </h4>
-          </div>
           <div>
             {{i["description"]}}
 
              {% for c in i["contributors"] %}
-                  <img class=" img-circle" src="{{c["avatar_url"]}}" width="25px" height="25px">
+                  <img class="img-circle pull-right" src="{{c['avatar_url']}}" width="25px" height="25px">
                   {% end for %}
               </div>
 
@@ -63,7 +61,7 @@
         <div id="collapse{{idx}}" class="panel-collapse collapse {% if not idx %} in {% end if %}" role="tabpanel" aria-labelledby="heading{{idx}}">
           <div class="panel-body">
             {% for article in i["contents"] %}
-              <h5><a href="/view-article?id={{article["pmid"]}}">{{article["title"]}}</a></h5>
+              <h5><a href="/view-article?id={{article['pmid']}}">{{article["title"]}}</a></h5>
               {{article["reference"]}}
               <br>
             {% end for %}

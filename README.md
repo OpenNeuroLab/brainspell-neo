@@ -22,10 +22,10 @@ Having difficulty getting Brainspell running? Install [Conda](https://conda.io/d
 
 First, make sure that you have [Docker](https://docs.docker.com/engine/installation/) installed. Then:  
 1) Navigate into the Brainspell directory. (`cd brainspell-neo/`)
-2) Build the Docker container with `docker build -t brainspell .`
-3) Run the Docker container with `docker run -ti -p 5000:5000 brainspell`
+2) Build the Docker image with `docker build -t brainspell .`
+3) Create the Docker container and run with `docker run --name brainspell -ti -p 5000:5000 brainspell`
 
-Brainspell should be running at `http://localhost:5000/`.
+Brainspell should be running at `http://localhost:5000/`. The next time that you want to run the Docker container, simply execute `docker start -a brainspell`, and stop the Docker container with `docker stop brainspell`.
 
 ## Code Organization
 

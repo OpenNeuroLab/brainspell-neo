@@ -19,10 +19,13 @@ Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell sho
 Having difficulty getting Brainspell running? Install [Conda](https://conda.io/docs/get-started.html), and create an environment for Python 3.5.
 
 ## Runing Brainspell with Docker
-1) Navigate to brainspell directory 
-2) docker build -t brainspell .
-3) docker run -ti -d -p 5000:5000 brainspell
-4) Brainspell will be running at: http://192.168.99.100:5000/
+
+First, make sure that you have [Docker](https://docs.docker.com/engine/installation/) installed. Then:  
+1) Navigate into the Brainspell directory. (`cd brainspell-neo/`)
+2) Build the Docker container with `docker build -t brainspell .`
+3) Run the Docker container with `docker run -ti -p 5000:5000 brainspell`
+
+Brainspell should be running at `http://localhost:5000/`.
 
 ## Code Organization
 

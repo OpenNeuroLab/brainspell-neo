@@ -12,26 +12,33 @@ all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
 
 def convert(name):
+    """ Convert from camelCase to hyphenated-names. """
     s1 = first_cap_re.sub(r'\1-\2', name)
     return all_cap_re.sub(r'\1-\2', s1).lower()
 
 
+# map the hyphenated names to the corresponding classes (endpoints)
 endpoints = {}
 for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
     func = eval("json_api." + endpoint)
     name = convert(endpoint.replace("EndpointHandler", ""))
     endpoints[name] = func
 
-# WebSocket implementation of all JSON endpoints
-
 
 class EndpointWebSocket(tornado.websocket.WebSocketHandler):
+    """ Allow developers to access the JSON API via WebSockets. """
+
     def open(self):
         # setup
         pass
 
     def on_message(self, message):
-        # receives a JSON formatted message
+        """ 
+        Receive a JSON formatted message, parse the arguments,
+        and pass the resulting arguments dictionary to the processing
+        function of the corresponding JSON API class. Return the response.
+        """
+
         response = {
             "success": 1
         }

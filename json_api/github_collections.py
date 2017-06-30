@@ -30,13 +30,16 @@ settings = {
 
 
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
+    """ Handle GitHub OAuth. """
+
     @tornado.gen.coroutine
     def get(self):
+        # next is the redirect_uri
         redirect_uri = url_concat(self.request.protocol
                                   + "://" + self.request.host
                                   + "/oauth",
-                                  {"redirect_uri":
-                                   self.get_argument('redirect_uri', '/')})
+                                  {"next":
+                                   self.get_argument('next', '/')})
 
         # if we have a code, we have been authorized so we can log in
         if self.get_argument("code", False):
@@ -58,7 +61,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
                 self.set_secure_cookie("api_key", api_key)
             else:
                 self.clear_cookie("user")
-            self.redirect(self.get_argument("redirect_uri", "/"))
+            self.redirect(self.get_argument("next", "/"))
             return
 
         # otherwise we need to request an authorization code
@@ -69,9 +72,11 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 
 
 class GithubLogoutHandler(BaseHandler):
+    """ Clear login cookies. """
+
     def get(self):
         self.clear_cookie("user")
-        self.redirect(self.get_argument("redirect_uri", "/"))
+        self.redirect(self.get_argument("next", "/"))
 
 
 def parse_link(link):
@@ -204,10 +209,12 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
 
         # if you're not authorized, redirect to oauth
         else:
-            self.redirect("/oauth?redirect_uri=/repos")
+            self.redirect("/oauth?next=/repos")
 
 
 class NewRepoHandler(BaseHandler, torngithub.GithubMixin):
+    """ Create a new GitHub repo for a collection. """
+
     # TODO Again update the database
     @tornado.web.asynchronous
     @tornado.gen.coroutine

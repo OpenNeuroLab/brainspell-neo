@@ -325,12 +325,12 @@
 
             $("#articleContents").append(linkParagraph);
             var tableInputForm = $("<div>").css("display", "none").attr("id", "tableInputForm").css("padding-bottom", "20px");
-            var tableForm = $("<form>").attr("action", "/add-table-text").attr("method", "post").append(
+            var tableForm = $("<form>").append(
                 $("<p>").text("Each coordinate should be on its own line, in the format \"x, y, z\" (without quotes).")
             ).append(
                 $("<textarea>").attr("name", "values")
-            ).append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{article_id}}")).append(
-                $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
+            ).attr("id", "experiments-table-input-form").append($("<input>").attr("type", "hidden").attr("name", "pmid").attr("value", "{{article_id}}")).append(
+                $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").attr("onclick", "submitTextBoxExperimentsTable()").text("Submit"))
             );
             tableInputForm.append(tableForm);
             $("#articleContents").append(tableInputForm);
@@ -391,11 +391,11 @@
             }
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
-            var user_data = $("<form>").attr("action", "/add-user-data").attr("method", "post").append(
-                    $("<p>",{"value":"Add Tag below"})).append(
-                $("<input>").attr("name", "values")
+            var user_data = $("<form>").append(
+                    $("<p>",{"value":"Add tag below"})).append(
+                $("<input>").attr("name", "values").attr("id", "user-tag-values")
             ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{article_id}}")).append(
-                $("<div>").append($("<button>").attr("class", "btn btn-default").css("margin-top", "5px").text("Submit"))
+                $("<div>").append($("<button>").attr("class", "btn btn-default").attr("onclick", "submitUserTagToArticle()").css("margin-top", "5px").text("Submit"))
             );
             user_input.append(user_data);
             user_terms.append(user_input);
@@ -692,8 +692,6 @@
 
         // Add altered values to database
         function submitHandler() {
-            console.log(getID());
-
             var changes = {};
             for (var t = 0; t < experimentsObj.length; t++) {
                 for (var row = 0; row < experimentsObj[t]["locations"].length; row++) {
@@ -704,14 +702,14 @@
                 }
             }
             changes = JSON.stringify(changes);
-            console.log(changes);
 
             $.ajax({
                 type: "POST",
-                url: "/view-article",
+                url: "/json/change-z-scores",
                 data: {
-                    "dbChanges": changes,
-                    "id": getID()
+                    "db-changes": changes,
+                    "pmid": getID(),
+                    "key": "{{api_key}}"
                 }
             }).complete(function(o) {
                 //console.log(o);
@@ -719,6 +717,39 @@
             });
             //location.reload();
             //return true;
+        }
+
+        function submitTextBoxExperimentsTable() {
+            var tableContents = $("#experiments-table-input-form").val();
+            $.ajax({
+                type: "POST",
+                url: "/json/add-experiments-table-via-text",
+                data: {
+                    "values": values,
+                    "pmid": pmid,
+                    "key": "{{api_key}}"
+                }
+            }).complete(function(o) {
+                location.reload();
+            });
+        }
+
+        // Add new tag to database
+        function submitUserTagToArticle() {
+            var values = $("#user-tag-values").val();
+            var pmid = "{{article_id}}";
+
+            $.ajax({
+                type: "POST",
+                url: "/json/add-user-table-to-article",
+                data: {
+                    "values": values,
+                    "pmid": pmid,
+                    "key": "{{api_key}}"
+                }
+            }).complete(function(o) {
+                location.reload();
+            });
         }
 
         function addRowTo(element, rowDOM) {
@@ -846,7 +877,7 @@
                     "tag_name": tagName,
                     "direction": direction,
                     "table_num": tableNum,
-                    "id": getID(),
+                    "pmid": getID(),
                     "column": column,
                     "username": "{{github_username}}",
                     "key": "{{api_key}}"

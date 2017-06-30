@@ -29,17 +29,19 @@ from base_handler import *
 
 
 def subprocess_cmd_sync(command):
-    # synchronously run a bash command
+    """ Synchronously run a bash command. """
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
 
 
 def subprocess_cmd_async(command):
-    # asynchronously run a bash command
+    """ Asynchronously run a bash command. """
     subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
 
 
 class DeployHandler(BaseHandler):
+    """ Implement the protocol described above. """
+    
     def get(self):
         # get the port that is currently running
         port_to_run = brainspell.get_port_to_run()

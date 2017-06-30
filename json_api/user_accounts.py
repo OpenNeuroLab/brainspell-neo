@@ -5,27 +5,32 @@ from torngithub import json_encode
 
 from models import *
 
-# TODO: have a naming convention for functions that return PeeWee objects
-# (*_object?)
-
 
 def get_user_object(user):
+    """ Return a PeeWee object representing a single user. """
+
     q = User.select().where(User.emailaddress == user)
     return q.execute()
 
 
 def get_github_username_from_api_key(api_key):
+    """ Fetch the GitHub username corresponding to a given API key. """
+
     user = User.select().where((User.password == api_key))
     user_obj = next(user.execute())
     return user_obj.username
 
 
 def valid_api_key(api_key):
+    """ Return whether an API key exists in our database. """
+
     user = User.select().where((User.password == api_key))
     return user.execute().count >= 1
 
 
 def register_github_user(user_dict):
+    """ Add a GitHub user to our database. """
+
     user_dict = json_decode(user_dict)
     if (User.select().where(User.username ==
                             user_dict["login"]).execute().count == 0):
@@ -42,6 +47,8 @@ def register_github_user(user_dict):
 
 
 def new_repo(name, username):
+    """ Return whether a given repo already exists in our local database. """
+
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
         user = list(user)[0]
@@ -62,6 +69,8 @@ def new_repo(name, username):
 
 
 def add_to_repo(collection, pmid, username):
+    """ Add a collection to our local database. Do not add to GitHub in this function. """
+
     collection = collection.replace("brainspell-collection-", "")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:
@@ -83,6 +92,8 @@ def add_to_repo(collection, pmid, username):
 
 
 def remove_from_repo(collection, pmid, username):
+    """ Remove an article from a repo/collection. """
+
     collection = collection.replace("brainspell-collection-", "")
     user = User.select().where(User.username == username).execute()
     if user.count > 0:

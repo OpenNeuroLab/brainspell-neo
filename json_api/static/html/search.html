@@ -92,11 +92,11 @@
     </div>
     <div class="container" id="add-article-form" style="display: none;">
         <p id="pmid-warning" style="display: none;">PMID codes are 8 characters.</p>
-        <p style="color: #c0c0c0;">No results. Add an article?</p>
-            <div class="form-row">
-                <input id="newPMID" name="newPMID" placeholder="Enter article PMID">
-                <button onclick="validatePMID()">Submit</button>
-            </div>
+        <p style="color: #c0c0c0;">No results.<span class="must-login"> Add an article?</span></p>
+        <div class="must-login form-row">
+            <input id="new_pmid" name="new_pmid" placeholder="Enter article PMID">
+            <button onclick="validatePMID()">Submit</button>
+        </div>
         <!--
         <form method="post" action="/add-article">
         </form>
@@ -164,7 +164,7 @@
         );
 
         function validatePMID() {
-            var name = $.trim($('#newPMID').val());
+            var name = $.trim($('#new_pmid').val());
             var pattern = new RegExp("[0-9]{8}");
             if (pattern.test(name)) {
                 alert("OK!");
@@ -172,9 +172,10 @@
                 // TODO: make an add-article UI
                $.ajax({
                 type: "POST",
-                url: "/search-add",
+                url: "/json/add-article-from-search-page",
                 data: {
-                    "newPMID": name
+                    "new_pmid": name,
+                    "key": "{{api_key}}"
                 }
             }).complete(function() {
                 location.reload();

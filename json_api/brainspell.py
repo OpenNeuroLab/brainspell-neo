@@ -29,8 +29,12 @@ settings = {
     "compress_response": True
 }
 
-
 def getJSONEndpoints():
+    """ 
+    Parse the JSON endpoints in json_api and create routes for the endpoint,
+    and the endpoint's help page at /json/*/help
+    """
+
     endpoints = []
     for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
         func = eval("json_api." + endpoint)
@@ -41,35 +45,32 @@ def getJSONEndpoints():
 
 
 def make_app():
+    """ Create a Tornado web application with routes """
+    
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'static')}),
         (r"/", MainHandler),
         (r"/search", SearchHandler),
-        (r"/view-article", ArticleHandler),
+        (r"/view-article", ViewArticleHandler),
         (r"/contribute", ContributionHandler),
         (r"/bulk-add", BulkAddHandler),
-        (r"/add-table-text", AddTableTextBoxHandler),
+        (r"/deploy", DeployHandler),
+        (r"/api-socket", EndpointWebSocket),
+        # GitHub endpoints; TODO: change to a JSON API
         (r"/oauth", GithubLoginHandler),
         (r"/github-logout", GithubLogoutHandler),
-        # (r"/save-bulk",BulkNewFileHandler),
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),
         (r"/add-to-collection", NewFileHandler),
-        (r"/add-user-data", AddUserTagToArticleHandler),
-        (r"/update-table-vote", TableVoteUpdateHandler),
-        (r"/remove-from-collection", DeleteFileHandler),
-        # TODO: rename route to something more descriptive
-        # ("add-article-from-search-page")
-        (r"/search-add", AddArticleFromSearchPageHandler),
-        (r"/deploy", DeployHandler),
-        (r"/api-socket", EndpointWebSocket)
+        (r"/remove-from-collection", DeleteFileHandler)
     ] + getJSONEndpoints(), debug=True, **settings)
 
 
 def get_port_to_run():
-    # allow the user to specify a custom port by CLI
+    """ Allow the user to specify a custom port by CLI """
+
     parser = argparse.ArgumentParser(description="Run Brainspell locally.")
     parser.add_argument(
         '-p',

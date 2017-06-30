@@ -48,10 +48,9 @@ TODO: need to make tests for:
 7) saving to a GitHub collection
 """
 
-# Enforces a data access object abstraction layer
-
-
 def test_no_reference_to_models_in_endpoints():
+    """ Enforce a data access object abstraction layer. """
+
     files_to_enforce = ["json_api.py", "user_interface_handlers.py"]
     for f in files_to_enforce:
         with open(f, "r") as python_file_handler:
@@ -59,36 +58,40 @@ def test_no_reference_to_models_in_endpoints():
             assert ("from models import" not in python_contents) and ("import models" not in python_contents), "You should not access the models directly in your handler. The file " + \
                 f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
 
-# Tests that there are no EndpointHandlers in the user_interface_handlers file.
-
 
 def test_endpoint_handlers_are_in_the_correct_file():
+    """ Test that there are no EndpointHandlers in the user_interface_handlers file. """
+
     assert len([f for f in dir(user_interface_handlers) if "EndpointHandler" in f]
                ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api."
 
-# Tests that EndpointHandlers (JSON API endpoints) conform to the
-# specification by indicating the endpoint type
-
 
 def test_endpoint_handlers_implementation():
+    """ 
+    Test that EndpointHandlers (JSON API endpoints) conform to the
+    specification by indicating the endpoint type 
+    """
+
     for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
         func = eval("json_api." + endpoint)
         assert func.endpoint_type, "The class " + endpoint + \
             " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
 
-# Tests whether requirements.txt is alphabetized (important to identify
-# missing/redundant requirements)
-
 
 def test_requirements_file_is_sorted():
+    """ 
+    Test whether requirements.txt is alphabetized (important to identify
+    missing/redundant requirements)
+    """
+
     with open('../requirements.txt') as f:
         lines = f.readlines()
     assert sorted(lines) == lines, "The requirements.txt file is not sorted."
 
-# Tests for PEP8 style
-
 
 def test_python_style_check():
+    """ Test for PEP8 style """
+
     files_in_directory = os.listdir()
     for f in files_in_directory:
         if os.path.splitext(f)[1] == ".py":
@@ -104,16 +107,16 @@ def test_python_style_check():
                 assert styled_hash == original_hash, "Style check failed on " + f + \
                     ". Run `autopep8 --in-place --aggressive --aggressive " + f + "`, or `autopep8 --in-place --aggressive --aggressive *.py`"
 
-# Asserts search results appearing for commonly found target
-
 
 def test_search():
-    assert len(formatted_search("brain", 0)) > 0
+    """ Test that search results appear for a common search target """
 
-# asserts that the Procfile points to a valid python script
+    assert len(formatted_search("brain", 0)) > 0
 
 
 def test_procfile():
+    """ Assert that the Procfile points to a valid Python script. """
+
     with open("../Procfile", "r") as f:
         contents = f.read()
         filename = contents.replace(
@@ -156,17 +159,14 @@ def test_existence(): #Using selenium testing
     # driver.find_element_by_id("widgetOption").click()
 """
 
-# tests that the Tornado application is successfully built
-
 
 @pytest.fixture
 def app():
+    """ Test that the Tornado application is successfully built. """
     return application
-
-# tests that the base_url is returning a 200 code (good)
-
 
 @pytest.mark.gen_test
 def test_front_page(http_client, base_url):
+    """ Test that the front page gives a 200 status code. """
     response = yield http_client.fetch(base_url)
     assert response.code == 200

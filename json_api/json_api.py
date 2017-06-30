@@ -7,10 +7,8 @@ from user_accounts import *
 
 # BEGIN: search API endpoints
 
-# API endpoint to handle search queries; returns 10 results at a time
-
-
 class QueryEndpointHandler(BaseHandler):
+    """ Endpoint to handle search queries. Return 10 results at a time. """
     parameters = {
         "q": {
             "type": str,
@@ -53,9 +51,12 @@ class QueryEndpointHandler(BaseHandler):
         return response
 
 
-# API endpoint to fetch coordinates from all articles that match a query;
-# returns 200 sets of coordinates at a time
 class CoordinatesEndpointHandler(BaseHandler):
+    """ 
+    API endpoint to fetch coordinates from all articles that match a query.
+    Return 200 sets of coordinates at a time.
+    """
+
     parameters = {
         "q": {
             "type": str,
@@ -89,9 +90,9 @@ class CoordinatesEndpointHandler(BaseHandler):
         return response
 
 
-# API endpoint that returns five random articles; used on the front page
-# of Brainspell
 class RandomQueryEndpointHandler(BaseHandler):
+    """ Return five random articles (for use on Brainspell's front page) """
+
     parameters = {}
 
     endpoint_type = Endpoint.PULL_API
@@ -112,13 +113,31 @@ class RandomQueryEndpointHandler(BaseHandler):
         response["articles"] = output_list
         return response
 
-# BEGIN: article API endpoints
 
-# API endpoint to get the contents of an article (called by the
-# view-article page)
+class AddArticleFromSearchPageEndpointHandler(BaseHandler):
+    """ Add an article to our database via PMID (for use on the search page) """
+    parameters = {
+        "new_pmid": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        add_pmid_article_to_database(args["new_pmid"])
+        return response
+
+
+# BEGIN: article API endpoints
 
 
 class ArticleEndpointHandler(BaseHandler):
+    """
+    Return the contents of an article, given a PMID.
+    Called by the view-article page.
+    """
+
     parameters = {
         "pmid": {
             "type": str
@@ -129,7 +148,7 @@ class ArticleEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         try:
-            article = next(get_article(args["pmid"]))
+            article = next(get_article_object(args["pmid"]))
             response["timestamp"] = article.timestamp
             response["abstract"] = article.abstract
             response["authors"] = article.authors
@@ -145,10 +164,13 @@ class ArticleEndpointHandler(BaseHandler):
             response["success"] = 0
         return response
 
-# API endpoint corresponding to BulkAddHandler
-
 
 class BulkAddEndpointHandler(BaseHandler):
+    """
+    Add a large number of articles to our database at once,
+    by parsing a file that is sent to us in a JSON format.
+    """
+
     parameters = {}
 
     endpoint_type = Endpoint.PUSH_API
@@ -171,11 +193,13 @@ class BulkAddEndpointHandler(BaseHandler):
             response["description"] = "You must POST a file with the parameter name 'articlesFile' to this endpoint."
         return response
 
-# fetch PubMed and Neurosynth data using a user specified PMID, and add
-# the article to our database
-
 
 class AddArticleEndpointHandler(BaseHandler):
+    """
+    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
+    the article to our database.
+    """
+
     parameters = {
         "pmid": {
             "type": str,
@@ -195,10 +219,10 @@ class AddArticleEndpointHandler(BaseHandler):
         request.execute()
         return response
 
-# edit the authors of an article
-
 
 class SetArticleAuthorsEndpointHandler(BaseHandler):
+    """ Edit the authors of an article. """
+
     parameters = {
         "pmid": {
             "type": str,
@@ -216,15 +240,31 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
         update_authors(args["pmid"], args["authors"])
         return response
 
-# endpoint for a user to vote on an article tag
+class AddExperimentsTableViaTextEndpointHandler(BaseHandler):
+    """
+    Add a table of experiment coordinates via text.
+    Used on the view-article page.
+    """
+
+    parameters = {
+        "values": {
+            "type": str
+        },
+        "pmid": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        add_table_through_text_box(args["pmid"], args["values"])
+        return response
 
 
 class ToggleUserVoteEndpointHandler(BaseHandler):
+    """ Endpoint for a user to vote on an article tag. """
     parameters = {
-        "key": {
-            "type": str,
-            "default": ""
-        },
         "topic": {
             "type": str,
             "default": ""
@@ -248,10 +288,56 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 
 # BEGIN: table API endpoints
 
-# vote on a table tag
+
+# TODO: change the format that this takes for db-changes
+class ChangeZScoresEndpointHandler(BaseHandler):
+    """ Update the z-scores for a table within an article. """
+    parameters = {
+        "db-changes": {
+            "type": json.loads
+        },
+        "pmid": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # updates z scores
+        try:
+            values = args["db-changes"]
+            update_z_scores(args["pmid"], values)
+        except BaseException:
+            response = {"success": 0}
+
+        return response
+
+
+class AddUserTagToArticleEndpointHandler(BaseHandler):
+    """ Add a user tag to our database, for use in tagging articles. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "values": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        pmid = self.get_argument("pmid")
+        user_tag = self.get_argument("values")
+        add_user_tag(user_tag, pmid)
+        return response
 
 
 class UpdateTableVoteEndpointHandler(BaseHandler):
+    """ Update the vote on a tag for an experiment table. """
+
     parameters = {
         "tag_name": {
             "type": str
@@ -262,7 +348,7 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
         "table_num": {
             "type": int
         },
-        "id": {
+        "pmid": {
             "type": int
         },
         "column": {
@@ -280,15 +366,15 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
             args["tag_name"],
             args["direction"],
             args["table_num"],
-            args["id"],
+            args["pmid"],
             args["column"],
             args["username"])
         return response
 
-# flag a table as inaccurate
-
 
 class FlagTableEndpointHandler(BaseHandler):
+    """ Flag a table as inaccurate. """
+
     parameters = {
         "pmid": {
             "type": str,
@@ -305,10 +391,10 @@ class FlagTableEndpointHandler(BaseHandler):
         flag_table(args["pmid"], args["experiment"])
         return response
 
-# delete row from experiment table
-
 
 class DeleteRowEndpointHandler(BaseHandler):
+    """ Delete a row of coordinates from an experiment table. """
+
     parameters = {
         "pmid": {
             "type": str,
@@ -328,10 +414,13 @@ class DeleteRowEndpointHandler(BaseHandler):
         delete_row(args["pmid"], args["experiment"], args["row"])
         return response
 
-# split experiment table
-
 
 class SplitTableEndpointHandler(BaseHandler):
+    """
+    Split a table of coordinates for an experiment into two
+    separate tables.
+    """
+
     parameters = {
         "pmid": {
             "type": str,
@@ -351,10 +440,10 @@ class SplitTableEndpointHandler(BaseHandler):
         split_table(args["pmid"], args["experiment"], args["row"])
         return response
 
-# add one row of coordinates to an experiment table
-
 
 class AddRowEndpointHandler(BaseHandler):
+    """ Add a single row of coordinates to an experiment table. """
+    
     parameters = {
         "pmid": {
             "type": str,

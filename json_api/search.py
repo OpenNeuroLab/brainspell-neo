@@ -7,6 +7,7 @@ from models import *
 
 
 def random_search():
+    """ Return five random articles from our database. """
     search = Articles.select(
         Articles.pmid,
         Articles.title,
@@ -19,14 +20,15 @@ def random_search():
 # columns for search if user specified
 def parse_helper(query):
     """
-    Returns a list of relevant columns user wishes to search
-    Follows PubMed Labeling System:
-        [au] indicates author
-        [ALL] all fields
-        [MH] Mesh terms: To be added
-        [PMID]: Pubmed ID
-        [TIAB]: Title/Abstract
+    Return a list of relevant columns user wishes to search
+    Follows the PubMed labeling system:
+    [au] indicates author
+    [ALL] all fields
+    [MH] Mesh terms: To be added
+    [PMID]: Pubmed ID
+    [TIAB]: Title/Abstract
     """
+
     columns = []
     au = re.compile(r"\[au]")
     all = re.compile(r"\[ALL]")
@@ -54,13 +56,15 @@ def parse_helper(query):
     term = reduce(lambda x, y: x | y, matches)
     return (columns, term, formatted_query)
 
-# used by the search page; an overloaded function that returns either the
-# results of a search, or the experiments that correspond to the articles
-
 
 # param specifies dropdown value from search bar; experiments specifies
 # whether to only return the experiments
 def formatted_search(query, start, param=None, experiments=False):
+    """
+    Return either the results of a search, or the experiments that 
+    correspond to the articles. (based on the "experiments" flag)
+    """
+
     columns, term, formatted_query = parse_helper(query)
     query = formatted_query
     print(query)
@@ -98,13 +102,16 @@ def formatted_search(query, start, param=None, experiments=False):
             *fields).where(match).limit(numberResults).offset(start).execute()
 
 
-def get_article(query):
+def get_article_object(query):
+    """ Get a single article PeeWee object. """
+
     search = Articles.select().where(Articles.pmid == query)
     return search.execute()
 
 
-# Specifies a range around a given coordinate to search the database
-def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
+def generate_circle(coordinate): # Coordinate of form "-26,54,14"
+    """ Specify a range around a given coordinate to search the database. """
+    
     ordered = [int(x) for x in coordinate.split(",")][0:3]  # Ignore z-score
     search_terms = []
     for i in range(len(ordered)):
@@ -115,8 +122,11 @@ def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
     return search_terms
 
 
-# Finds coordinates associated with a range around a given coordinate.
-def coactivation(coordinate):  # Yields around 11,000 coordinates
+def coactivation(coordinate): # yields around 11,000 coordinates
+    """
+    Find coordinates associated with a range around a given coordinate.
+    """
+
     coordinate_sets = []
     search_circle = generate_circle(coordinate)
     for item in search_circle:

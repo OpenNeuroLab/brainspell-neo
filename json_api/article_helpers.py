@@ -13,16 +13,15 @@ Entrez.email = "neel@berkeley.edu"
 
 # BEGIN: article helper functions
 
-# updates the authors for an article
-
 
 def update_authors(pmid, authors):
+    """ Update the authors for an article. """
+
     Articles.update(authors=authors).where(Articles.pmid == pmid).execute()
 
-# toggles a vote on an article tag
-
-
 def toggle_vote(pmid, topic, username, direction):
+    """ Toggle a user's vote on an article tag. """
+
     fullArticle = next(
         Articles.select(
             Articles.metadata).where(
@@ -80,9 +79,9 @@ def toggle_vote(pmid, topic, username, direction):
     query.execute()
 
 
-# Adds a custom user tag to the database
-
 def add_user_tag(user_tag, id):
+    """ Add a custom user tag to the database. """
+
     main_target = next(
         Articles.select(
             Articles.metadata).where(
@@ -95,16 +94,21 @@ def add_user_tag(user_tag, id):
     query = Articles.update(metadata=target).where(Articles.pmid == id)
     query.execute()
 
-# get total number of articles in the database
-
 
 def get_number_of_articles():
+    """ Get the total number of articles in the database. """
+
     return Articles.select().wrapped_count()
 
 # BEGIN: add article functions
 
 
 def add_pmid_article_to_database(article_id):
+    """ 
+    Given a PMID, use external APIs to get the necessary article data
+    in order to add the article to our database.
+    """
+
     # TODO: add empty metadata field, add reference
     pmid = str(article_id)
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
@@ -145,6 +149,7 @@ def add_pmid_article_to_database(article_id):
 
 
 def getDOI(lst):
+    # TODO: add a clear description of this function's purpose
     pattern = r"([0-9]{2}\.[0-9]*\/[a-z]*\.[0-9]*\.[0-9]*)[ ]\[doi\]"
     for item in lst:
         if re.match(pattern, item):
@@ -153,6 +158,12 @@ def getDOI(lst):
 
 
 def clean_bulk_add(contents):
+    """
+    A helper function for adding many articles at a time (by uploading a 
+    JSON file of article information). Clean the data, ensure that only
+    complete entries are included, and add all of the entries to our database.
+    """
+
     clean_articles = []
     for article in contents:
         try:
@@ -198,15 +209,18 @@ def clean_bulk_add(contents):
     return clean_articles
 
 
-def add_bulk(papers, limit=100):  # Papers is the entire formatted data set
+def add_bulk(papers, limit=100):  # papers is the entire formatted data set
+    """ Add a list of article entries to our database. """
+
     with conn.atomic():
         for article in range(0, len(papers), limit):  # Inserts limit at a time
             Articles.insert_many(papers[article:article + limit]).execute()
 
 # BEGIN: table helper functions
 
-
 def delete_row(pmid, exp, row):
+    """ Delete a row of coordinates from an experiment. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()
@@ -221,6 +235,8 @@ def delete_row(pmid, exp, row):
 
 
 def flag_table(pmid, exp):
+    """ Flag a table as inaccurate. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()
@@ -237,6 +253,8 @@ def flag_table(pmid, exp):
 
 
 def split_table(pmid, exp, row):
+    """ Split a coordinate table into two. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()
@@ -260,7 +278,9 @@ def split_table(pmid, exp, row):
         Articles.pmid == pmid).execute()
 
 
-def add_coordinate(pmid, exp, coords):  # adds a coordinate row to the end of a table
+def add_coordinate(pmid, exp, coords):
+    """ Add a coordinate row to the end of a table. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()
@@ -274,6 +294,8 @@ def add_coordinate(pmid, exp, coords):  # adds a coordinate row to the end of a 
 
 
 def add_table_through_text_box(pmid, values):
+    """ Add an experiment table using a CSV-formatted string. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()
@@ -288,8 +310,9 @@ def add_table_through_text_box(pmid, values):
         Articles.pmid == pmid).execute()
 
 
-# TODO: maybe save the user that inserted the data
-def update_z_scores(id, user, values):
+def update_z_scores(id, values):
+    """ Update the z-scores for an experiment table. """
+
     target = Articles.select(
         Articles.experiments).where(
         Articles.pmid == id).execute()
@@ -316,6 +339,8 @@ def update_z_scores(id, user, values):
 
 # TODO: needs to be commented more thoroughly, and probably rewritten
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
+    """ Update the vote on an experiment tag for a given user. """
+
     article_obj = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()

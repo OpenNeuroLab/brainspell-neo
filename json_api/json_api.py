@@ -203,8 +203,7 @@ class AddArticleEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         }
     }
 
@@ -226,12 +225,10 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "authors": {
-            "type": str,
-            "default": ""
+            "type": str
         }
     }
 
@@ -268,16 +265,13 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
     """ Endpoint for a user to vote on an article tag. """
     parameters = {
         "topic": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "direction": {
-            "type": str,
-            "default": ""
+            "type": str
         }
     }
 
@@ -379,8 +373,7 @@ class FlagTableEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "experiment": {
             "type": int
@@ -399,8 +392,7 @@ class DeleteRowEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "experiment": {
             "type": int
@@ -425,8 +417,7 @@ class SplitTableEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "experiment": {
             "type": int
@@ -448,15 +439,13 @@ class AddRowEndpointHandler(BaseHandler):
 
     parameters = {
         "pmid": {
-            "type": str,
-            "default": ""
+            "type": str
         },
         "experiment": {
             "type": int
         },
         "coordinates": {
-            "type": str,
-            "default": ""
+            "type": str
         }
     }
 

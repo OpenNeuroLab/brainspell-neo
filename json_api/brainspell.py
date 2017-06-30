@@ -52,7 +52,7 @@ def make_app():
         (r"/bulk-add", BulkAddHandler),
         (r"/add-table-text", AddTableTextBoxHandler),
         (r"/oauth", GithubLoginHandler),
-        (r"/github_logout", GithubLogoutHandler),
+        (r"/github-logout", GithubLogoutHandler),
         # (r"/save-bulk",BulkNewFileHandler),
         (r"/repos", ReposHandler),
         (r"/create_repo", NewRepoHandler),

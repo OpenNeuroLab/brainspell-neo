@@ -7,6 +7,7 @@ from user_accounts import *
 
 # BEGIN: search API endpoints
 
+
 class QueryEndpointHandler(BaseHandler):
     """ Endpoint to handle search queries. Return 10 results at a time. """
     parameters = {
@@ -52,7 +53,7 @@ class QueryEndpointHandler(BaseHandler):
 
 
 class CoordinatesEndpointHandler(BaseHandler):
-    """ 
+    """
     API endpoint to fetch coordinates from all articles that match a query.
     Return 200 sets of coordinates at a time.
     """
@@ -239,6 +240,7 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
     def process(self, response, args):
         update_authors(args["pmid"], args["authors"])
         return response
+
 
 class AddExperimentsTableViaTextEndpointHandler(BaseHandler):
     """
@@ -443,7 +445,7 @@ class SplitTableEndpointHandler(BaseHandler):
 
 class AddRowEndpointHandler(BaseHandler):
     """ Add a single row of coordinates to an experiment table. """
-    
+
     parameters = {
         "pmid": {
             "type": str,

@@ -61,7 +61,7 @@ def parse_helper(query):
 # whether to only return the experiments
 def formatted_search(query, start, param=None, experiments=False):
     """
-    Return either the results of a search, or the experiments that 
+    Return either the results of a search, or the experiments that
     correspond to the articles. (based on the "experiments" flag)
     """
 
@@ -109,9 +109,9 @@ def get_article_object(query):
     return search.execute()
 
 
-def generate_circle(coordinate): # Coordinate of form "-26,54,14"
+def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
     """ Specify a range around a given coordinate to search the database. """
-    
+
     ordered = [int(x) for x in coordinate.split(",")][0:3]  # Ignore z-score
     search_terms = []
     for i in range(len(ordered)):
@@ -122,7 +122,7 @@ def generate_circle(coordinate): # Coordinate of form "-26,54,14"
     return search_terms
 
 
-def coactivation(coordinate): # yields around 11,000 coordinates
+def coactivation(coordinate):  # yields around 11,000 coordinates
     """
     Find coordinates associated with a range around a given coordinate.
     """

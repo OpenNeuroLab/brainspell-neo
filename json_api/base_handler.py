@@ -9,7 +9,7 @@ from user_accounts import *
 
 
 class Endpoint(Enum):
-    """ 
+    """
     An Enum to distinguish push from pull APIs.
     Push APIs need to validate the user's API key.
     """
@@ -82,7 +82,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     formatted_parameters[p]["required"] = False
                     formatted_parameters[p]["default"] = self.parameters[p]["default"]
                 type_name = self.parameters[p]["type"].__name__
-                if type_name == "loads": # account for loads function
+                if type_name == "loads":  # account for loads function
                     type_name = "json"
                 formatted_parameters[p]["type"] = type_name
             if self.endpoint_type == Endpoint.PUSH_API:
@@ -115,7 +115,7 @@ class BaseHandler(tornado.web.RequestHandler):
     post = get
 
     def render_with_user_info(self, url, params):
-        """ 
+        """
         Render a Tornado HTML template, automatically
         appending user information
         """
@@ -152,7 +152,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return ""
 
     def get_current_github_username(self):
-        """ 
+        """
         Get the user's GitHub username. Guaranteed to exist if logged in.
         """
 
@@ -170,8 +170,8 @@ class BaseHandler(tornado.web.RequestHandler):
         return ""
 
     def get_current_github_access_token(self):
-        """ 
-        Get the user's access token from GitHub. Guaranteed to exist if logged in. 
+        """
+        Get the user's access token from GitHub. Guaranteed to exist if logged in.
         """
 
         github_user_object = self.__get_current_github_object__()
@@ -181,13 +181,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_api_key(self):
         """
-        Get the user's API key. Guaranteed to exist if logged in. 
+        Get the user's API key. Guaranteed to exist if logged in.
         """
 
         return self.get_secure_cookie("api_key")
 
     def set_default_headers(self):
-        """ 
+        """
         Set the headers to allow JS API requests. Potentially a security concern.
         """
 

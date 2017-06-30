@@ -19,6 +19,7 @@ def update_authors(pmid, authors):
 
     Articles.update(authors=authors).where(Articles.pmid == pmid).execute()
 
+
 def toggle_vote(pmid, topic, username, direction):
     """ Toggle a user's vote on an article tag. """
 
@@ -104,7 +105,7 @@ def get_number_of_articles():
 
 
 def add_pmid_article_to_database(article_id):
-    """ 
+    """
     Given a PMID, use external APIs to get the necessary article data
     in order to add the article to our database.
     """
@@ -159,7 +160,7 @@ def getDOI(lst):
 
 def clean_bulk_add(contents):
     """
-    A helper function for adding many articles at a time (by uploading a 
+    A helper function for adding many articles at a time (by uploading a
     JSON file of article information). Clean the data, ensure that only
     complete entries are included, and add all of the entries to our database.
     """
@@ -217,6 +218,7 @@ def add_bulk(papers, limit=100):  # papers is the entire formatted data set
             Articles.insert_many(papers[article:article + limit]).execute()
 
 # BEGIN: table helper functions
+
 
 def delete_row(pmid, exp, row):
     """ Delete a row of coordinates from an experiment. """

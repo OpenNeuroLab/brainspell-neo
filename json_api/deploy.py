@@ -41,7 +41,7 @@ def subprocess_cmd_async(command):
 
 class DeployHandler(BaseHandler):
     """ Implement the protocol described above. """
-    
+
     def get(self):
         # get the port that is currently running
         port_to_run = brainspell.get_port_to_run()

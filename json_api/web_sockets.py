@@ -33,7 +33,7 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
         pass
 
     def on_message(self, message):
-        """ 
+        """
         Receive a JSON formatted message, parse the arguments,
         and pass the resulting arguments dictionary to the processing
         function of the corresponding JSON API class. Return the response.

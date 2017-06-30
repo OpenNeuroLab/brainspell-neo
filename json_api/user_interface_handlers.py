@@ -55,7 +55,7 @@ class SearchHandler(BaseHandler):
 
 
 class ViewArticleHandler(BaseHandler):
-    """ 
+    """
     Display the contents of an article to the user, along with UI features for curation,
     visualization, statistics, etc.
     """
@@ -75,6 +75,7 @@ class ViewArticleHandler(BaseHandler):
 
 class ContributionHandler(BaseHandler):
     """ Show the user how they can contribute to the Brainspell platform. """
+
     def get(self):
         self.render_with_user_info('static/html/contribute.html')
 

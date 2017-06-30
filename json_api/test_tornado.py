@@ -48,6 +48,7 @@ TODO: need to make tests for:
 7) saving to a GitHub collection
 """
 
+
 def test_no_reference_to_models_in_endpoints():
     """ Enforce a data access object abstraction layer. """
 
@@ -67,9 +68,9 @@ def test_endpoint_handlers_are_in_the_correct_file():
 
 
 def test_endpoint_handlers_implementation():
-    """ 
+    """
     Test that EndpointHandlers (JSON API endpoints) conform to the
-    specification by indicating the endpoint type 
+    specification by indicating the endpoint type
     """
 
     for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
@@ -79,7 +80,7 @@ def test_endpoint_handlers_implementation():
 
 
 def test_requirements_file_is_sorted():
-    """ 
+    """
     Test whether requirements.txt is alphabetized (important to identify
     missing/redundant requirements)
     """
@@ -164,6 +165,7 @@ def test_existence(): #Using selenium testing
 def app():
     """ Test that the Tornado application is successfully built. """
     return application
+
 
 @pytest.mark.gen_test
 def test_front_page(http_client, base_url):

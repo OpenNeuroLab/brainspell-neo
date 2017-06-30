@@ -29,8 +29,9 @@ settings = {
     "compress_response": True
 }
 
+
 def getJSONEndpoints():
-    """ 
+    """
     Parse the JSON endpoints in json_api and create routes for the endpoint,
     and the endpoint's help page at /json/*/help
     """
@@ -46,7 +47,7 @@ def getJSONEndpoints():
 
 def make_app():
     """ Create a Tornado web application with routes """
-    
+
     return tornado.web.Application([
         (r"/static/(.*)", tornado.web.StaticFileHandler,
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),

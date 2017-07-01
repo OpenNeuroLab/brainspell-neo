@@ -36,9 +36,9 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     def get(self):
         # Heroku does not accurately give self.request.protocol
         if self.request.host == "localhost":
-          protocol = "http"
+            protocol = "http"
         else:
-          protocol = "https"
+            protocol = "https"
 
         # next is the redirect_uri
         redirect_uri = url_concat(protocol

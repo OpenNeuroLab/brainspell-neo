@@ -114,10 +114,11 @@ class BaseHandler(tornado.web.RequestHandler):
 
     post = get
 
-    def render_with_user_info(self, url, params):
+    def render_with_user_info(self, url, params={}):
         """
         Render a Tornado HTML template, automatically
-        appending user information
+        appending user information.
+        Do NOT mutate the params dict.
         """
 
         login_dict = {

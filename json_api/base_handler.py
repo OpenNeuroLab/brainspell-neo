@@ -221,7 +221,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_github_username(self):
         """
-        Get the user's GitHub username. Guaranteed to exist if logged in.
+        Get the user's GitHub username. Guaranteed to exist iff logged in.
         """
 
         github_user_object = self.__get_current_github_object__()
@@ -239,7 +239,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_github_access_token(self):
         """
-        Get the user's access token from GitHub. Guaranteed to exist if logged in.
+        Get the user's access token from GitHub. Guaranteed to exist iff logged in.
         """
 
         github_user_object = self.__get_current_github_object__()
@@ -249,7 +249,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def get_current_api_key(self):
         """
-        Get the user's API key. Guaranteed to exist if logged in.
+        Get the user's API key. Guaranteed to exist iff logged in.
         """
 
         return self.get_secure_cookie("api_key")

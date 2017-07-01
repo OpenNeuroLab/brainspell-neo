@@ -34,15 +34,18 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 
     @tornado.gen.coroutine
     def get(self):
+        # Heroku does not accurately give self.request.protocol
+        if self.request.host == "localhost":
+          protocol = "http"
+        else:
+          protocol = "https"
+
         # next is the redirect_uri
-        redirect_uri = url_concat(self.request.protocol
+        redirect_uri = url_concat(protocol
                                   + "://" + self.request.host
                                   + "/oauth",
                                   {"next":
                                    self.get_argument('next', '/')})
-
-        with open("uri", "w") as f:
-            f.write(redirect_uri)
 
         # if we have a code, we have been authorized so we can log in
         if self.get_argument("code", False):

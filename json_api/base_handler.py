@@ -19,8 +19,75 @@ class Endpoint(Enum):
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """ A handler that all Brainspell handlers should extend. """
+    """
+    A handler that all Brainspell handlers should extend.
+
+    All class names should be CamelCase.
+
+    JSON endpoints should:
+    1) be named [*]EndpointHandler,
+    2) specify the "parameters" dictionary,
+    3) override the "process" function, and
+    4) specify the "endpoint_type" using the Endpoint enum.
+
+    The resulting API endpoint will be the hyphenated form of the name.
+    e.g., SplitTableEndpointHandler => /json/split-table
+
+    You can view the parameters for any JSON endpoint at /json/*/help.
+    e.g., /json/split-table/help
+
+    Specifying the "parameters" dictionary:
+
+    parameters ::= {
+        parameter_name: {
+            "type": parseFn
+        }
+        ...
+    }
+
+    where "type" is a key mapped to a function that can be used to parse
+    a string into the desired type. e.g.,
+    parseFn ::= str | int | float | json.loads | ...
+
+    If a parameter is optional, you can indicate that by including a default value:
+
+    parameters ::= {
+        parameter_name: {
+            "type": int,
+            "default": 0
+        }
+        ...
+    }
+
+    The "process" function:
+
+    "process" function signature:
+    def process(self, response, args)
+
+    By default, "response" is a dictionary that contains a key
+    called "success" with a value of 1. The process function should
+    mutate the "response" dictionary as necessary and return it.
+
+    "args" is a dictionary with parameter values, such that the keys
+    are those specified in the "parameters" dictionary.
+
+    The "endpoint_type" enum:
+
+    endpoint_type ::= Endpoint.PULL_API | Endpoint.PUSH_API
+
+    If "endpoint_type" is set to Endpoint.PUSH_API, then there
+    will be one additional required parameter: the "key" parameter,
+    which is the user's API key. This key will be automatically validated
+    before the "process" function is called, and it will be included in
+    the "args" dict.
+
+    Web interface handlers should be named [*]Handler, and use the
+    "render_with_user_info" function (rather than self.render).
+    """
+
+    parameters = None
     endpoint_type = None
+    process = None
 
     def get_safe_arguments(self, arguments_dict, accessor):
         """ Enforce type safety; do not verify API key. """

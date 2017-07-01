@@ -77,6 +77,10 @@ def test_endpoint_handlers_implementation():
         func = eval("json_api." + endpoint)
         assert func.endpoint_type, "The class " + endpoint + \
             " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
+        assert func.process, "The class " + endpoint + \
+            " does not override the \"process\" function. Please reimplement the class to conform to this specification."
+        assert func.parameters is not None, "The class " + endpoint + \
+            " does not specify its parameters. Please reimplement the class to conform to this specification."
 
 
 def test_requirements_file_is_sorted():

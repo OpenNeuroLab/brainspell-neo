@@ -110,7 +110,6 @@ def add_pmid_article_to_database(article_id):
     in order to add the article to our database.
     """
 
-    # TODO: add empty metadata field, add reference
     pmid = str(article_id)
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
     records = list(Medline.parse(handle))
@@ -122,6 +121,8 @@ def add_pmid_article_to_database(article_id):
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
     article_info["experiments"] = ""
+    article["metadata"] = str({"meshHeadings": []})
+    article["reference"] = None
     identity = ""
     try:
         article_info["experiments"] = {
@@ -150,7 +151,8 @@ def add_pmid_article_to_database(article_id):
 
 
 def getDOI(lst):
-    # TODO: add a clear description of this function's purpose
+    """ Extract the DOI from a Bio.Medline result """
+
     pattern = r"([0-9]{2}\.[0-9]*\/[a-z]*\.[0-9]*\.[0-9]*)[ ]\[doi\]"
     for item in lst:
         if re.match(pattern, item):
@@ -339,7 +341,6 @@ def update_z_scores(id, values):
         query.execute()
 
 
-# TODO: needs to be commented more thoroughly, and probably rewritten
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     """ Update the vote on an experiment tag for a given user. """
 
@@ -355,7 +356,9 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     if not table_obj.get(column):
         table_obj[column] = []
 
+    # get the index for the tag
     for i in range(len(table_obj[column])):
+        # some entries might be malformed, so check if "tag" is in the dict
         if "tag" in table_obj[column][i]:
             if table_obj[column][i]["tag"] == tag_name:
                 entry = i

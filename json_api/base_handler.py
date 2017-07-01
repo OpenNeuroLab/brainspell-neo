@@ -112,7 +112,8 @@ class BaseHandler(tornado.web.RequestHandler):
                         "description": "Bad input for argument (type " +
                         self.parameters[k]["type"].__name__ +
                         "): " +
-                        k}
+                        k
+                    }
 
         if self.endpoint_type == Endpoint.PUSH_API or (
                 "key" in self.request.arguments):

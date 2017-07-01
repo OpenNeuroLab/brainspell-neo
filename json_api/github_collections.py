@@ -40,9 +40,9 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
                                   + "/oauth",
                                   {"next":
                                    self.get_argument('next', '/')})
-        print(redirect_uri)
-        import sys
-        sys.stdout.flush()
+
+        with open("uri", "w") as f:
+          f.write(redirect_uri)
 
         # if we have a code, we have been authorized so we can log in
         if self.get_argument("code", False):

@@ -1,5 +1,6 @@
 import hashlib
 import os
+import tornado.gen
 from base64 import b64encode
 
 import tornado
@@ -190,7 +191,7 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                             repo["in_collection"] = False
 
                     # get article information from each pmid from the database
-                    all_contents = [next(get_article(pmid)) for pmid in pmids]
+                    all_contents = [next(get_article_object(pmid)) for pmid in pmids]
                 except BaseException:  # TODO This is hacky, Empty Repos break the code!
                     all_contents = []
                     repo["contributors"] = {}
@@ -271,7 +272,7 @@ class NewFileHandler(BaseHandler, torngithub.GithubMixin):
             "Type of collection is {0} and type of PMID is {1}".format(
                 type(collection),
                 type(pmid)))
-        article = list(get_article(pmid))[0]
+        article = list(get_article_object(pmid))[0]
         entry = {"pmid": pmid,
                  "title": article.title,
                  "reference": article.reference,

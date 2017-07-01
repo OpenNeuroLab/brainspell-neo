@@ -20,6 +20,9 @@
 {% end %}
 
 {% block content %}
+<script>
+    console.log(user_logged_in);
+</script>
 
     <!-- Page Content -->
     <div class="container">
@@ -87,7 +90,7 @@
       , hwaccel: false // Whether to use hardware acceleration
       , position: 'absolute' // Element positioning
       };
-    {% if api_key %}
+
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       //console.log(spinner);
@@ -119,7 +122,7 @@
         $("#github_collections").select2({placeholder: response.statusText});
         $("#github_collections").prop("disabled", true)
       });
-    {% end %}
+
         //Generates the popup widget when a vote element is clicked
       // TODO: might be worth making a class for popup, or potentially putting it in its own file
         function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
@@ -504,7 +507,7 @@
             if (responseObj["success"] == 1) {
                 // if success, update the UI
                 // TODO: add a helper function to refresh the entire UI
-                /*
+
                 if ($(btn).attr("data-voted-agree") == "true") {
                     // if they've already voted, then undo the vote in the UI
                     $(btn).attr("data-voted-agree", "false");
@@ -518,7 +521,7 @@
                     votes += 1;
                     $(btn).text("Agree: " + votes + " (including you)");
                 }
-                */
+
                 // for now, just reloading
                 location.reload();
             } else {
@@ -882,7 +885,7 @@
                     "username": "{{github_username}}",
                     "key": "{{api_key}}"
                 }
-            }
+            };
             ws.send(JSON.stringify(message));
         }
         //Updates votes for MeshDescriptors as a whole

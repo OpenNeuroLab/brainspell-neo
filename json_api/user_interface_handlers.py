@@ -59,7 +59,6 @@ class ViewArticleHandler(BaseHandler):
     Display the contents of an article to the user, along with UI features for curation,
     visualization, statistics, etc.
     """
-
     def get(self):
         article_id = -1
         try:

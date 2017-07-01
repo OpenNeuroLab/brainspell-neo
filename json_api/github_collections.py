@@ -190,7 +190,8 @@ class ReposHandler(BaseHandler, torngithub.GithubMixin):
                             repo["in_collection"] = False
 
                     # get article information from each pmid from the database
-                    all_contents = [next(get_article_object(pmid)) for pmid in pmids]
+                    all_contents = [next(get_article_object(pmid))
+                                    for pmid in pmids]
                 except BaseException:  # TODO This is hacky, Empty Repos break the code!
                     all_contents = []
                     repo["contributors"] = {}

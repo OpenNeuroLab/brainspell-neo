@@ -92,8 +92,9 @@
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       //console.log(spinner);
-      $.get("/repos?list=1&pmid={{article_id}}", function(data, err){
-        var data = JSON.parse(data);
+      $.get("/json/collections?pmid={{article_id}}&key={{api_key}}&github_access_token={{github_access_token}}", function(data, err){
+        console.log(data);
+        var data = data["collections"];
         var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
                                   function(d){return d.name.replace("brainspell-collection-","")});
@@ -102,15 +103,19 @@
         spinner.stop(target)
 		$("#github_collections").on("select2:select", function (e) {
 		  console.log("You want to add this pmid {{article_id}} to collection:", e.params.data.id)
-		  $.post("/add-to-collection?"+$.param({pmid: {{article_id}},
-		   collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
+		  $.post("/json/add-to-collection?"+$.param({pmid: {{article_id}},
+		   collection:"brainspell-collection-"+e.params.data.id,
+            github_access_token:"{{github_access_token}}",
+            key:"{{api_key}}"}), function(data, err){
 			 console.log(err)
 		   })
 		});
 	 $("#github_collections").on("select2:unselect", function (e) {
         console.log("You want to remove this pmid {{article_id}} from collection:", e.params.data.id)
 		  $.post("/remove-from-collection?"+$.param({pmid: {{article_id}},
-		   collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
+		   collection:"brainspell-collection-"+e.params.data.id,
+            github_access_token:"{{github_access_token}}",
+            key:"{{api_key}}"}), function(data, err){
 			 console.log(err)
 		   })
 		});
@@ -905,40 +910,27 @@
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
 
-//TODO Renders BrainSprite Graphics, Currently not used:
-//        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
-//        function startloader() {
-//            $(window).load(function () {
-//                var brain = brainsprite({
-//                    canvas: "3Dviewer",
-//                    sprite: "spriteImg",
-////                    overlay: {
-////                        sprite: "overlayImg",
-////                        nbSlice: {"Y":79,'Z':63}
-////                    },
-//                    flagCoordinates: true,
-//                    nbSlice: {"Y": 233, "Z": 189}
-//                });
-//            });
-//            console.log("GRAPHICS LOADED");
-//        }
-
-
-
-        //TODO Evaluate whether this is even still necessary
-        function send() {
-            $.ajax({
-                type: "POST",
-                url: "/view-article",
-                data: {
-                    "changes": $("#submitter").val(),
-                    "id": getID()
-                }
-            }).complete(function(o) {
-                //console.log(o);
-                location.reload();
+/*
+TODO: either make this useful, or remove it
+Renders BrainSprite Graphics, Currently not used:
+        $.getScript("https://rawgit.com/SIMEXP/brainsprite.js/master/assets/brainsprite.js");
+        function startloader() {
+            $(window).load(function () {
+                var brain = brainsprite({
+                    canvas: "3Dviewer",
+                    sprite: "spriteImg",
+//                    overlay: {
+//                        sprite: "overlayImg",
+//                        nbSlice: {"Y":79,'Z':63}
+//                    },
+                    flagCoordinates: true,
+                    nbSlice: {"Y": 233, "Z": 189}
+                });
             });
+            console.log("GRAPHICS LOADED");
         }
+*/
+
     </script>
 
 {% end %}

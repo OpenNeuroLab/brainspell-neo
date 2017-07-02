@@ -7,7 +7,7 @@ from base64 import b64encode
 
 from article_helpers import *
 from base_handler import *
-from user_accounts import *
+from user_account_helpers import *
 
 
 class MainHandler(BaseHandler):
@@ -98,3 +98,14 @@ class BulkAddHandler(BaseHandler):
         else:
             # data is malformed
             self.redirect("/?failure=1")
+
+
+class CollectionsHandler(BaseHandler):
+    """ Display the user's collections. """
+
+    def get(self):
+        if self.get_current_github_access_token():
+            self.render_with_user_info("static/html/account.html")
+        # if you're not authorized, redirect to OAuth
+        else:
+            self.redirect("/oauth?redirect_uri=/collections")

@@ -1,11 +1,15 @@
 import json
+from abc import ABCMeta
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 
 import tornado
 import tornado.web
 from torngithub import json_decode
 
-from user_accounts import *
+from user_account_helpers import *
+
+MAX_WORKERS = 16
 
 
 class Endpoint(Enum):
@@ -66,7 +70,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     By default, "response" is a dictionary that contains a key
     called "success" with a value of 1. The process function should
-    mutate the "response" dictionary as necessary and return it.
+    mutate the "response" dictionary as necessary and return it (unless
+    it is an asynchronous endpoint, described below).
 
     "args" is a dictionary with parameter values, such that the keys
     are those specified in the "parameters" dictionary.
@@ -81,13 +86,45 @@ class BaseHandler(tornado.web.RequestHandler):
     before the "process" function is called, and it will be included in
     the "args" dict.
 
+    Asynchronous endpoints:
+    If your endpoint is going to block the main thread for a reasonable
+    period of time, please make it asynchronous. It's as easy as setting
+    the "asynchronous" boolean, decorating your "process" function with
+    @tornado.gen.coroutine, and calling self.finish_async when your
+    function finishes execution (MANDATORY). Then, any blocking code
+    should be decorated with @run_on_executor.
+
+    asynchronous :: True | False
+
+    @run_on_executor
+    def blocker(self):
+        # blocking code here
+        ...
+
+    @tornado.gen.coroutine
+    def process(self, response, args):
+        blocked_result = yield self.blocker()
+        ...
+        self.finish_async(response)
+
     Web interface handlers should be named [*]Handler, and use the
     "render_with_user_info" function (rather than self.render).
+
+    The following variables will be included for use by the Tornado
+    HTML template:
+    - "github_name"
+    - "github_username"
+    - "github_avatar"
+    - "github_access_token"
+    - "api_key"
     """
 
     parameters = None
     endpoint_type = None
     process = None
+
+    asynchronous = False
+    executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
     def get_safe_arguments(self, arguments_dict, accessor):
         """ Enforce type safety; do not verify API key. """
@@ -127,6 +164,8 @@ class BaseHandler(tornado.web.RequestHandler):
             "args": args
         }
 
+    @tornado.gen.coroutine
+    @tornado.web.asynchronous
     def get(self):
         """
         Provide a guarantee for a valid API key on PUSH endpoints,
@@ -153,34 +192,45 @@ class BaseHandler(tornado.web.RequestHandler):
                 if type_name == "loads":  # account for loads function
                     type_name = "json"
                 formatted_parameters[p]["type"] = type_name
+                if "description" in self.parameters[p]:
+                    formatted_parameters[p]["description"] = self.parameters[p]["description"]
             if self.endpoint_type == Endpoint.PUSH_API:
                 formatted_parameters["key"] = {}
                 formatted_parameters["key"]["required"] = True
                 formatted_parameters["key"]["type"] = str.__name__
-            self.write(json.dumps({
+            self.finish_async({
                 "success": 1,
                 "parameters": formatted_parameters
-            }))
+            })
         else:
             # type check arguments
             argsDict = self.get_safe_arguments(
                 self.request.arguments, self.get_argument)
-
             if argsDict["success"] == 1:
                 # validate API key if push endpoint
                 if self.endpoint_type == Endpoint.PULL_API or (
                     self.endpoint_type == Endpoint.PUSH_API and valid_api_key(
                         argsDict["args"]["key"])):
                     response = {"success": 1}
-                    response = self.process(response, argsDict["args"])
-                    self.write(json.dumps(response))
+                    if not self.asynchronous:
+                        response = self.process(response, argsDict["args"])
+                        self.finish_async(response)
+                    else:
+                        self.process(response, argsDict["args"])
                 else:
-                    self.write(json.dumps({"success": 0}))
+                    self.finish_async(
+                        {"success": 0, "description": "That API key is not valid."})
             else:
                 # print the error message from argument parsing
-                self.write(json.dumps(argsDict))
+                self.finish_async(argsDict)
 
     post = get
+
+    def finish_async(self, response):
+        """ Write the response dictionary, and finish this asynchronous call. """
+
+        self.write(json.dumps(response))
+        self.finish()
 
     def render_with_user_info(self, url, params={}):
         """
@@ -193,6 +243,7 @@ class BaseHandler(tornado.web.RequestHandler):
             "github_name": self.get_current_github_name(),
             "github_username": self.get_current_github_username(),
             "github_avatar": self.get_current_github_avatar(),
+            "github_access_token": self.get_current_github_access_token(),
             "api_key": self.get_current_api_key()
         }
         for k in params:
@@ -264,3 +315,20 @@ class BaseHandler(tornado.web.RequestHandler):
         if origin:
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
+
+
+class AbstractEndpoint(metaclass=ABCMeta):
+    """ An abstract class to enforce the structure of API endpoints. """
+
+    def register(subclass):
+        """
+        Enforce the API specification described in BaseHandler.
+        Called by the "brainspell" module on all API endpoints.
+        """
+
+        assert subclass.endpoint_type, "The class " + subclass.__name__ + \
+            " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
+        assert subclass.process, "The class " + subclass.__name__ + \
+            " does not override the \"process\" function. Please reimplement the class to conform to this specification."
+        assert subclass.parameters is not None, "The class " + subclass.__name__ + \
+            " does not specify its parameters. Please reimplement the class to conform to this specification."

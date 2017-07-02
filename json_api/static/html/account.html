@@ -1,0 +1,136 @@
+{% extends base.html %}
+
+{% block header %}
+
+    <title>Brainspell v2 - My Github</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+
+{% end %}
+
+{% block content %}
+
+    <!-- Search Functionality  -->
+    <div class="container">
+
+      <div class="row">
+          <div class="col-lg-12 text-center">
+              <h1>Brainspell Collections</h1>
+              <p class="lead">Your open, curated classification of neuroimaging literature.</p>
+              <form data-toggle="validator" role="form" action="javascript:createCollection()" id="new_collection">
+              <div class="input-group has-feedback">
+                 <input type="text" name="name" id="new-collection-name" style="width:20%"  pattern="^[_A-z0-9]{1,}$" minlength="3" placeholder="Name" class="form-control" required>
+                 <input type="text" name="description" id="new-collection-description" style="width:80%"  placeholder="Description" class="form-control" required>
+
+                 <span class="input-group-btn">
+                      <input type="submit" class="btn btn-success" value="Create" />
+                 </span>
+              </div>
+             </form>
+          </div>
+      </div>
+
+      <div class="row">
+    <div class="col-lg-12 text-center">
+      <h2>My Collections</h2>
+    </div>
+  </div>
+
+  <div class="row container" id="collections-container">Loading... This might take a while.</div>
+  </div>  <!-- /.container -->
+
+
+
+    <!-- jQuery Version 1.11.1 -->
+    <script src="static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="static/js/bootstrap.min.js"></script>
+
+    <script src="http://cdn.rawgit.com/1000hz/bootstrap-validator/master/dist/validator.min.js"></script>
+
+    <script>
+    function generateCollectionsContainer(list) {
+      console.log(list);
+
+      var contents = '<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">';
+
+      for (var i = 0; i < list.length; i++) {
+        var collectionObj = list[i];
+        contents = contents + '<div class="panel panel-default">\
+        <div class="panel-heading" role="tab" id="heading' + i + '">\
+              <h4 class="panel-title">\
+              <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse' + i + '" aria-expanded="' + (i == 0) + '" aria-controls="collapse'+i+'">\
+                '+collectionObj["name"]+'\
+              </a>\
+            </h4>\
+          <div>\
+            '+collectionObj["description"];
+        for (var j = 0; j < list[i]["contributors"].length; j++) {
+            var contributorObj = list[i]["contributors"][j];
+            contents = contents + '<img class="img-circle pull-right" src="'+contributorObj["avatar_url"]+'" width="25px" height="25px">';
+        }
+        contents = contents + '</div>\
+\
+        </div>\
+        <div id="collapse'+i+'" class="panel-collapse collapse';
+        if (i == 0) contents = contents + " in ";
+         contents = contents + '" role="tabpanel" aria-labelledby="heading'+i+'">\
+          <div class="panel-body">';
+        for (var j = 0; j < collectionObj["contents"].length; j++) {
+          var articleObj = collectionObj["contents"][j];
+          contents = contents + '<h5><a href="/view-article?id='+articleObj["pmid"]+'">'+articleObj["title"]+'</a></h5>\
+              '+articleObj["reference"]+'\
+              <br>';
+        }
+        contents = contents + '\
+          </div>\
+        </div>\
+      </div>';
+      }
+      
+      contents = contents + '</div>';
+      $("#collections-container").html(contents);
+    }
+
+
+    $.ajax({
+        type: "POST",
+        url: "/json/collections",
+        data: {
+            "key": "{{api_key}}",
+            "github_access_token": "{{github_access_token}}"
+        }
+    }).complete(function(o) {
+      generateCollectionsContainer(JSON.parse(o["responseText"])["collections"]);
+    });
+
+    function createCollection() {
+        $.ajax({
+            type: "POST",
+            url: "/json/create-collection",
+            data: {
+                "name": $("#new-collection-name").val(),
+                "description": $("#new-collection-description").val(),
+                "key": "{{api_key}}",
+                "github_access_token": "{{github_access_token}}"
+            }
+        }).complete(function(o) {
+            response = JSON.parse(o["responseText"]);
+            /* TODO: handle errors:
+            if (o["success"] == 1) {
+              location.reload();
+            } else {
+              // handle error somehow
+              alert("That collection already exists.")
+            }
+            For now, just reload unconditionally. */
+            location.reload();
+        });
+      }
+    </script>
+
+{% end %}
+

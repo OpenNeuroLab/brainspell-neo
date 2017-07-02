@@ -5,7 +5,7 @@ import tornado.websocket
 import json_api
 from article_helpers import *
 from base_handler import *
-from user_accounts import *
+from user_account_helpers import *
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -77,3 +77,5 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
     def on_close(self):
         # cleanup
         pass
+
+    set_default_headers = BaseHandler.set_default_headers

@@ -196,8 +196,10 @@
 
 //            alert("Articles to save: " + articles.join(", "));
             for (var i = 0; i < articles.length; i++) {
-                $.post("/add-to-collection?"+$.param({pmid: articles[i],
-                collection:"brainspell-collection-"+collectionName}), function(data, err){
+                $.post("/json/add-to-collection?"+$.param({pmid: articles[i],
+                collection:"brainspell-collection-"+collectionName,
+                github_access_token:"{{github_access_token}}",
+                key:"{{api_key}}"}), function(data, err){
                     console.log(err)
             });
 

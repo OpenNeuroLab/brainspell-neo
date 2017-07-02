@@ -86,19 +86,13 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
             extra_params={"scope": "repo"})
 
 
-class GithubLogoutHandler(BaseHandler, tornado.web.StaticFileHandler):
+class GithubLogoutHandler(BaseHandler):
     """ Clear login cookies. """
 
     def get(self):
         self.clear_cookie("user")
         self.clear_cookie("api_key")
         self.redirect(self.get_argument("redirect_uri", "/"))
-
-    def set_extra_headers(self, path):
-        # disable cache
-        self.set_header(
-            'Cache-Control',
-            'no-store, no-cache, must-revalidate, max-age=0')
 
 
 def get_last_page_num(link):

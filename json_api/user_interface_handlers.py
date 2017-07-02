@@ -7,7 +7,7 @@ from base64 import b64encode
 
 from article_helpers import *
 from base_handler import *
-from user_accounts import *
+from user_account_helpers import *
 
 
 class MainHandler(BaseHandler):

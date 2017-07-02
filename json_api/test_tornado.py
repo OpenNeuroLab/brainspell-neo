@@ -10,7 +10,7 @@ import tornado.web
 import brainspell
 import json_api
 import user_interface_handlers
-from search import *
+from search_helpers import *
 
 #import selenium
 #from selenium import webdriver
@@ -52,7 +52,10 @@ TODO: need to make tests for:
 def test_no_reference_to_models_in_endpoints():
     """ Enforce a data access object abstraction layer. """
 
-    files_to_enforce = ["json_api.py", "user_interface_handlers.py"]
+    files_to_enforce = [
+        "json_api.py",
+        "user_interface_handlers.py",
+        "github_collections.py"]
     for f in files_to_enforce:
         with open(f, "r") as python_file_handler:
             python_contents = python_file_handler.read()
@@ -64,7 +67,7 @@ def test_endpoint_handlers_are_in_the_correct_file():
     """ Test that there are no EndpointHandlers in the user_interface_handlers file. """
 
     assert len([f for f in dir(user_interface_handlers) if "EndpointHandler" in f]
-               ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api."
+               ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api or github_collections."
 
 
 def test_endpoint_handlers_implementation():
@@ -73,8 +76,8 @@ def test_endpoint_handlers_implementation():
     specification by indicating the endpoint type
     """
 
-    for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
-        func = eval("json_api." + endpoint)
+    for endpoint, func in [(f, eval("json_api." + f)) for f in dir(json_api) if "EndpointHandler" in f]
+        + [(f, eval("github_collections." + f)) for f in dir(github_collections) if "EndpointHandler" in f]:
         assert func.endpoint_type, "The class " + endpoint + \
             " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
         assert func.process, "The class " + endpoint + \

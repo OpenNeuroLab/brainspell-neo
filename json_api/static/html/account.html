@@ -19,10 +19,10 @@
           <div class="col-lg-12 text-center">
               <h1>Brainspell Collections</h1>
               <p class="lead">Your open, curated classification of neuroimaging literature.</p>
-              <form data-toggle="validator" role="form" action="javascript:addRepo()" id="new_repo">
+              <form data-toggle="validator" role="form" action="javascript:createCollection()" id="new_collection">
               <div class="input-group has-feedback">
-                 <input type="text" name="name" style="width:20%"  pattern="^[_A-z0-9]{1,}$" minlength="3" placeholder="Name" class="form-control" required>
-                 <input type="text" name="description" style="width:80%"  placeholder="Description" class="form-control" required>
+                 <input type="text" name="name" id="new-collection-name" style="width:20%"  pattern="^[_A-z0-9]{1,}$" minlength="3" placeholder="Name" class="form-control" required>
+                 <input type="text" name="description" id="new-collection-description" style="width:80%"  placeholder="Description" class="form-control" required>
 
                  <span class="input-group-btn">
                       <input type="submit" class="btn btn-success" value="Create" />
@@ -46,7 +46,7 @@
         <div class="panel-heading" role="tab" id="heading{{idx}}">
               <h4 class="panel-title">
               <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{idx}}" aria-expanded="{{str(idx == 0).lower()}}" aria-controls="collapse{{idx}}">
-                {{i["pretty_name"]}}
+                {{i["name"]}}
               </a>
             </h4>
           <div>
@@ -85,22 +85,29 @@
     <script src="http://cdn.rawgit.com/1000hz/bootstrap-validator/master/dist/validator.min.js"></script>
 
     <script>
-        function addRepo(){
-
-          var form_data = $("#new_repo").serializeArray();
-          var url = "/create_repo?";
-          var formatted_data = {};
-          form_data.forEach(function(val, idx, arr){
-            formatted_data[val.name] = val.value
-          });
-          url = url + $.param(formatted_data);
-          console.log(url, formatted_data, $.param(formatted_data));
-          $.post(url,
-            null,
-            function(msg){
-              document.write(msg) //AK: sorry this is hacky
-            })
-        }
+    function createCollection() {
+        $.ajax({
+            type: "POST",
+            url: "/json/create-collection",
+            data: {
+                "name": $("#new-collection-name").val(),
+                "description": $("#new-collection-description").val(),
+                "key": "{{api_key}}",
+                "github_access_token": "{{github_access_token}}"
+            }
+        }).complete(function(o) {
+            response = JSON.parse(o["responseText"]);
+            /* TODO: handle errors:
+            if (o["success"] == 1) {
+              location.reload();
+            } else {
+              // handle error somehow
+              alert("That collection already exists.")
+            }
+            For now, just reload unconditionally. */
+            location.reload();
+        });
+      }
     </script>
 
 {% end %}

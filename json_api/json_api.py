@@ -2,8 +2,8 @@
 
 from article_helpers import *
 from base_handler import *
-from search import *
-from user_accounts import *
+from search_helpers import *
+from user_account_helpers import *
 
 # BEGIN: search API endpoints
 

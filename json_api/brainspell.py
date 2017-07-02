@@ -11,6 +11,7 @@ import tornado.ioloop
 import tornado.web
 
 import json_api
+import github_collections
 from deploy import *
 from github_collections import *
 from user_interface_handlers import *
@@ -37,9 +38,10 @@ def getJSONEndpoints():
     """
 
     endpoints = []
-    for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
-        func = eval("json_api." + endpoint)
-        name = convert(endpoint.replace("EndpointHandler", ""))
+    for name, func in [(convert(f.replace("EndpointHandler", "")), eval("json_api." + f))
+                       for f in dir(json_api) if "EndpointHandler" in f] \
+        + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
+            for f in dir(github_collections) if "EndpointHandler" in f]:
         endpoints.append((r"/json/" + name, func))
         endpoints.append((r"/json/" + name + "/help", func))
     return endpoints
@@ -59,13 +61,9 @@ def make_app():
         (r"/bulk-add", BulkAddHandler),
         (r"/deploy", DeployHandler),
         (r"/api-socket", EndpointWebSocket),
-        # GitHub endpoints; TODO: change to a JSON API
         (r"/oauth", GithubLoginHandler),
-        (r"/github-logout", GithubLogoutHandler),
-        (r"/repos", ReposHandler),
-        (r"/create_repo", NewRepoHandler),
-        (r"/add-to-collection", NewFileHandler),
-        (r"/remove-from-collection", DeleteFileHandler)
+        (r"/logout", GithubLogoutHandler),
+        (r"/collections", CollectionsHandler)
     ] + getJSONEndpoints(), debug=True, **settings)
 
 

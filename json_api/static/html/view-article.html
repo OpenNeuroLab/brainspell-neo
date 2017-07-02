@@ -102,8 +102,10 @@
         spinner.stop(target)
 		$("#github_collections").on("select2:select", function (e) {
 		  console.log("You want to add this pmid {{article_id}} to collection:", e.params.data.id)
-		  $.post("/add-to-collection?"+$.param({pmid: {{article_id}},
-		   collection:"brainspell-collection-"+e.params.data.id}), function(data, err){
+		  $.post("/json/add-to-collection?"+$.param({pmid: {{article_id}},
+		   collection:"brainspell-collection-"+e.params.data.id,
+            github_access_token:"{{github_access_token}}",
+            key:"{{api_key}}"}), function(data, err){
 			 console.log(err)
 		   })
 		});

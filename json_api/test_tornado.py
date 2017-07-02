@@ -46,12 +46,17 @@ TODO: need to make tests for:
 4) splitting, flagging a table
 5) voting on table and article tags
 6) setting the authors for an article
-7) saving to a GitHub collection
+7) saving to and deleting from a GitHub collection
 """
 
 
-def test_no_reference_to_models_in_endpoints():
-    """ Enforce a data access object abstraction layer. """
+def test_abstraction_layer():
+    """
+    Enforce a data access object abstraction layer.
+    Enforce using self.render_with_user_info, instead of self.render.
+    Enforce only rendering HTML templates in the user_interface_handlers
+    module.
+    """
 
     files_to_enforce = [
         "json_api.py",
@@ -62,6 +67,12 @@ def test_no_reference_to_models_in_endpoints():
             python_contents = python_file_handler.read()
             assert ("from models import" not in python_contents) and ("import models" not in python_contents), "You should not access the models directly in your handler. The file " + \
                 f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
+            if f == "json_api.py" or f == "github_collections.py":
+                assert "self.render" not in python_contents, "The file " + f + \
+                    " appears to render an HTML template. Please move this to the 'user_interface_handlers' module."
+            else:  # assert that self.render_with_user_info is being used
+                assert "self.render(" not in python_contents, "The file " + f + \
+                    " appears to be calling the self.render function. Please use self.render_with_user_info instead."
 
 
 def test_endpoint_handlers_are_in_the_correct_file():
@@ -69,22 +80,6 @@ def test_endpoint_handlers_are_in_the_correct_file():
 
     assert len([f for f in dir(user_interface_handlers) if "EndpointHandler" in f]
                ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api or github_collections."
-
-
-def test_endpoint_handlers_implementation():
-    """
-    Test that EndpointHandlers (JSON API endpoints) conform to the
-    specification by indicating the endpoint type
-    """
-
-    for endpoint, func in [(f, eval("json_api." + f)) for f in dir(json_api) if "EndpointHandler" in f] \
-            + [(f, eval("github_collections." + f)) for f in dir(github_collections) if "EndpointHandler" in f]:
-        assert func.endpoint_type, "The class " + endpoint + \
-            " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
-        assert func.process, "The class " + endpoint + \
-            " does not override the \"process\" function. Please reimplement the class to conform to this specification."
-        assert func.parameters is not None, "The class " + endpoint + \
-            " does not specify its parameters. Please reimplement the class to conform to this specification."
 
 
 def test_requirements_file_is_sorted():

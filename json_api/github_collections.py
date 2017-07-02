@@ -132,18 +132,6 @@ def get_user_repos(http_client, access_token):
     raise tornado.gen.Return(data)
 
 
-class CollectionsHandler(BaseHandler, torngithub.GithubMixin):
-    """ Display the user's collections. """
-
-    @tornado.gen.coroutine
-    def get(self):
-        if self.get_current_github_access_token():
-            self.render_with_user_info("static/html/account.html")
-        # if you're not authorized, redirect to OAuth
-        else:
-            self.redirect("/oauth?redirect_uri=/collections")
-
-
 class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
     """ Return a list of the user's collections. """
 

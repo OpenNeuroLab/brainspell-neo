@@ -15,7 +15,8 @@ import github_collections
 from deploy import *
 from github_collections import *
 from user_interface_handlers import *
-from web_sockets import *
+from websockets import *
+from base_handler import AbstractEndpoint
 
 # BEGIN: init I/O loop
 
@@ -46,6 +47,7 @@ def getJSONEndpoints():
         endpoints.append((r"/json/" + name + "/", func))
         endpoints.append((r"/json/" + name + "/help", func))
         endpoints.append((r"/json/" + name + "/help/", func))
+        AbstractEndpoint.register(func)
     return endpoints
 
 

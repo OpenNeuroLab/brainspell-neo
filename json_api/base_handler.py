@@ -7,6 +7,7 @@ from torngithub import json_decode
 
 from user_account_helpers import *
 from concurrent.futures import ThreadPoolExecutor
+from abc import ABCMeta, abstractmethod
 
 MAX_WORKERS = 16
 
@@ -311,3 +312,15 @@ class BaseHandler(tornado.web.RequestHandler):
         if origin:
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
+
+
+class AbstractEndpoint(metaclass=ABCMeta):
+    """ An abstract class to enforce the structure of API endpoints. """
+
+    def register(subclass):
+        assert subclass.endpoint_type, "The class " + subclass.__name__ + \
+            " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
+        assert subclass.process, "The class " + subclass.__name__ + \
+            " does not override the \"process\" function. Please reimplement the class to conform to this specification."
+        assert subclass.parameters is not None, "The class " + subclass.__name__ + \
+            " does not specify its parameters. Please reimplement the class to conform to this specification."

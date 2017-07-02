@@ -38,12 +38,12 @@ Handlers go in one of three files:
 Our naming convention is to use `[*]EndpointHandler` for API endpoint handlers, and `[*]Handler` for web interface handlers. 
  
 `json_api/article_helpers.py` contains helper functions for adding articles to the database.  
-`json_api/base_handler.py` is our abstract handler, which provides various helper functions. All handlers should subclass `BaseHandler`. 
+`json_api/base_handler.py` is our abstract handler, which provides various helper functions. All handlers should subclass `BaseHandler`.  
 `json_api/deploy.py` is a module for deploying to a remote server using Git.  
 `json_api/models.py` is for our ORM, PeeWee, which lets us treat our database like a Python object.   
 `json_api/search_helpers.py` contains helper functions for searching articles in the database.   
 `json_api/test_tornado.py` is our suite of continuous integration tests.  
-`json_api/user_account_helpers.py` contains helper functions for accessing and mutating user information. 
+`json_api/user_account_helpers.py` contains helper functions for accessing and mutating user information.  
 `json_api/websockets.py` contains a WebSocket that allows developers to connect to the API using the WebSockets protocol.   
 `json_api/static/` contains the HTML, CSS, images, fonts, and Javascript code for the website.
 

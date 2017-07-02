@@ -70,7 +70,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     By default, "response" is a dictionary that contains a key
     called "success" with a value of 1. The process function should
-    mutate the "response" dictionary as necessary and return it.
+    mutate the "response" dictionary as necessary and return it (unless
+    it is an asynchronous endpoint, described below).
 
     "args" is a dictionary with parameter values, such that the keys
     are those specified in the "parameters" dictionary.
@@ -89,7 +90,7 @@ class BaseHandler(tornado.web.RequestHandler):
     If your endpoint is going to block the main thread for a reasonable
     period of time, please make it asynchronous. It's as easy as setting
     the "asynchronous" boolean, decorating your "process" function with
-    @tornado.web.asynchronous, and calling self.finish_async when your
+    @tornado.gen.coroutine, and calling self.finish_async when your
     function finishes execution (MANDATORY). Then, any blocking code
     should be decorated with @run_on_executor.
 
@@ -100,7 +101,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # blocking code here
         ...
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def process(self, response, args):
         blocked_result = yield self.blocker()
         ...
@@ -226,6 +227,8 @@ class BaseHandler(tornado.web.RequestHandler):
     post = get
 
     def finish_async(self, response):
+        """ Write the response dictionary, and finish this asynchronous call. """
+
         self.write(json.dumps(response))
         self.finish()
 
@@ -318,6 +321,11 @@ class AbstractEndpoint(metaclass=ABCMeta):
     """ An abstract class to enforce the structure of API endpoints. """
 
     def register(subclass):
+        """ 
+        Enforce the API specification described in BaseHandler.
+        Called by the "brainspell" module on all API endpoints.
+        """
+
         assert subclass.endpoint_type, "The class " + subclass.__name__ + \
             " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
         assert subclass.process, "The class " + subclass.__name__ + \

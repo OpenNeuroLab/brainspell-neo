@@ -38,6 +38,20 @@ conn = PostgresqlExtDatabase(
 
 
 class BaseModel(signals.Model):
+    """
+    The following is the data within the schema:
+        database_dict["UniqueID"] = UniqueID : int (Integer)
+        database_dict["TIMESTAMP"] = TIMESTAMP : (DateTime)
+        database_dict["Title"] = Title : (Text)
+        database_dict["Authors"] = Authors : (Text)
+        database_dict["Abstract"] = Abstract : (Text)
+        database_dict["Reference"] = Reference : (Text)
+        database_dict["PMID"] = PMID : (VarChar)
+        database_dict["DOI"] = DOI : (VarChar)
+        database_dict["NeuroSynthID"] = NeuroSynthID : (VarChar)
+        database_dict["Experiments"] = Experiments : (Text)
+        database_dict["Metadata"] = Metadata : (Text)
+    """
 
     class Meta:
         database = conn

@@ -48,7 +48,7 @@ def register_github_user(user_dict):
         return False  # user already exists
 
 
-def add_collection_to_brainspell_database(collection_name, api_key, cold_run=True):
+def add_collection_to_brainspell_database(collection_name, description, api_key, cold_run=True):
     """ Create a collection in our database if it doesn't exist,
     or return false if the collection already exists. """
 
@@ -66,7 +66,9 @@ def add_collection_to_brainspell_database(collection_name, api_key, cold_run=Tru
         # if the collection doesn't already exist
         if collection_name not in user_collections:
             # create the collection
-            user_collections[collection_name] = []
+            user_collections[collection_name] = {}
+            user_collections[collection_name]["description"] = description
+            user_collections[collection_name]["pmids"] = []
             if not cold_run:
                 q = User.update(
                     collections=json_encode(user_collections)).where(
@@ -107,9 +109,12 @@ def add_article_to_brainspell_database_collection(collection, pmid, api_key, col
             # assumes collections are well-formed JSON
             target = json_decode(user.collections)
             if collection not in target:
-                target[collection] = []
-            if str(pmid) not in target[collection]:
-                target[collection].append(pmid)
+                target[collection] = {
+                    "description": "None",
+                    "pmids": []
+                }
+            if str(pmid) not in target[collection]["pmids"]:
+                target[collection]["pmids"].append(pmid)
                 if not cold_run:
                     q = User.update(
                         collections=json_encode(target)).where(
@@ -137,8 +142,8 @@ def remove_article_from_brainspell_database_collection(
             # assumes collections are well-formed JSON
             target = json_decode(user.collections)
             if collection in target:
-                if str(pmid) in target[collection]:
-                    target[collection].remove(pmid)
+                if str(pmid) in target[collection]["pmids"]:
+                    target[collection]["pmids"].remove(pmid)
                     if not cold_run:
                         q = User.update(
                             collections=json_encode(target)).where(

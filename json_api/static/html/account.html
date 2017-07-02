@@ -92,6 +92,10 @@
       }
       
       contents = contents + '</div>';
+
+      if (list.length == 0) {
+        contents = "You have no collections."
+      }
       $("#collections-container").html(contents);
     }
 

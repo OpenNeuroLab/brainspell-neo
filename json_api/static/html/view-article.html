@@ -88,7 +88,7 @@
       , hwaccel: false // Whether to use hardware acceleration
       , position: 'absolute' // Element positioning
       };
-
+    {% if api_key %}
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       //console.log(spinner);
@@ -120,6 +120,7 @@
         $("#github_collections").select2({placeholder: response.statusText});
         $("#github_collections").prop("disabled", true)
       });
+    {% end %}
 
         //Generates the popup widget when a vote element is clicked
       // TODO: might be worth making a class for popup, or potentially putting it in its own file

@@ -6,15 +6,15 @@ GitHub API.
 
 import hashlib
 import os
-import tornado.gen
 from base64 import b64encode
 
 import tornado
+import tornado.gen
 import tornado.web
 import torngithub
+from tornado.concurrent import run_on_executor
 from tornado.httputil import url_concat
 from torngithub import json_encode
-from tornado.concurrent import run_on_executor
 
 from base_handler import *
 from search_helpers import *

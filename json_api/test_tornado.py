@@ -8,8 +8,8 @@ import pytest
 import tornado.web
 
 import brainspell
-import json_api
 import github_collections
+import json_api
 import user_interface_handlers
 from search_helpers import *
 

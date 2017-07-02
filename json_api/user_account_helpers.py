@@ -1,8 +1,9 @@
 # all functions related to user accounts
 
-from torngithub import json_decode
-from torngithub import json_encode
 import hashlib
+
+from torngithub import json_decode, json_encode
+
 from models import *
 
 

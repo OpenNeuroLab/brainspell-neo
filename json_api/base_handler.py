@@ -1,4 +1,6 @@
 import json
+from abc import ABCMeta
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 
 import tornado
@@ -6,8 +8,6 @@ import tornado.web
 from torngithub import json_decode
 
 from user_account_helpers import *
-from concurrent.futures import ThreadPoolExecutor
-from abc import ABCMeta, abstractmethod
 
 MAX_WORKERS = 16
 

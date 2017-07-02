@@ -10,13 +10,13 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
-import json_api
 import github_collections
+import json_api
+from base_handler import AbstractEndpoint
 from deploy import *
 from github_collections import *
 from user_interface_handlers import *
 from websockets import *
-from base_handler import AbstractEndpoint
 
 # BEGIN: init I/O loop
 

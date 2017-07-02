@@ -1,10 +1,10 @@
 # JSON API classes
 
+import brainspell
 from article_helpers import *
 from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
-import brainspell
 
 
 class ListEndpointsEndpointHandler(BaseHandler):

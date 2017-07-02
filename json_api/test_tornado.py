@@ -10,7 +10,7 @@ import tornado.web
 import brainspell
 import github_collections
 import json_api
-import user_interface_handlers
+import user_interface
 from search_helpers import *
 
 #import selenium
@@ -54,13 +54,13 @@ def test_abstraction_layer():
     """
     Enforce a data access object abstraction layer.
     Enforce using self.render_with_user_info, instead of self.render.
-    Enforce only rendering HTML templates in the user_interface_handlers
+    Enforce only rendering HTML templates in the user_interface
     module.
     """
 
     files_to_enforce = [
         "json_api.py",
-        "user_interface_handlers.py",
+        "user_interface.py",
         "github_collections.py"]
     for f in files_to_enforce:
         with open(f, "r") as python_file_handler:
@@ -69,17 +69,17 @@ def test_abstraction_layer():
                 f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
             if f == "json_api.py" or f == "github_collections.py":
                 assert "self.render" not in python_contents, "The file " + f + \
-                    " appears to render an HTML template. Please move this to the 'user_interface_handlers' module."
+                    " appears to render an HTML template. Please move this to the 'user_interface' module."
             else:  # assert that self.render_with_user_info is being used
                 assert "self.render(" not in python_contents, "The file " + f + \
                     " appears to be calling the self.render function. Please use self.render_with_user_info instead."
 
 
 def test_endpoint_handlers_are_in_the_correct_file():
-    """ Test that there are no EndpointHandlers in the user_interface_handlers file. """
+    """ Test that there are no EndpointHandlers in the user_interface file. """
 
-    assert len([f for f in dir(user_interface_handlers) if "EndpointHandler" in f]
-               ) == 0, "There is an EndpointHandler in the user_interface_handlers file. Please move this to json_api or github_collections."
+    assert len([f for f in dir(user_interface) if "EndpointHandler" in f]
+               ) == 0, "There is an EndpointHandler in the user_interface file. Please move this to json_api or github_collections."
 
 
 def test_requirements_file_is_sorted():

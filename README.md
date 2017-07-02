@@ -32,7 +32,7 @@ Brainspell should be running at `http://localhost:5000/`. The next time that you
 `json_api/brainspell.py` runs the Tornado main event loop.  
 Handlers go in one of three files:
 1. `json_api.py`, which contains JSON API endpoints that do not make GitHub API requests,
-2. `user_interface_handlers.py`, which contains all handlers that render Tornado HTML templates, or
+2. `user_interface.py`, which contains all handlers that render Tornado HTML templates, or
 3. `github_collections.py`, which contains all API endpoints that communicate with GitHub.
 
 Our naming convention is to use `[*]EndpointHandler` for API endpoint handlers, and `[*]Handler` for web interface handlers. 

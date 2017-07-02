@@ -67,7 +67,6 @@ def formatted_search(query, start, param=None, experiments=False):
 
     columns, term, formatted_query = parse_helper(query)
     query = formatted_query
-    print(query)
     if columns:
         search = Articles.select(
             Articles.pmid,

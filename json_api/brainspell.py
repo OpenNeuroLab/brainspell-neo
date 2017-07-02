@@ -15,7 +15,7 @@ import json_api
 from base_handler import AbstractEndpoint
 from deploy import *
 from github_collections import *
-from user_interface_handlers import *
+from user_interface import *
 from websockets import *
 
 # BEGIN: init I/O loop

@@ -194,13 +194,12 @@
             });
             collectionName = prompt("Enter the collection name:", "").trim();
 
-//            alert("Articles to save: " + articles.join(", "));
             for (var i = 0; i < articles.length; i++) {
                 $.post("/json/add-to-collection?"+$.param({pmid: articles[i],
-                collection:"brainspell-collection-"+collectionName,
+                name:collectionName,
                 github_access_token:"{{github_access_token}}",
                 key:"{{api_key}}"}), function(data, err){
-                    console.log(err)
+                    console.log(data);
             });
 
 

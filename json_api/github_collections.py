@@ -135,86 +135,99 @@ def get_user_repos(http_client, access_token):
 class CollectionsHandler(BaseHandler, torngithub.GithubMixin):
     """ Display the user's collections. """
 
-    # TODO: update the database if there is a discrepency
-
     @tornado.gen.coroutine
     def get(self):
-        # PMID specifies if there should be an indicator for each collection
-        # specifying whether a particular PMID is included
-        pmid = self.get_argument("pmid", "")
-
         if self.get_current_github_access_token():
-            response = []
-
-            # get all repos for an authenticated user
-            data = yield get_user_repos(self.get_auth_http_client(),
-                                        self.get_current_github_access_token())
-            repos = [d for d in data if d["name"].startswith(
-                "brainspell-collection")]
-
-            # TODO: ideally this information would be stored in the database
-
-            # for each repo
-            for repo_contents in repos:
-                repo = {
-                    # take the "brainspell-collection" off of the name
-                    "name": repo_contents["name"].replace("brainspell-collection-", ""),
-                    "description": repo_contents["description"]
-                }
-
-                # get the contributor info for this collection
-                contributor_info = yield torngithub.github_request(self.get_auth_http_client(),
-                                                                   repo_contents["contributors_url"].replace("https://api.github.com", ""),
-                                                                   access_token=self.get_current_github_access_token(),
-                                                                   method="GET")
-                repo["contributors"] = []
-                if contributor_info["body"]:
-                    repo["contributors"] = contributor_info["body"]
-                # get the PMIDs in the collection
-                try:
-                    content_data = yield torngithub.github_request(
-                        self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
-                                                                       repo=repo_contents["name"],
-                                                                       path=""
-                                                                       ),
-                        access_token=self.get_current_github_access_token(),
-                        method="GET")
-                    content = content_data["body"]
-
-                    # extract PMIDs from content body
-                    pmids = [c["name"].replace(".json", "") for c in content]
-
-                    # if we are looking for a certain PMID, add a tag for if it
-                    # exists in the collection
-                    if pmid:
-                        if pmid in pmids:
-                            repo["in_collection"] = True
-                        else:
-                            repo["in_collection"] = False
-
-                    # convert PeeWee article object to dict
-                    def parse_article_object(article_object):
-                        return {
-                            "title": article_object.title,
-                            "reference": article_object.reference,
-                            "pmid": article_object.pmid
-                        }
-
-                    # get article information from each pmid from the database
-                    repo["contents"] = [parse_article_object(
-                        next(get_article_object(pmid))) for pmid in pmids]
-                except BaseException:
-                    # empty repo; not a problem
-                    repo["contents"] = []
-                response.append(repo)
-            self.render_with_user_info("static/html/account.html", {
-                "info": response
-            })
-
+            self.render_with_user_info("static/html/account.html")
         # if you're not authorized, redirect to OAuth
         else:
             self.redirect("/oauth?redirect_uri=/collections")
+
+
+class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
+    """ Return a list of the user's collections. """
+
+    parameters = {
+        "pmid": {
+            "type": str,
+            "default": ""
+        },
+        "github_access_token": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+    asynchronous = True
+
+    @tornado.gen.coroutine
+    def process(self, response, args):
+        collections_list = []
+
+        # get all repos for an authenticated user
+        data = yield get_user_repos(self.get_auth_http_client(),
+                                    self.get_current_github_access_token())
+        repos = [d for d in data if d["name"].startswith(
+            "brainspell-collection")]
+
+        # TODO: ideally this information would be stored in the database
+
+        # for each repo
+        for repo_contents in repos:
+            repo = {
+                # take the "brainspell-collection" off of the name
+                "name": repo_contents["name"].replace("brainspell-collection-", ""),
+                "description": repo_contents["description"]
+            }
+
+            # get the contributor info for this collection
+            contributor_info = yield torngithub.github_request(self.get_auth_http_client(),
+                                                               repo_contents["contributors_url"].replace("https://api.github.com", ""),
+                                                               access_token=self.get_current_github_access_token(),
+                                                               method="GET")
+            repo["contributors"] = []
+            if contributor_info["body"]:
+                repo["contributors"] = contributor_info["body"]
+            # get the PMIDs in the collection
+            try:
+                content_data = yield torngithub.github_request(
+                    self.get_auth_http_client(),
+                    '/repos/{owner}/{repo}/contents/{path}'.format(owner=self.get_current_github_username(),
+                                                                   repo=repo_contents["name"],
+                                                                   path=""
+                                                                   ),
+                    access_token=self.get_current_github_access_token(),
+                    method="GET")
+                content = content_data["body"]
+
+                # extract PMIDs from content body
+                pmids = [c["name"].replace(".json", "") for c in content]
+
+                # if we are looking for a certain PMID, add a tag for if it
+                # exists in the collection
+                if pmid:
+                    if pmid in pmids:
+                        repo["in_collection"] = True
+                    else:
+                        repo["in_collection"] = False
+
+                # convert PeeWee article object to dict
+                def parse_article_object(article_object):
+                    return {
+                        "title": article_object.title,
+                        "reference": article_object.reference,
+                        "pmid": article_object.pmid
+                    }
+
+                # get article information from each pmid from the database
+                repo["contents"] = [parse_article_object(
+                    next(get_article_object(pmid))) for pmid in pmids]
+            except BaseException:
+                # empty repo; not a problem
+                repo["contents"] = []
+            collections_list.append(repo)
+        response["collections"] = collections_list
+        self.finish_async(response)
 
 
 class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):

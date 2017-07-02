@@ -38,41 +38,8 @@
     </div>
   </div>
 
-  <div class="row container">
-
-    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-      {% for idx, i in enumerate(info) %}
-      <div class="panel panel-default">
-        <div class="panel-heading" role="tab" id="heading{{idx}}">
-              <h4 class="panel-title">
-              <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{idx}}" aria-expanded="{{str(idx == 0).lower()}}" aria-controls="collapse{{idx}}">
-                {{i["name"]}}
-              </a>
-            </h4>
-          <div>
-            {{i["description"]}}
-
-             {% for c in i["contributors"] %}
-                  <img class="img-circle pull-right" src="{{c['avatar_url']}}" width="25px" height="25px">
-                  {% end for %}
-              </div>
-
-        </div>
-        <div id="collapse{{idx}}" class="panel-collapse collapse {% if not idx %} in {% end if %}" role="tabpanel" aria-labelledby="heading{{idx}}">
-          <div class="panel-body">
-            {% for article in i["contents"] %}
-              <h5><a href="/view-article?id={{article['pmid']}}">{{article["title"]}}</a></h5>
-              {{article["reference"]}}
-              <br>
-            {% end for %}
-          </div>
-        </div>
-      </div>
-      {% end for %}
-
-    </div>
-</div>
-    </div>  <!-- /.container -->
+  <div class="row container" id="collections-container">Loading... This might take a while.</div>
+  </div>  <!-- /.container -->
 
 
 
@@ -85,6 +52,61 @@
     <script src="http://cdn.rawgit.com/1000hz/bootstrap-validator/master/dist/validator.min.js"></script>
 
     <script>
+    function generateCollectionsContainer(list) {
+      console.log(list);
+
+      var contents = '<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">';
+
+      for (var i = 0; i < list.length; i++) {
+        var collectionObj = list[i];
+        contents = contents + '<div class="panel panel-default">\
+        <div class="panel-heading" role="tab" id="heading' + i + '">\
+              <h4 class="panel-title">\
+              <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse' + i + '" aria-expanded="' + (i == 0) + '" aria-controls="collapse'+i+'">\
+                '+collectionObj["name"]+'\
+              </a>\
+            </h4>\
+          <div>\
+            '+collectionObj["description"];
+        for (var j = 0; j < list[i]["contributors"].length; j++) {
+            var contributorObj = list[i]["contributors"][j];
+            contents = contents + '<img class="img-circle pull-right" src="'+contributorObj["avatar_url"]+'" width="25px" height="25px">';
+        }
+        contents = contents + '</div>\
+\
+        </div>\
+        <div id="collapse'+i+'" class="panel-collapse collapse';
+        if (i == 0) contents = contents + " in ";
+         contents = contents + '" role="tabpanel" aria-labelledby="heading'+i+'">\
+          <div class="panel-body">';
+        for (var j = 0; j < collectionObj["contents"].length; j++) {
+          var articleObj = collectionObj["contents"][j];
+          contents = contents + '<h5><a href="/view-article?id='+articleObj["pmid"]+'">'+articleObj["title"]+'</a></h5>\
+              '+articleObj["reference"]+'\
+              <br>';
+        }
+        contents = contents + '\
+          </div>\
+        </div>\
+      </div>';
+      }
+      
+      contents = contents + '</div>';
+      $("#collections-container").html(contents);
+    }
+
+
+    $.ajax({
+        type: "POST",
+        url: "/json/collections",
+        data: {
+            "key": "{{api_key}}",
+            "github_access_token": "{{github_access_token}}"
+        }
+    }).complete(function(o) {
+      generateCollectionsContainer(JSON.parse(o["responseText"])["collections"]);
+    });
+
     function createCollection() {
         $.ajax({
             type: "POST",

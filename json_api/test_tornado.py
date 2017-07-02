@@ -9,6 +9,7 @@ import tornado.web
 
 import brainspell
 import json_api
+import github_collections
 import user_interface_handlers
 from search_helpers import *
 
@@ -76,8 +77,8 @@ def test_endpoint_handlers_implementation():
     specification by indicating the endpoint type
     """
 
-    for endpoint, func in [(f, eval("json_api." + f)) for f in dir(json_api) if "EndpointHandler" in f]
-        + [(f, eval("github_collections." + f)) for f in dir(github_collections) if "EndpointHandler" in f]:
+    for endpoint, func in [(f, eval("json_api." + f)) for f in dir(json_api) if "EndpointHandler" in f] \
+            + [(f, eval("github_collections." + f)) for f in dir(github_collections) if "EndpointHandler" in f]:
         assert func.endpoint_type, "The class " + endpoint + \
             " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
         assert func.process, "The class " + endpoint + \

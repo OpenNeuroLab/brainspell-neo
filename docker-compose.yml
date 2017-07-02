@@ -1,8 +1,14 @@
 version: '2'
+
 services:
+  db:
+    image: postgres
   web:
     build: .
-    ports:
-     - "5000:5000"
+    command: python3 json_api/brainspell.py 
     volumes:
-     - .:/brainspell-neo
+      - .:/brainspell-neo
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db

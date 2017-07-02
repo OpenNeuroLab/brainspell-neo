@@ -218,17 +218,23 @@ class BaseHandler(tornado.web.RequestHandler):
                     else:
                         self.process(response, argsDict["args"])
                 else:
+                    self.set_status(401)  # unauthorized
                     self.finish_async(
-                        {"success": 0, "description": "That API key is not valid."})
+                        {"success": 0, "description": "That API key is not valid."}, True)
             else:
                 # print the error message from argument parsing
-                self.finish_async(argsDict)
+                self.set_status(400)  # bad request
+                self.finish_async(argsDict, True)
 
     post = get
 
-    def finish_async(self, response):
+    def finish_async(self, response, status_set=False):
         """ Write the response dictionary, and finish this asynchronous call. """
-
+        if not status_set:
+            if isinstance(response, dict):
+                if "success" in response:
+                    if response["success"] != 1:
+                        self.set_status(422)  # unprocessable entity
         self.write(json.dumps(response))
         self.finish()
 

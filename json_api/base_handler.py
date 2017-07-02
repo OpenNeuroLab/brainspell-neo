@@ -230,6 +230,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def finish_async(self, response, status_set=False):
         """ Write the response dictionary, and finish this asynchronous call. """
+
         if not status_set:
             if isinstance(response, dict):
                 if "success" in response:

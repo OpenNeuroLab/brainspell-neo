@@ -83,6 +83,12 @@ def add_collection_to_brainspell_database(
 
 
 def get_brainspell_collections_from_api_key(api_key):
+    """
+    Return a user's collections from Brainspell's database given an API key.
+
+    May be inconsistent with GitHub.
+    """
+
     response = {}
     if valid_api_key(api_key):
         user = list(get_user_object_from_api_key(api_key))[0]

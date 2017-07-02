@@ -321,7 +321,7 @@ class AbstractEndpoint(metaclass=ABCMeta):
     """ An abstract class to enforce the structure of API endpoints. """
 
     def register(subclass):
-        """ 
+        """
         Enforce the API specification described in BaseHandler.
         Called by the "brainspell" module on all API endpoints.
         """

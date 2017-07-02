@@ -48,7 +48,11 @@ def register_github_user(user_dict):
         return False  # user already exists
 
 
-def add_collection_to_brainspell_database(collection_name, description, api_key, cold_run=True):
+def add_collection_to_brainspell_database(
+        collection_name,
+        description,
+        api_key,
+        cold_run=True):
     """ Create a collection in our database if it doesn't exist,
     or return false if the collection already exists. """
 
@@ -77,8 +81,9 @@ def add_collection_to_brainspell_database(collection_name, description, api_key,
             return True
     return False
 
+
 def get_brainspell_collections_from_api_key(api_key):
-    response = { }
+    response = {}
     if valid_api_key(api_key):
         user = list(get_user_object_from_api_key(api_key))[0]
         if user.collections:
@@ -86,7 +91,8 @@ def get_brainspell_collections_from_api_key(api_key):
     return response
 
 
-def add_article_to_brainspell_database_collection(collection, pmid, api_key, cold_run=True):
+def add_article_to_brainspell_database_collection(
+        collection, pmid, api_key, cold_run=True):
     """
     Add a collection to our local database. Do not add to GitHub in this function.
 

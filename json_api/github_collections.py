@@ -96,7 +96,9 @@ class GithubLogoutHandler(BaseHandler, tornado.web.StaticFileHandler):
 
     def set_extra_headers(self, path):
         # disable cache
-        self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        self.set_header(
+            'Cache-Control',
+            'no-store, no-cache, must-revalidate, max-age=0')
 
 
 def get_last_page_num(link):
@@ -158,7 +160,8 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
         collections_list = []
 
         # get all repos for an authenticated user using GitHub
-        # need to use GitHub, because not storing "contributors_url" in Brainspell's database
+        # need to use GitHub, because not storing "contributors_url" in
+        # Brainspell's database
         data = yield get_user_repos(self.get_auth_http_client(),
                                     self.get_current_github_access_token())
         repos = [d for d in data if d["name"].startswith(
@@ -186,10 +189,12 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
             # get the PMIDs in the collection
 
-            pmids = brainspell_cache[repo_contents["name"].replace("brainspell-collection-", "")]["pmids"]
+            pmids = brainspell_cache[repo_contents["name"].replace(
+                "brainspell-collection-", "")]["pmids"]
 
             # determine if the pmid (if given) is in this collection
-            repo["in_collection"] = any([int(pmid) == args["pmid"] for pmid in pmids])
+            repo["in_collection"] = any(
+                [int(pmid) == args["pmid"] for pmid in pmids])
 
             # convert PeeWee article object to dict
             def parse_article_object(article_object):
@@ -200,16 +205,18 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
                 }
 
             # get article information from each pmid from the database
-            repo["contents"] = [parse_article_object(next(get_article_object(p))) for p in pmids]
+            repo["contents"] = [parse_article_object(
+                next(get_article_object(p))) for p in pmids]
 
             collections_list.append(repo)
         response["collections"] = collections_list
         self.finish_async(response)
 
 
-class CollectionsFromBrainspellEndpointHandler(BaseHandler, torngithub.GithubMixin):
+class CollectionsFromBrainspellEndpointHandler(
+        BaseHandler, torngithub.GithubMixin):
     """
-    Return a list of the user's collections from the Brainspell database. 
+    Return a list of the user's collections from the Brainspell database.
 
     Called from /view-article pages.
     """
@@ -225,24 +232,25 @@ class CollectionsFromBrainspellEndpointHandler(BaseHandler, torngithub.GithubMix
 
     def process(self, response, args):
 
-            collections_list = []
+        collections_list = []
 
-            user_collections = get_brainspell_collections_from_api_key(args["key"])
+        user_collections = get_brainspell_collections_from_api_key(args["key"])
 
-            for c in user_collections:
-                repo = { }
+        for c in user_collections:
+            repo = {}
 
-                repo["name"] = c
-                pmids = user_collections[c]["pmids"]
+            repo["name"] = c
+            pmids = user_collections[c]["pmids"]
 
-                # determine if the pmid is in this collection
-                repo["in_collection"] = any([int(pmid) == args["pmid"] for pmid in pmids])
+            # determine if the pmid is in this collection
+            repo["in_collection"] = any(
+                [int(pmid) == args["pmid"] for pmid in pmids])
 
-                collections_list.append(repo)
+            collections_list.append(repo)
 
-            response["collections"] = collections_list
+        response["collections"] = collections_list
 
-            return response
+        return response
 
 
 class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
@@ -298,13 +306,16 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
         name = args["name"]
         description = args["description"]
         # update database with new collection
-        if add_collection_to_brainspell_database(name, description, args["key"]):
+        if add_collection_to_brainspell_database(
+                name, description, args["key"]):
             # if the collection doesn't already exist, then make the GitHub
             # request
             self.create_collection_on_github(
                 name, description, args["github_access_token"])
-            # and actually create the Brainspell collection if the request succeeds
-            add_collection_to_brainspell_database(name, description, args["key"], False)
+            # and actually create the Brainspell collection if the request
+            # succeeds
+            add_collection_to_brainspell_database(
+                name, description, args["key"], False)
             self.finish_async(response)
 
         else:
@@ -358,8 +369,10 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
             if add_article_to_brainspell_database_collection(
                     name, pmid, args["key"]):
                 # idempotent operation to create the Brainspell collection
-                # if it doesn't already exist (guaranteed that it exists on GitHub)
-                add_collection_to_brainspell_database(name, "None", args["key"], False)
+                # if it doesn't already exist (guaranteed that it exists on
+                # GitHub)
+                add_collection_to_brainspell_database(
+                    name, "None", args["key"], False)
                 body = {
                     "message": "adding {} to collection".format(pmid),
                     "content": entry_encoded
@@ -383,9 +396,10 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
                     print(e)
                     response["description"] = "Most likely, that article already exists in this collection."
                 finally:
-                    if response["success"] != 0: 
+                    if response["success"] != 0:
                         # actually add the article if the request succeeds
-                        add_article_to_brainspell_database_collection(name, pmid, args["key"], False)
+                        add_article_to_brainspell_database_collection(
+                            name, pmid, args["key"], False)
             else:
                 response["success"] = 0
                 response["description"] = "That article already exists in that collection."
@@ -459,8 +473,10 @@ class RemoveFromCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
                 response["description"] = "There was some failure in communicating with GitHub. That article was possibly not in the collection."
             finally:
                 if response["success"] != 0:
-                    # only remove from Brainspell collection if the GitHub operation succeeded
-                    remove_article_from_brainspell_database_collection(collection, pmid, args["key"], False)
+                    # only remove from Brainspell collection if the GitHub
+                    # operation succeeded
+                    remove_article_from_brainspell_database_collection(
+                        collection, pmid, args["key"], False)
         else:
             response["success"] = 0
             response["description"] = "That article doesn't exist in that collection."

@@ -77,3 +77,5 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
     def on_close(self):
         # cleanup
         pass
+
+    set_default_headers = BaseHandler.set_default_headers

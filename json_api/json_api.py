@@ -4,6 +4,23 @@ from article_helpers import *
 from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
+import brainspell
+
+
+class ListEndpointsEndpointHandler(BaseHandler):
+    """ Return a list of all JSON API endpoints.
+    Do not include /help pages, or aliases. """
+
+    parameters = {}
+
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
+        endpoints = brainspell.getJSONEndpoints()
+        response["endpoints"] = [name for name, cls in endpoints if name[len(
+            name) - 1:] != "/" and name[len(name) - 4:] != "help"]
+        return response
+
 
 # BEGIN: search API endpoints
 

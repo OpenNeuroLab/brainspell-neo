@@ -21,6 +21,12 @@ def get_article_object(query):
     return search.execute()
 
 
+def get_all_articles():
+    """ Get all article objects in the database. """
+
+    return Articles.select().execute()
+
+
 def update_authors(pmid, authors):
     """ Update the authors for an article. """
 

@@ -1,4 +1,4 @@
-from article_helpers import get_article_object
+from article_helpers import get_all_articles, get_article_object
 import collections
 
 """ A set of statistical functions for analyzing collections, papers, etc. """
@@ -7,7 +7,7 @@ import collections
 class Brain:
     """ A 3D representation of the peaks of a paper, or collection of papers """
 
-    # TODO: once working, switch to NumPy arrays
+    # TODO: once working, potentially switch to NumPy arrays
     def init_brain_grid(self):
         """ Create a 3-dimensional 200x200x200 representation of the brain,
         representing {(-100, 99), (-100, 99), (-100, 99)} """
@@ -32,7 +32,9 @@ class Brain:
         self.total_samples = 1
 
     def grid(self):
-        """ Return the brain grid. The coordinate system is shifted by (-100, -100, -100). Extremely costly operation. """
+        """ Return the brain grid. The coordinate system is shifted by (-100, -100, -100). Extremely costly operation.
+
+        Consider returning a dict instead, so you don't run the risk of points falling off the grid. """
         grid_repr = []
         for i in range(0, 200):
             self.grid_repr.append([])
@@ -42,13 +44,20 @@ class Brain:
                     self.grid_repr[i][j].append(0)  # initialize to all zeros
 
         for coord in self.brain_grid:
-            grid_repr[coord[0] + 100][coord[1] +
-                                      100][coord[2] + 100] = self.brain_grid[coord]
+            try:
+                grid_repr[coord[0] + 100][coord[1] +
+                                          100][coord[2] + 100] = self.brain_grid[coord]
+            except BaseException:
+                # a coordinate fell outside of the range {(-100, 99), (-100,
+                # 99), (-100, 99)}
+                pass
 
         return self.grid_repr
 
     def insert_at_location(self, value, x, y, z):
-        """ Inserts "value" at the corresponding location of the brain grid. """
+        """ Inserts "value" at the corresponding location of the brain grid.
+
+        TODO: Add a "radius" parameter, if necessary. """
 
         self.brain_grid[(x, y, z)] = value
 
@@ -63,15 +72,35 @@ class Brain:
         self.total_samples += other.total_samples
 
 
-def get_boolean_map_from_pmid(pmid):
-    """ Return a Brain of 0s and 1s corresponding to if any coordinate exists at that location, in any of the PMID's experiment tables. """
+def get_boolean_map_from_article_object(article):
+    """ Return a Brain of 0s and 1s corresponding to if any coordinate exists at that location, in any of the article's experiment tables. """
 
     brain = Brain()
 
-    # TODO: get the experiments for this PMID, and insert each coordinate into
-    # the Brain
+    try:
+        experiments = article.experiments
+
+        for exp in experiments:
+            locations = exp["locations"]
+            for coord_string in locations:
+                coord = coord_string.split(",")
+                try:  # assumes that coordinates are well-formed
+                    coord_tuple = (int(coord[0]), int(coord[1]), int(coord[2]))
+                    brain.insert_at_location(1, **coord_tuple)
+                except BaseException:
+                    # malformed coordinate
+                    pass
+    except BaseException:
+        # PMID not valid
+        pass
 
     return brain
+
+
+def get_boolean_map_from_pmid(pmid):
+    """ Gets a boolean map of an article given a PMID. """
+
+    return get_boolean_map_from_article_object(next(get_article_object(pmid)))
 
 
 def significance_from_collections(pmids, other_pmids=None):
@@ -100,8 +129,12 @@ def significance_from_collections(pmids, other_pmids=None):
             other_brain.sum(brain_to_sum)
 
     else:
-        pass
-        # TODO: get the sample for the entire dataset - pmids
+        all_articles = get_all_articles()
+        article_checker = set(pmids)
+        for article in all_articles:
+            if article.pmid not in article_checker:
+                brain_to_sum = get_boolean_map_from_article_object(article)
+                other_brain.sum(brain_to_sum)
 
     # TODO: calculate significance for each location, brain to other brain
 

@@ -92,8 +92,23 @@ class Brain:
 
         self.total_samples += other.total_samples
 
+    def transform_to_z_scores(self, other):
+        """ Take another brain, and calculate the z-score of each coordinate in this brain with respect to the other brain. """
+        for k in self.brain_grid:
+            # z = (p1hat - p2hat) / sqrt(phat * (1 - phat) * (1 / n1 + 1 / n2))
+            # : phat = (n1 * p1hat + n2 * p2hat) / (n1 + n2)
+            p1hat = self.brain_grid[k] / self.total_samples
+            p2hat = other.brain_grid[k] / other.total_samples
+            n1 = self.total_samples
+            n2 = other.total_samples
+            # assumes that (n1 + n2) != 0; will never occur,
+            # since the existence of k => self.total_samples >= 1
+            phat = (n1 * p1hat + n2 * p2hat) / (n1 + n2)
+            self.brain_grid[k] = (p1hat - p2hat) / \
+                ((phat * (1 - phat) * (1 / n1 + 1 / n2))**(.5))
 
-def get_boolean_map_from_article_object(article):
+
+def get_boolean_map_from_article_object(article, width=5):
     """ Return a Brain of 0s and 1s corresponding to if any coordinate exists at that location, in any of the article's experiment tables. """
 
     brain = Brain()
@@ -106,59 +121,66 @@ def get_boolean_map_from_article_object(article):
             for coord_string in locations:
                 coord = coord_string.split(",")
                 try:  # assumes that coordinates are well-formed
-                    coord_tuple = (int(coord[0]), int(coord[1]), int(coord[2]))
-                    brain.insert_at_location(1, *coord_tuple)
+                    coord_tuple = (int(float(coord[0])), int(
+                        float(coord[1])), int(float(coord[2])))
+                    brain.insert_at_location(1, *coord_tuple, width)
                 except BaseException as e:
                     # malformed coordinate
                     print(e)
                     pass
     except BaseException as e:
-        # article not valid
+        # article not valid, or malformed JSON
         print(e)
         pass
 
     return brain
 
 
-def get_boolean_map_from_pmid(pmid):
+def get_boolean_map_from_pmid(pmid, width=5):
     """ Gets a boolean map of an article given a PMID. """
 
-    return get_boolean_map_from_article_object(next(get_article_object(pmid)))
+    return get_boolean_map_from_article_object(
+        next(get_article_object(pmid)), width)
 
 
-def significance_from_collections(pmids, other_pmids=None):
+def significance_from_collections(pmids, other_pmids=None, width=5):
     """ Return a grid representing the p-value/effect size
     at each x, y, z coordinate, with the second collection acting as the
-    null hypothesis. Default to entire dataset - pmids.
-
-    The coordinate system of the resulting grid is shifted
-    by (-100, -100, -100). """
+    null hypothesis. Default to entire dataset - pmids. """
 
     brain = Brain()
 
     # get the binomial distribution sample for pmids
+    print("Generating cumulative Brain of the articles in this collection...")
     for pmid in pmids:
         # get the boolean repr of this PMID, then sum in the aggregate Brain
-        brain_to_sum = get_boolean_map_from_pmid(pmid)
+        brain_to_sum = get_boolean_map_from_pmid(pmid, width)
         brain.sum(brain_to_sum)
 
     other_brain = Brain()
 
     if other_pmids is not None:
         # get the sample for other_pmids
+        print("Generating cumulative Brain of the articles in the other collection...")
         for pmid in other_pmids:
-            brain_to_sum = get_boolean_map_from_pmid(pmid)
+            brain_to_sum = get_boolean_map_from_pmid(pmid, width)
             other_brain.sum(brain_to_sum)
 
     else:
         all_articles = get_all_articles()
+        # TODO: can cache this value once we start using this feature, and instead "subtract" the
+        # elements of the collection from (a clone of) the all_articles_brain
+        print("Generating cumulative Brain of all articles in the database...")
         article_checker = set(pmids)
         for article in all_articles:
             if article.pmid not in article_checker:
-                brain_to_sum = get_boolean_map_from_article_object(article)
+                brain_to_sum = get_boolean_map_from_article_object(
+                    article, width)
                 other_brain.sum(brain_to_sum)
 
-    # TODO: calculate significance for each location, brain to other brain
+    print("Calculating significance...")
+    # calculate significance for each location, brain to other brain
+    brain.transform_to_z_scores(other_brain)
 
     # TODO: implement BH FDR
 

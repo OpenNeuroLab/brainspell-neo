@@ -40,8 +40,13 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
         },
         "other_collection": {
             "type": str,
-            "default": None,
+            "default": "null",
             "description": "Another collection to run this significance test against. If not specified, then the test will be run against the entire database."
+        },
+        "width": {
+            "type": int,
+            "default": 5,
+            "description": "The width for each coordinate that we'll check for significance."
         }
     }
 
@@ -56,23 +61,23 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
         if args["collection_name"] in user_collections:
             pmids = user_collections[args["collection_name"]]["pmids"]
             other_pmids = None
-            if "other_collection" is not None:
+            if args["other_collection"] != "null":
                 if args["other_collection"] in user_collections:
                     other_pmids = user_collections[args["other_collection"]]["pmids"]
                 else:
                     response["success"] = 0
-                    response["description"] = collection_does_not_exist.format(
+                    response["description"] = self.collection_does_not_exist.format(
                         args["other_collection"])
                     return response
             # at this point, we can assume that we have either one set of PMIDs
             # and None, or two sets of PMIDs
             significance = statistics.significance_from_collections(
-                pmids, other_pmids)
+                pmids, other_pmids, args["width"])
             response["significance_grid"] = significance
         else:
             # collection doesn't exist
             response["success"] = 0
-            response["description"] = collection_does_not_exist.format(
+            response["description"] = self.collection_does_not_exist.format(
                 args["collection_name"])
 
         return response

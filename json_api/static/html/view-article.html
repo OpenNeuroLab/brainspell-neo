@@ -569,30 +569,39 @@
                 array[i] = array[i].split(",");
                 var z_score = array[i][3];
                 for (var j in array[i].slice(0,3)) {
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
+                    row.append($("<td>", {"style": "height:100%;"}).click(function() {
+                        /*
                         $(this).css("padding-top", "5px").css("padding-bottom", "5px");
                         let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
                         $(this).html("");
                         $(this).append(textInput);
                         textInput.focus();
+                        */
+                        {% if api_key != "" %}
+                        $(this).attr("contentEditable", "true");
+                        {% end %}
                     }).text(array[i][j]));
                 }
                 if (z_score == null) {
-                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {
-                        "type": "number",
-                        "style": "width:60%;",
-                        "step": "0.01",
-                        "id": "" + position + i
-                    })));
+                    row.append($("<td>", {
+                        "style": "height:100%",
+                        "id": "" + position + i,
+                        "contentEditable": "true"
+                    }));
                 }
                 else {
 //                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
+                    row.append($("<td>", {"style": "height:100%;"}).click(function() {
+                        /*
                         $(this).css("padding-top", "5px").css("padding-bottom", "5px");
                         let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
                         $(this).html("");
                         $(this).append(textInput);
                         textInput.focus();
+                        */
+                        {% if api_key != "" %}
+                        $(this).attr("contentEditable", "true");
+                        {% end %}
                     }).text(z_score));
                 }
                 contents.append(row);
@@ -768,10 +777,10 @@
         function checkIfRowSubmit(e, input, experiment) {
             if (e.keyCode == 13) {
                 var inputs = input.parentNode.parentNode.getElementsByTagName("input");
-                var coords = inputs[0].value + "," + inputs[1].value + "," + inputs[2].value;
+                var coords = [inputs[0].value, inputs[1].value, inputs[2].value, inputs[3].value];
                 $.ajax({
                     type: "GET",
-                    url: "/json/add-row?pmid={{article_id}}&key={{api_key}}&experiment=" + experiment + "&coordinates=" + coords
+                    url: "/json/add-row?pmid={{article_id}}&key={{api_key}}&experiment=" + experiment + "&coordinates=" + JSON.stringify(coords)
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);

@@ -282,8 +282,11 @@ def split_table(pmid, exp, row):
         Articles.pmid == pmid).execute()
 
 
-def add_coordinate(pmid, exp, coords):
-    """ Add a coordinate row to the end of a table. """
+def add_coordinate_row(pmid, exp, coords, row_number=-1):
+    """ Add a coordinate row to the end of a table.
+
+    Take a list of three or four coordinates.
+    Take a row number. -1 will add to the end of the list. """
 
     target = Articles.select(
         Articles.experiments).where(
@@ -291,7 +294,29 @@ def add_coordinate(pmid, exp, coords):
     target = next(target)
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
-    elem["locations"].append(coords)
+    row_list = ",".join([str(c) for c in coords])
+    if row_number == -1:
+        elem["locations"].append(row_list)
+    else:
+        elem["locations"].insert(row_number, row_list)
+    Articles.update(
+        experiments=experiments).where(
+        Articles.pmid == pmid).execute()
+
+
+def update_coordinate_row(pmid, exp, coords, row_number):
+    """ Add a coordinate row to the end of a table.
+
+    Take a list of three or four coordinates. Take a row number. """
+
+    target = Articles.select(
+        Articles.experiments).where(
+        Articles.pmid == pmid).execute()
+    target = next(target)
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    row_list = ",".join([str(c) for c in coords])
+    elem["locations"][row_number] = row_list
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
@@ -312,33 +337,6 @@ def add_table_through_text_box(pmid, values):
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
-
-
-def update_z_scores(id, values):
-    """ Update the z-scores for an experiment table. """
-
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == id).execute()
-    target = next(target)
-    experiments = eval(target.experiments)
-    for key, value in values.items():
-        table, row = key.split(',')[0], key.split(',')[1]
-        table = eval(table)
-        row = eval(row)
-        target = 0
-        for i in range(len(experiments)):
-            if experiments[i].get('id') == table:
-                target = i
-                break
-        position = experiments[target]
-        location_set = position['locations'][row]
-        location_set = location_set + ',' + str(value)
-        experiments[target]['locations'][row] = location_set
-        query = Articles.update(
-            experiments=experiments).where(
-            Articles.pmid == id)
-        query.execute()
 
 
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):

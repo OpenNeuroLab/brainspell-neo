@@ -302,31 +302,6 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 # BEGIN: table API endpoints
 
 
-# TODO: change the format that this takes for db-changes
-class ChangeZScoresEndpointHandler(BaseHandler):
-    """ Update the z-scores for a table within an article. """
-    parameters = {
-        "db-changes": {
-            "type": json.loads
-        },
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        # updates z scores
-        try:
-            values = args["db-changes"]
-            update_z_scores(args["pmid"], values)
-        except BaseException:
-            response = {"success": 0}
-
-        return response
-
-
 class AddUserTagToArticleEndpointHandler(BaseHandler):
     """ Add a user tag to our database, for use in tagging articles. """
 
@@ -451,6 +426,42 @@ class SplitTableEndpointHandler(BaseHandler):
         return response
 
 
+class UpdateRowEndpointHandler(BaseHandler):
+    """ Update a row of coordinates in an experiment table. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "experiment": {
+            "type": int
+        },
+        "coordinates": {
+            "type": json.loads,
+            "description": "Takes a JSON array of three or four coordinates. (The fourth is z-effective.)"
+        },
+        "row_number": {
+            "type": int,
+            "description": "The index of the row that these coordinates will replace."
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        coords = args["coordinates"]
+        if len(coords) == 3 or len(coords) == 4:
+            update_coordinate_row(
+                args["pmid"],
+                args["experiment"],
+                coords,
+                args["row_number"])
+        else:
+            response["success"] = 0
+            response["description"] = "Wrong number of coordinates."
+        return response
+
+
 class AddRowEndpointHandler(BaseHandler):
     """ Add a single row of coordinates to an experiment table. """
 
@@ -462,13 +473,27 @@ class AddRowEndpointHandler(BaseHandler):
             "type": int
         },
         "coordinates": {
-            "type": str
+            "type": json.loads,
+            "description": "Takes a JSON array of three or four coordinates. (The fourth is z-effective.)"
+        },
+        "row_number": {
+            "type": int,
+            "default": -1,
+            "description": "The index that this row should be located at in the table. Defaults to the end of the table."
         }
     }
 
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        coords = args["coordinates"].replace(" ", "")
-        add_coordinate(args["pmid"], args["experiment"], coords)
+        coords = args["coordinates"]
+        if len(coords) == 3 or len(coords) == 4:
+            add_coordinate_row(
+                args["pmid"],
+                args["experiment"],
+                coords,
+                args["row_number"])
+        else:
+            response["success"] = 0
+            response["description"] = "Wrong number of coordinates."
         return response

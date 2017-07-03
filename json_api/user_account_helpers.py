@@ -89,8 +89,6 @@ def bulk_add_articles_to_brainspell_database_collection(
 
     Takes collection_name *without* "brainspell-collection".
 
-    Assumes that PMIDs are valid ints.
-
     Return False if an assumption is violated, True otherwise. """
 
     user = get_user_object_from_api_key(api_key)
@@ -105,10 +103,9 @@ def bulk_add_articles_to_brainspell_database_collection(
                     "pmids": []
                 }
 
-            pmid_set = set(map(lambda x: int(x), target[collection]["pmids"]))
+            pmid_set = set(map(lambda x: str(x), target[collection]["pmids"]))
             for pmid in pmids:
-                if int(pmid) not in pmid_set:
-                    pmid_set.add(int(pmid))
+                pmid_set.add(str(pmid))
 
             target[collection]["pmids"] = list(pmid_set)
             if not cold_run:
@@ -157,18 +154,15 @@ def add_article_to_brainspell_database_collection(
 
     Assumes that the collection already exists. Assumes that the user exists.
 
-    Assumes that pmid is a valid int.
-
     Takes collection_name *without* "brainspell-collection".
-
     Returns False if the article is already in the collection, or if an assumption
     is violated.
 
     This is an O(N) operation with respect to the collection size.
-    If someone is adding many articles, it's O(N^2). If you're adding
-    multiple articles, please use bulk_add_articles_to_brainspell_database_collection.
+    If you're adding many articles, it's O(N^2). If you're adding multiple articles, 
+    please use bulk_add_articles_to_brainspell_database_collection.
 
-    This function isn't currently used by anything, but it might be used in the future.
+    Called by AddToCollectionEndpointHandler.
     """
 
     user = get_user_object_from_api_key(api_key)
@@ -182,10 +176,11 @@ def add_article_to_brainspell_database_collection(
                     "description": "None",
                     "pmids": []
                 }
-            if int(pmid) not in map(
-                    lambda x: int(x),
-                    target[collection]["pmids"]):
-                target[collection]["pmids"].append(int(pmid))
+            pmids_list = set(map(lambda x: str(x), target[collection]["pmids"]))
+            # provide a check for if the PMID is already in the collection
+            if str(pmid) not in pmids_list:
+                pmids_list.add(str(pmid))
+                target[collection]["pmids"] = list(pmids_list)
                 if not cold_run:
                     q = User.update(
                         collections=json_encode(target)).where(
@@ -203,8 +198,6 @@ def remove_article_from_brainspell_database_collection(
         collection, pmid, api_key, cold_run=True):
     """ Remove an article from the Brainspell repo. Do not affect GitHub.
 
-    Assumes that pmid is a valid int.
-
     Takes collection_name *without* "brainspell-collection".
 
     Similar implementation to add_article_to_brainspell_database_collection. """
@@ -217,9 +210,9 @@ def remove_article_from_brainspell_database_collection(
             target = json_decode(user.collections)
             if collection in target:
                 pmids_list = list(
-                    map(lambda x: int(x), target[collection]["pmids"]))
-                if int(pmid) in pmids_list:
-                    pmids_list.remove(int(pmid))
+                    map(lambda x: str(x), target[collection]["pmids"]))
+                if str(pmid) in pmids_list:
+                    pmids_list.remove(str(pmid))
                     target[collection]["pmids"] = pmids_list
                     if not cold_run:
                         q = User.update(

@@ -142,7 +142,7 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
     parameters = {
         "pmid": {
-            "type": int,
+            "type": str,
             "default": 0
         },
         "github_access_token": {
@@ -241,7 +241,7 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
             # determine if the pmid (if given) is in this collection
             repo["in_collection"] = any(
-                [int(pmid) == args["pmid"] for pmid in pmids])
+                [str(pmid) == args["pmid"] for pmid in pmids])
 
             # convert PeeWee article object to dict
             def parse_article_object(article_object):
@@ -270,7 +270,7 @@ class CollectionsFromBrainspellEndpointHandler(
 
     parameters = {
         "pmid": {
-            "type": int,
+            "type": str,
             "default": 0
         }
     }
@@ -291,7 +291,7 @@ class CollectionsFromBrainspellEndpointHandler(
 
             # determine if the pmid is in this collection
             repo["in_collection"] = any(
-                [int(pmid) == args["pmid"] for pmid in pmids])
+                [str(pmid) == args["pmid"] for pmid in pmids])
 
             collections_list.append(repo)
 

@@ -14,7 +14,7 @@ import tornado.web
 import torngithub
 from tornado.concurrent import run_on_executor
 from tornado.httputil import url_concat
-from torngithub import json_encode
+from torngithub import json_decode, json_encode
 
 from base_handler import *
 from search_helpers import *
@@ -147,6 +147,11 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
         },
         "github_access_token": {
             "type": str
+        },
+        "force_github_refresh": {
+            "type": int,
+            "default": 0,
+            "description": "Set this to 1 to force Brainspell to sync its local database with GitHub. There should be a button for this on the web interface."
         }
     }
 
@@ -163,16 +168,23 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
         data = yield get_user_repos(self.get_auth_http_client(),
                                     self.get_current_github_access_token())
         repos = [d for d in data if d["name"].startswith(
-            "brainspell-collection")]
+            "brainspell-collection-")]
+
+        if args["force_github_refresh"] == 1:
+            remove_all_brainspell_database_collections(args["key"])
 
         # get all repos using the Brainspell database
         brainspell_cache = get_brainspell_collections_from_api_key(args["key"])
 
         # for each repo
         for repo_contents in repos:
+            # guaranteed that the name starts with "brainspell-collection"
+            # (from above)
+            collection_name = repo_contents["name"][len(
+                "brainspell-collection-"):]
             repo = {
                 # take the "brainspell-collection" off of the name
-                "name": repo_contents["name"].replace("brainspell-collection-", ""),
+                "name": collection_name,
                 "description": repo_contents["description"]
             }
 
@@ -187,8 +199,45 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
             # get the PMIDs in the collection
 
-            pmids = brainspell_cache[repo_contents["name"].replace(
-                "brainspell-collection-", "")]["pmids"]
+            pmids = []
+            description = repo_contents["description"]
+
+            # if there's a new GitHub collection added to the user's profile,
+            # then add it
+            if collection_name not in repo_contents:
+                try:
+                    # fetch the PMIDs from GitHub
+                    github_username = get_github_username_from_api_key(
+                        args["key"])
+                    content_data = yield torngithub.github_request(
+                        self.get_auth_http_client(),
+                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=github_username,
+                                                                       repo=repo_contents["name"],
+                                                                       path=""
+                                                                       ),
+                        access_token=self.get_current_github_access_token(),
+                        method="GET")
+                    content = content_data["body"]
+
+                    # extract PMIDs from content body
+                    pmids = [c["name"].replace(".json", "") for c in content]
+
+                except BaseException:
+                    # empty repo; not a problem
+                    pass
+                finally:
+                    add_collection_to_brainspell_database(
+                        collection_name, description, args["key"], False)
+                    brainspell_cache[collection_name] = {
+                        "description": description,
+                        "pmids": pmids
+                    }
+                    if len(pmids) != 0:
+                        # if PMIDs were fetched from GitHub
+                        bulk_add_articles_to_brainspell_database_collection(
+                            collection_name, pmids, args["key"], False)
+
+            pmids = brainspell_cache[collection_name]["pmids"]
 
             # determine if the pmid (if given) is in this collection
             repo["in_collection"] = any(
@@ -339,6 +388,11 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
         },
         "github_access_token": {
             "type": str
+        },
+        "bulk_add": {
+            "type": int,
+            "default": 0,
+            "description": "If set to one, then PMID will be treated as a JSON array. Send multiple PMIDs at once, and they'll all be added."
         }
     }
 
@@ -348,56 +402,66 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
     @tornado.gen.coroutine
     def process(self, response, args):
         name = args["name"]
-        pmid = args["pmid"]
-
-        article = list(get_article_object(pmid))[0]
-
-        # create the entry to add to the GitHub repo
-        entry = {"pmid": pmid,
-                 "title": article.title,
-                 "reference": article.reference,
-                 "doi": article.doi,
-                 "notes": "Here are my notes on this article."}
-        entry_encoded = b64encode(
-            json_encode(entry).encode("utf-8")).decode('utf-8')
 
         @tornado.gen.coroutine
         def callback_function(github_response=None):
             # check if the article is already in this collection
-            if add_article_to_brainspell_database_collection(
-                    name, pmid, args["key"]):
+            # doesn't matter if we're bulk adding
+            if args["bulk_add"] == 1 or add_article_to_brainspell_database_collection(
+                    name, args["pmid"], args["key"]):
+                pmid = args["pmid"]
                 # idempotent operation to create the Brainspell collection
                 # if it doesn't already exist (guaranteed that it exists on
                 # GitHub)
                 add_collection_to_brainspell_database(
                     name, "None", args["key"], False)
-                body = {
-                    "message": "adding {} to collection".format(pmid),
-                    "content": entry_encoded
-                }
-                try:
-                    github_username = get_github_username_from_api_key(
-                        args["key"])
-                    github_collection_name = "brainspell-collection-{}".format(
-                        name)
-                    ress = yield [torngithub.github_request(
-                        self.get_auth_http_client(),
-                        '/repos/{owner}/{repo}/contents/{path}'.format(owner=github_username,
-                                                                       repo=github_collection_name,
-                                                                       path="{}.json".format(pmid)),
-                        access_token=args["github_access_token"],
-                        method="PUT",
-                        body=body)]
-                except Exception as e:  # if you want to debug further
-                    response["success"] = 0
-                    # catch all GitHub request errors
-                    print(e)
-                    response["description"] = "Most likely, that article already exists in this collection."
-                finally:
-                    if response["success"] != 0:
-                        # actually add the article if the request succeeds
-                        add_article_to_brainspell_database_collection(
-                            name, pmid, args["key"], False)
+
+                # make a single PMID into a list so we can treat it the same
+                # way
+                if args["bulk_add"] == 0:
+                    pmid = "[" + pmid + "]"
+                pmid_list = json_decode(pmid)
+
+                # add all of the PMIDs to GitHub, then insert to Brainspell
+                for p in pmid_list:
+                    # create the entry to add to the GitHub repo
+                    article = list(get_article_object(p))[0]
+                    entry = {"pmid": p,
+                             "title": article.title,
+                             "reference": article.reference,
+                             "doi": article.doi,
+                             "notes": "Here are my notes on this article."}
+                    entry_encoded = b64encode(
+                        json_encode(entry).encode("utf-8")).decode('utf-8')
+
+                    body = {
+                        "message": "adding {} to collection".format(p),
+                        "content": entry_encoded
+                    }
+                    try:
+                        github_username = get_github_username_from_api_key(
+                            args["key"])
+                        github_collection_name = "brainspell-collection-{}".format(
+                            name)
+                        ress = yield [torngithub.github_request(
+                            self.get_auth_http_client(),
+                            '/repos/{owner}/{repo}/contents/{path}'.format(owner=github_username,
+                                                                           repo=github_collection_name,
+                                                                           path="{}.json".format(p)),
+                            access_token=args["github_access_token"],
+                            method="PUT",
+                            body=body)]
+                    except Exception as e:  # if you want to debug further
+                        # catch all GitHub request errors
+                        print(e)
+                        if args["bulk_add"] == 0:
+                            response["success"] = 0
+                            response["description"] = "Most likely, that article already exists in this collection."
+                        # ignore repeat errors if bulk_add
+                if response["success"] != 0:
+                    # actually add the article(s) if the request succeeds
+                    bulk_add_articles_to_brainspell_database_collection(
+                        name, pmid_list, args["key"], False)
             else:
                 response["success"] = 0
                 response["description"] = "That article already exists in that collection."

@@ -1,9 +1,9 @@
 import json
+import urllib.parse
 from abc import ABCMeta
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 
-import urllib.parse
 import tornado
 import tornado.web
 from torngithub import json_decode

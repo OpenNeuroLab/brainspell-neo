@@ -3,12 +3,12 @@
 import hashlib
 import json
 import os
+import urllib.parse
 from base64 import b64encode
 
 from article_helpers import *
 from base_handler import *
 from user_account_helpers import *
-import urllib.parse
 
 
 class MainHandler(BaseHandler):

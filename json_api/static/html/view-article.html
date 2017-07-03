@@ -501,7 +501,9 @@
 
     <script>
     // TODO: make the voting, adding coordinates, deleting coordinates, etc. stay on the same page, and update the page on callback
-        var ws = new WebSocket("wss://brainspell.herokuapp.com/api-socket");
+        // websocket only works on localhost right now
+        /*
+        var ws = new WebSocket("ws://localhost:5000/api-socket");
 
         ws.onmessage = function (evt) {
             responseObj = JSON.parse(evt.data);
@@ -523,14 +525,14 @@
                     votes += 1;
                     $(btn).text("Agree: " + votes + " (including you)");
                 }
-                */
+                * /
 
                 // for now, just reloading
                 location.reload();
             } else {
                 console.log(responseObj);
             }
-        };
+        };*/
 
         function configureExperiments(exp) {
             $("#experiments").html("");
@@ -861,22 +863,25 @@
         // Updates the vote of a single table tag
         function updateTableVote(btn, tagName,direction,tableNum,column) {
             /*
-            Example of AJAX to Websocket:
+            Example of AJAX to Websocket:*/
             $.ajax({
                 type: "POST",
-                url: "/update-table-vote",
+                url: "/json/update-table-vote",
                 data: {
                     "tag_name": tagName,
                     "direction":direction,
                     "table_num":tableNum,
-                    "id": getID(),
-                    "column":column
+                    "pmid": getID(),
+                    "column":column,
+                    "username": "{{github_username}}",
+                    "key": "{{api_key}}"
                 }
             }).complete(function(o) {
                 //console.log(o);
                 location.reload();
             });
-            */
+            
+            /*
             var message = {
                 "type": "update-table-vote",
                 "payload": {
@@ -890,6 +895,7 @@
                 }
             };
             ws.send(JSON.stringify(message));
+            */
         }
         //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {

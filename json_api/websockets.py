@@ -78,4 +78,4 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
         # cleanup
         pass
 
-    set_default_headers = BaseHandler.set_default_headers
+    # set_default_headers = BaseHandler.set_default_headers

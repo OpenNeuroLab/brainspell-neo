@@ -204,7 +204,7 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
             # if there's a new GitHub collection added to the user's profile,
             # then add it
-            if collection_name not in repo_contents:
+            if collection_name not in brainspell_cache:
                 try:
                     # fetch the PMIDs from GitHub
                     github_username = get_github_username_from_api_key(

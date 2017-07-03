@@ -30,6 +30,9 @@
               </div>
              </form>
           </div>
+          <div class="col-lg-12" style="padding-top:20px;">
+            <input type="submit" id="refreshBtn" class="btn btn-default" onclick="forceRefresh(); this.disabled = true;" value="Sync with GitHub" />
+          </div>
       </div>
 
       <div class="row">
@@ -97,8 +100,8 @@
         contents = "You have no collections."
       }
       $("#collections-container").html(contents);
+      document.getElementById("refreshBtn").disabled = false;
     }
-
 
     $.ajax({
         type: "POST",
@@ -110,6 +113,21 @@
     }).complete(function(o) {
       generateCollectionsContainer(JSON.parse(o["responseText"])["collections"]);
     });
+
+    function forceRefresh() {
+      $("#collections-container").html("Loading... This might take a while.");
+      $.ajax({
+        type: "POST",
+        url: "/json/collections",
+        data: {
+            "key": "{{api_key}}",
+            "github_access_token": "{{github_access_token}}",
+            "force_github_refresh": 1
+        }
+        }).complete(function(o) {
+          generateCollectionsContainer(JSON.parse(o["responseText"])["collections"]);
+        });
+    }
 
     function createCollection() {
         $.ajax({

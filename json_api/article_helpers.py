@@ -8,15 +8,11 @@ from Bio import Entrez, Medline
 from Bio.Entrez import efetch, esearch, parse, read
 
 from models import *
+from search_helpers import get_article_object
 
 Entrez.email = "neel@berkeley.edu"
 
 # BEGIN: article helper functions
-
-
-def get_article_object(pmid):
-    return Articles.select().where(
-        Articles.pmid == pmid).execute()
 
 
 def update_authors(pmid, authors):

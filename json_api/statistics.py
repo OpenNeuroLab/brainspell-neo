@@ -150,7 +150,7 @@ def get_boolean_map_from_article_object(article, width=5):
                 try:  # assumes that coordinates are well-formed
                     coord_tuple = (int(float(coord[0])), int(
                         float(coord[1])), int(float(coord[2])))
-                    brain.insert_at_location(1, *coord_tuple, width)
+                    brain.insert_at_location(1, *coord_tuple, width=width)
                 except BaseException as e:
                     # malformed coordinate
                     print(e)

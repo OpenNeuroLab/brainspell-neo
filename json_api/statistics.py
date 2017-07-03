@@ -63,12 +63,24 @@ class Brain:
             string_dict[str(k)] = self.brain_grid[k]
         return string_dict
 
-    def insert_at_location(self, value, x, y, z):
+    def insert_at_location(self, value, x, y, z, width=1):
         """ Inserts "value" at the corresponding location of the brain grid.
 
-        TODO: Add a "radius" parameter, if necessary. """
+        Take a "width" parameter, which specifies the width of the cube of
+        coordinates to affect. """
 
-        self.brain_grid[(x, y, z)] = value
+        half_width = (width - 1) // 2
+
+        top_left_x = x - half_width
+        top_left_y = y - half_width
+        top_left_z = z - half_width
+
+        # start from the top left corner, and insert a "cube" of "value"s
+        for i in range(2 * half_width + 1):
+            for j in range(2 * half_width + 1):
+                for k in range(2 * half_width + 1):
+                    self.brain_grid[(i + top_left_x, j +
+                                     top_left_y, k + top_left_z)] = value
 
     def sum(self, other):
         """ Take a Brain, and upsert its entries into this current brain. Merge process is the sum of two entries. """

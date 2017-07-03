@@ -8,6 +8,7 @@ from Bio import Entrez, Medline
 from Bio.Entrez import efetch, esearch, parse, read
 
 from models import *
+from torngithub import json_encode
 
 Entrez.email = "neel@berkeley.edu"
 
@@ -377,7 +378,7 @@ def add_coordinate_row(pmid, exp, coords, row_number=-1):
     else:
         elem["locations"].insert(row_number, row_list)
     Articles.update(
-        experiments=experiments).where(
+        experiments=json_encode(experiments)).where(
         Articles.pmid == pmid).execute()
 
 

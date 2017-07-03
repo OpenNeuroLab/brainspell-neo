@@ -159,7 +159,7 @@ def add_article_to_brainspell_database_collection(
     is violated.
 
     This is an O(N) operation with respect to the collection size.
-    If you're adding many articles, it's O(N^2). If you're adding multiple articles, 
+    If you're adding many articles, it's O(N^2). If you're adding multiple articles,
     please use bulk_add_articles_to_brainspell_database_collection.
 
     Called by AddToCollectionEndpointHandler.
@@ -176,7 +176,8 @@ def add_article_to_brainspell_database_collection(
                     "description": "None",
                     "pmids": []
                 }
-            pmids_list = set(map(lambda x: str(x), target[collection]["pmids"]))
+            pmids_list = set(
+                map(lambda x: str(x), target[collection]["pmids"]))
             # provide a check for if the PMID is already in the collection
             if str(pmid) not in pmids_list:
                 pmids_list.add(str(pmid))

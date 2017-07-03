@@ -362,7 +362,7 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
             "type": int
         },
         "pmid": {
-            "type": int
+            "type": str
         },
         "column": {
             "type": str

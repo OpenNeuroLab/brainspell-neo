@@ -51,6 +51,7 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
 
     # TODO: once working, make asynchronous
     def process(self, response, args):
+        # TODO: remove once working
         raise BaseException("This endpoint has not been defined.")
         user_collections = get_brainspell_collections_from_api_key(args["key"])
         # ensure that collection exists
@@ -68,7 +69,8 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
             # at this point, we can assume that we have either one set of PMIDs
             # and None, or two sets of PMIDs
             significance = statistics.significance_from_collections(
-                pmids, other_pmids).grid()
+                pmids, other_pmids)
+            response["significance_grid"] = significance
         else:
             # collection doesn't exist
             response["success"] = 0

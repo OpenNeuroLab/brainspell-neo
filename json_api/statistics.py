@@ -42,8 +42,8 @@ class Brain:
                     self.grid_repr[i][j].append(0)  # initialize to all zeros
 
         for coord in self.brain_grid:
-            grid_repr[coord[0] + 100][coord[1] + \
-                100][coord[2] + 100] = self.brain_grid[coord]
+            grid_repr[coord[0] + 100][coord[1] +
+                                      100][coord[2] + 100] = self.brain_grid[coord]
 
         return self.grid_repr
 
@@ -75,9 +75,12 @@ def get_boolean_map_from_pmid(pmid):
 
 
 def significance_from_collections(pmids, other_pmids=None):
-    """ Return a Brain representing the p-value/effect size
+    """ Return a grid representing the p-value/effect size
     at each x, y, z coordinate, with the second collection acting as the
-    null hypothesis. Default to entire dataset - pmids. """
+    null hypothesis. Default to entire dataset - pmids.
+
+    The coordinate system of the resulting grid is shifted
+    by (-100, -100, -100). """
 
     brain = Brain()
 

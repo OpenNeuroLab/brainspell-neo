@@ -40,6 +40,8 @@ settings = {
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     """ Handle GitHub OAuth. """
 
+    route = "oauth"
+
     @tornado.gen.coroutine
     def get(self):
         # Heroku does not accurately give self.request.protocol
@@ -88,6 +90,8 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 
 class GithubLogoutHandler(BaseHandler):
     """ Clear login cookies. """
+
+    route = "logout"
 
     def get(self):
         self.clear_cookie("user")

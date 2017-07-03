@@ -12,7 +12,6 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
-    <meta id="user_logged_in" data-name="{{ api_key }}">
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
@@ -29,7 +28,7 @@
             <div class="col-lg-12 text-center">
                 <h1>Brainspell</h1>
                 <p class="lead">An open, human-curated classification of neuroimaging literature.</p>
-                {% if api_key != "" %}
+                {% if api_key != "" and api_key is not None %}
                 <div id="github_collections_div">
                   <label for="id_label_multiple">
                     Add to Github Collections:
@@ -229,13 +228,11 @@
                         )).css("z-index","2000")));
 
             $("#articleContents").append(first);
-            if ($("#user_logged_in").data()["name"] == "None") {
-                {% if api_key == "" %}
-                $("#agree").hide();
-                $("#disagree").hide();
-                $("#closer").before("Please login to vote  ");
-                {% end %}
-            }
+            {% if api_key == "" or api_key is None %}
+            $("#agree").hide();
+            $("#disagree").hide();
+            $("#closer").before("Please login to vote  ");
+            {% end %}
             // remove the modal from the DOM on hide
             $('#myModal').on('hidden.bs.modal', function(){
                 $(this).remove();
@@ -325,7 +322,7 @@
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
-            {% if api_key != "" %}
+            {% if api_key != "" and api_key is not None %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
             {% end %}
 
@@ -395,7 +392,9 @@
                     user_terms.append($("<button>").text(user[i]).attr("class", "dropbtn").attr("data-toggle", "modal"));
                 }
             }
+            {% if api_key != "" and api_key is not None %}
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
+            {% end %}
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
             var user_data = $("<form>").append(
                     $("<p>",{"value":"Add tag below"})).append(
@@ -598,12 +597,12 @@
             }
 
 
-            {% if api_key != ""  %}
+            {% if api_key != "" and api_key is not None  %}
             contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
             {% end %}
 
             table.append(contents);
-            {% if api_key != ""  %}
+            {% if api_key != "" and api_key is not None  %}
             var footer = $("<tfoot>");
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));

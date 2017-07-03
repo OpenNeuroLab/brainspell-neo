@@ -1,6 +1,8 @@
 from article_helpers import get_all_articles, get_article_object
 from torngithub import json_decode
 import collections
+import scipy.stats as st
+import operator
 
 """ A set of statistical functions for analyzing collections, papers, etc. """
 
@@ -10,8 +12,7 @@ class Brain:
 
     # TODO: once working, potentially switch to NumPy arrays
     def init_brain_grid(self):
-        """ Create a 3-dimensional 200x200x200 representation of the brain,
-        representing {(-100, 99), (-100, 99), (-100, 99)} """
+        """ Create a 3-dimensional representation of the brain. """
 
         # because there are far more coordinate locations that there are peaks, the
         # following approach isn't wise
@@ -107,6 +108,32 @@ class Brain:
             self.brain_grid[k] = (p1hat - p2hat) / \
                 ((phat * (1 - phat) * (1 / n1 + 1 / n2))**(.5))
 
+    def transform_to_p_values(self):
+        """ Tranform a Brain of z-scores to a Brain of p-values. """
+        # survivor function
+        for k in self.brain_grid:
+            self.brain_grid[k] = st.norm.sf(abs(self.brain_grid[k]))
+
+    def benjamini_hochberg(self, threshold):
+        """ Use Benjamini–Hochberg to account for multiple comparisons. """
+        filtering_threshold = threshold / self.total_samples
+        # get the brain_grid sorted by p-value
+        sorted_brain_grid_tuples = sorted(
+            self.brain_grid.items(),
+            key=operator.itemgetter(1))
+        # find the greatest i : P(i) <= i * filtering_threshold
+        # (this function actually finds the element right after that, and adds all elements before it)
+        i = 0
+        for j in range(len(sorted_brain_grid_tuples)):
+            if sorted_brain_grid_tuples[j][1] > j * filtering_threshold:
+                i = j
+                break
+
+        self.init_brain_grid()  # add in only the results that are significant
+        for k in range(i):
+            self.brain_grid[sorted_brain_grid_tuples[k]
+                            [0]] = sorted_brain_grid_tuples[k][1]
+
 
 def get_boolean_map_from_article_object(article, width=5):
     """ Return a Brain of 0s and 1s corresponding to if any coordinate exists at that location, in any of the article's experiment tables. """
@@ -143,7 +170,11 @@ def get_boolean_map_from_pmid(pmid, width=5):
         next(get_article_object(pmid)), width)
 
 
-def significance_from_collections(pmids, other_pmids=None, width=5):
+def significance_from_collections(
+        pmids,
+        other_pmids=None,
+        width=5,
+        threshold=.001):
     """ Return a grid representing the p-value/effect size
     at each x, y, z coordinate, with the second collection acting as the
     null hypothesis. Default to entire dataset - pmids. """
@@ -170,7 +201,7 @@ def significance_from_collections(pmids, other_pmids=None, width=5):
         all_articles = get_all_articles()
         # TODO: can cache this value once we start using this feature, and instead "subtract" the
         # elements of the collection from (a clone of) the all_articles_brain
-        print("Generating cumulative Brain of all articles in the database...")
+        print("Generating cumulative Brain of all articles in the database, minus the collection...")
         article_checker = set(pmids)
         for article in all_articles:
             if article.pmid not in article_checker:
@@ -182,6 +213,11 @@ def significance_from_collections(pmids, other_pmids=None, width=5):
     # calculate significance for each location, brain to other brain
     brain.transform_to_z_scores(other_brain)
 
-    # TODO: implement BH FDR
+    # convert to p values
+    brain.transform_to_p_values()
+    print("Filtering insignificant values...")
+    # filter for significant values, accounting for multiple comparisons with
+    # Benjamini–Hochberg
+    brain.benjamini_hochberg(threshold)
 
     return brain.grid()

@@ -47,6 +47,11 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
             "type": int,
             "default": 5,
             "description": "The width for each coordinate that we'll check for significance."
+        },
+        "threshold": {
+            "type": float,
+            "default": .001,
+            "description": "The threshold that we'll use to account for multiple comparisons using Benjamini–Hochberg"
         }
     }
 
@@ -72,7 +77,7 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
             # at this point, we can assume that we have either one set of PMIDs
             # and None, or two sets of PMIDs
             significance = statistics.significance_from_collections(
-                pmids, other_pmids, args["width"])
+                pmids, other_pmids, width=args["width"], threshold=args["threshold"])
             response["significance_grid"] = significance
         else:
             # collection doesn't exist

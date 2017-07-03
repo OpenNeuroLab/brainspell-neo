@@ -303,8 +303,9 @@
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
             obj = JSON.parse(j);
-            if (Object.keys(obj).length <= 1) { // TODO: what is this? should comment
-                 window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
+            if (Object.keys(obj).length <= 1) {
+                // if there are no results, direct the user to the search page, where they can add this PMID
+                window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
             }
 
             try {
@@ -406,6 +407,65 @@
             user_terms.append(user_input);
             $("#articleContents").append(user_terms);
 
+            var real_metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'));
+            console.log(real_metadata);
+            var mni_selected = "";
+            var talairach_selected = "";
+            var number_of_subjects = "";
+            var total_mni = "";
+            var total_talairach = "";
+            /*
+            MOCK OBJECT FOR TESTING
+            real_metadata["space_subjects"] = {}
+            real_metadata["space_subjects"]["radio_votes"] = [{
+                "username": "user1",
+                "type": "mni"
+            },
+            {
+                "username": "user2",
+                "type": "mni"
+            }]
+            real_metadata["space_subjects"]["number_of_subjects"] = [
+                {
+                    "username": "user1",
+                    "value": 20
+                },
+                {
+                    "username": "user2",
+                    "value": 30
+                }
+            ]
+            */
+
+            if ("space_subjects" in real_metadata) {
+                var s = real_metadata["space_subjects"];
+                if ("radio_votes" in s) {
+                    var r = s["radio_votes"];
+                    var mni_votes = 0;
+                    var talairach_votes = 0;
+                    for (var i = 0; i < r.length; i++) {
+                        var vote = r[i];
+                        if (vote["type"] == "mni") mni_votes += 1;
+                        else talairach_votes += 1;
+                    }
+                    if (mni_votes > talairach_votes) {
+                        mni_selected = " checked='checked'";
+                    } else {
+                        talairach_selected = " checked='checked'";
+                    }
+                    total_mni = " (" + mni_votes + ")"
+                    total_talairach = " (" + talairach_votes + ")"
+                }
+                if ("number_of_subjects" in s) {
+                    subjects_votes = s["number_of_subjects"];
+                    for (var i = 0; i < subjects_votes.length; i++) {
+                        number_of_subjects = " value = '" + subjects_votes[i]["value"] + "'";
+                        break; // potentially use other votes later
+                    }
+                }
+            }
+
+            $("#articleContents").append($("<div>").html("<p>Stereotaxic space: <label><input type='radio'" + mni_selected + " name='stereo-space'> MNI" + total_mni + "</label> <label><input type='radio'" + talairach_selected + " name='stereo-space'> Talairach" + total_talairach + "</label></p><p>Number of subjects: <input type='text' " + number_of_subjects + " style='width:40px'></p>"));
 
             // TODO: add "action" once that endpoint is finished (? action?)
             var form = $('<div>', {'id':"locations"});
@@ -458,7 +518,6 @@
             form.append($("<div>").css("clear", "both"));
 
             if (experimentsObj.length > 0) {
-                form.append($("<button>", {"id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).css("margin-top", "30px").text("Save Scores"));
                 $("#articleContents").append(form);
             }
             $(".experimentContainer").each(function() {
@@ -555,7 +614,8 @@
             var table = $("<table>").css("position", "relative");
             table.addClass("scroller");
             table.addClass("gradient-style");
-            table.append($("<caption>").text("Experiment " + position));
+            //table.append($("<caption>").text("Experiment " + position));
+            table.append($("<caption>")); // for positioning
             var contents = $('<tbody>');
             contents.addClass("experiments-tbody");
             var header = $('<tr>');
@@ -706,35 +766,6 @@
             }
           }
         };
-
-        // Add altered values to database
-        function submitHandler() {
-            var changes = {};
-            for (var t = 0; t < experimentsObj.length; t++) {
-                for (var row = 0; row < experimentsObj[t]["locations"].length; row++) {
-                    var table = experimentsObj[t]["id"];
-                    if ($("#" + table + row).val() != "") {
-                        changes["" + table +','+ row] = $("#" + table + row).val()
-                    }
-                }
-            }
-            changes = JSON.stringify(changes);
-
-            $.ajax({
-                type: "POST",
-                url: "/json/change-z-scores",
-                data: {
-                    "db-changes": changes,
-                    "pmid": getID(),
-                    "key": "{{api_key}}"
-                }
-            }).complete(function(o) {
-                //console.log(o);
-                location.reload();
-            });
-            //location.reload();
-            //return true;
-        }
 
         function submitTextBoxExperimentsTable() {
             var tableContents = $("#experiments-table-input-form").val();
@@ -915,7 +946,7 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                location.reload();
+                //location.reload();
             });
         }
 

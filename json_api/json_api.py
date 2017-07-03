@@ -256,6 +256,58 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
         return response
 
 
+class ToggleStereotaxicSpaceVoteEndpointHandler(BaseHandler):
+    """ Toggle a user's vote for the stereotaxic space of an article. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "space": {
+            "type": str,
+            "description": "Must be 'mni' or 'talairach' without quotes."
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        space = args["space"].lower()
+        if space == "mni" or space == "talairach":
+            vote_stereotaxic_space(
+                args["pmid"],
+                args["space"],
+                get_github_username_from_api_key(
+                    args["key"]))
+        else:
+            response["success"] = 0
+            response["description"] = "Invalid value for 'space' parameter."
+        return response
+
+
+class NumberOfSubjectsVoteEndpointHandler(BaseHandler):
+    """ Place a vote for the number of subjects for an article. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "subjects": {
+            "type": int
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        vote_number_of_subjects(
+            args["pmid"],
+            args["subjects"],
+            get_github_username_from_api_key(
+                args["key"]))
+        return response
+
+
 class AddExperimentsTableViaTextEndpointHandler(BaseHandler):
     """
     Add a table of experiment coordinates via text.
@@ -376,6 +428,36 @@ class FlagTableEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         flag_table(args["pmid"], args["experiment"])
+        return response
+
+
+class EditTableTitleCaptionEndpointHandler(BaseHandler):
+    """ Flag a table as inaccurate. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "experiment": {
+            "type": int
+        },
+        "title": {
+            "type": str
+        },
+        "caption": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        edit_table_title_caption(
+            args["pmid"],
+            args["experiment"],
+            args["title"],
+            args["caption"])
         return response
 
 

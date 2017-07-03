@@ -167,14 +167,13 @@
             var name = $.trim($('#new_pmid').val());
             var pattern = new RegExp("[0-9]{8}");
             if (pattern.test(name)) {
-                alert("OK!");
                 
                 // TODO: make an add-article UI
                $.ajax({
                 type: "POST",
-                url: "/json/add-article-from-search-page",
+                url: "/json/add-article",
                 data: {
-                    "new_pmid": name,
+                    "pmid": name,
                     "key": "{{api_key}}"
                 }
             }).complete(function() {

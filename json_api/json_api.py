@@ -5,6 +5,7 @@ from article_helpers import *
 from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
+import statistics
 
 
 class ListEndpointsEndpointHandler(BaseHandler):
@@ -19,6 +20,61 @@ class ListEndpointsEndpointHandler(BaseHandler):
         endpoints = brainspell.getJSONEndpoints()
         response["endpoints"] = [name for name, cls in endpoints if name[len(
             name) - 1:] != "/" and name[len(name) - 4:] != "help"]
+        return response
+
+
+# BEGIN: statistics API endpoints
+
+
+class CollectionSignificanceEndpointHandler(BaseHandler):
+    """
+    Take one or two collections, and calculate the significance of the peaks in the first collection at each (x, y, z) coordinate
+    with respect to the second collection, or with respect to the rest of the database.
+
+    Return a 3D array such that the value arr[0][0][0] corresponds to (-100, -100, 100). The center of the "brain" is arr[100][100][100].
+    """
+
+    parameters = {
+        "collection_name": {
+            "type": str
+        },
+        "other_collection": {
+            "type": str,
+            "default": None,
+            "description": "Another collection to run this significance test against. If not specified, then the test will be run against the entire database."
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    collection_does_not_exist = "According to Brainspell's database, that user doesn't own a collection with the name {0}. Try syncing with GitHub if this isn't accurate. (/json/collections, set force_github_refresh to 1)"
+
+    # TODO: once working, make asynchronous
+    def process(self, response, args):
+        raise BaseException("This endpoint has not been defined.")
+        user_collections = get_brainspell_collections_from_api_key(args["key"])
+        # ensure that collection exists
+        if args["collection_name"] in user_collections:
+            pmids = user_collections[args["collection_name"]]["pmids"]
+            other_pmids = None
+            if "other_collection" is not None:
+                if args["other_collection"] in user_collections:
+                    other_pmids = user_collections[args["other_collection"]]["pmids"]
+                else:
+                    response["success"] = 0
+                    response["description"] = collection_does_not_exist.format(
+                        args["other_collection"])
+                    return response
+            # at this point, we can assume that we have either one set of PMIDs
+            # and None, or two sets of PMIDs
+            significance = statistics.significance_from_collections(
+                pmids, other_pmids).grid()
+        else:
+            # collection doesn't exist
+            response["success"] = 0
+            response["description"] = collection_does_not_exist.format(
+                args["collection_name"])
+
         return response
 
 
@@ -132,10 +188,14 @@ class RandomQueryEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleFromSearchPageEndpointHandler(BaseHandler):
-    """ Add an article to our database via PMID (for use on the search page) """
+class AddArticleEndpointHandler(BaseHandler):
+    """
+    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
+    the article to our database. Do not add repeats.
+    """
+
     parameters = {
-        "new_pmid": {
+        "pmid": {
             "type": str
         }
     }
@@ -143,7 +203,10 @@ class AddArticleFromSearchPageEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        add_pmid_article_to_database(args["new_pmid"])
+        success = add_pmid_article_to_database(args["pmid"])
+        response["success"] = success
+        if success == 0:
+            response["description"] = "Either that PMID is not valid, or the article already exists in our database."
         return response
 
 
@@ -209,31 +272,6 @@ class BulkAddEndpointHandler(BaseHandler):
         except BaseException:
             response["success"] = 0
             response["description"] = "You must POST a file with the parameter name 'articlesFile' to this endpoint."
-        return response
-
-
-class AddArticleEndpointHandler(BaseHandler):
-    """
-    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
-    the article to our database.
-    """
-
-    parameters = {
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        article_obj = getArticleData(args["pmid"])
-        request = Articles.insert(abstract=article_obj["abstract"],
-                                  doi=article_obj["DOI"],
-                                  authors=article_obj["authors"],
-                                  experiments=article_obj["coordinates"],
-                                  title=article_obj["title"])
-        request.execute()
         return response
 
 

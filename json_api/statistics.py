@@ -1,4 +1,5 @@
 from article_helpers import get_all_articles, get_article_object
+from torngithub import json_decode
 import collections
 
 """ A set of statistical functions for analyzing collections, papers, etc. """
@@ -32,9 +33,11 @@ class Brain:
         self.total_samples = 1
 
     def grid(self):
-        """ Return the brain grid. The coordinate system is shifted by (-100, -100, -100). Extremely costly operation.
+        """ Return a dict representation of the brain grid. """
 
-        Consider returning a dict instead, so you don't run the risk of points falling off the grid. """
+        # again, the following approach is possible, but costly.
+        # if we want to eventually return an actual array, we can do that
+        """
         grid_repr = []
         for i in range(0, 200):
             self.grid_repr.append([])
@@ -53,6 +56,12 @@ class Brain:
                 pass
 
         return self.grid_repr
+        """
+        # convert to string keys to be JSON serialized
+        string_dict = {}
+        for k in self.brain_grid:
+            string_dict[str(k)] = self.brain_grid[k]
+        return string_dict
 
     def insert_at_location(self, value, x, y, z):
         """ Inserts "value" at the corresponding location of the brain grid.
@@ -67,7 +76,7 @@ class Brain:
         other_grid = other.grid()
 
         for coord in other_grid:
-            self.grid[coord] += other_grid[coord]
+            self.brain_grid[coord] += other_grid[coord]
 
         self.total_samples += other.total_samples
 
@@ -78,7 +87,7 @@ def get_boolean_map_from_article_object(article):
     brain = Brain()
 
     try:
-        experiments = article.experiments
+        experiments = json_decode(article.experiments)
 
         for exp in experiments:
             locations = exp["locations"]
@@ -86,12 +95,14 @@ def get_boolean_map_from_article_object(article):
                 coord = coord_string.split(",")
                 try:  # assumes that coordinates are well-formed
                     coord_tuple = (int(coord[0]), int(coord[1]), int(coord[2]))
-                    brain.insert_at_location(1, **coord_tuple)
-                except BaseException:
+                    brain.insert_at_location(1, *coord_tuple)
+                except BaseException as e:
                     # malformed coordinate
+                    print(e)
                     pass
-    except BaseException:
-        # PMID not valid
+    except BaseException as e:
+        # article not valid
+        print(e)
         pass
 
     return brain
@@ -114,7 +125,6 @@ def significance_from_collections(pmids, other_pmids=None):
     brain = Brain()
 
     # get the binomial distribution sample for pmids
-
     for pmid in pmids:
         # get the boolean repr of this PMID, then sum in the aggregate Brain
         brain_to_sum = get_boolean_map_from_pmid(pmid)
@@ -140,4 +150,4 @@ def significance_from_collections(pmids, other_pmids=None):
 
     # TODO: implement BH FDR
 
-    return brain
+    return brain.grid()

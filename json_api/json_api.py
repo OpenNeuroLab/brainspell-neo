@@ -51,8 +51,6 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
 
     # TODO: once working, make asynchronous
     def process(self, response, args):
-        # TODO: remove once working
-        raise BaseException("This endpoint has not been defined.")
         user_collections = get_brainspell_collections_from_api_key(args["key"])
         # ensure that collection exists
         if args["collection_name"] in user_collections:

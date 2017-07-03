@@ -17,7 +17,7 @@ from tornado.httputil import url_concat
 from torngithub import json_decode, json_encode
 
 from base_handler import *
-from search_helpers import *
+from article_helpers import get_article_object
 from user_account_helpers import *
 
 # BEGIN: read environment variables

@@ -32,7 +32,7 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
     Take one or two collections, and calculate the significance of the peaks in the first collection at each (x, y, z) coordinate
     with respect to the second collection, or with respect to the rest of the database.
 
-    Return a 3D array such that the value arr[0][0][0] corresponds to (-100, -100, 100). The center of the "brain" is arr[100][100][100].
+    Return a dictionary of coordinates in the collection, mapped to their p-values, with the insignificant results filtered out.
     """
 
     parameters = {

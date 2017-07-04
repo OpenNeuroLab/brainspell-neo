@@ -38,13 +38,13 @@ function setSearchString(str)
 {
 	searchString=str;
 }
-function initSearch() {
-	configureInterface();
+function initSearch(account_page = 0) {
+	if (account_page == 0) configureInterface();
 	configureTemplateImage();
 	configureLocationsImage();
 	loadTemplate();
 	initTranslucent();
-	loadLocations();
+	if (account_page == 0) loadLocations();
 }
 function configureInterface() {
 	$('#toggle-selection').click(function() {
@@ -309,6 +309,71 @@ function loadTemplate()
 	//console.log("[loadTemplate] template started loading");
 	
 }	
+function loadLocationsFromDict(coordsDict)
+{
+	// takes a dictionary, where the keys are tuples of the form "(x, y, z)"
+	var i;
+	
+	// init query volume
+	for(i=0;i<LR*PA*IS;i++)
+		sum[i]=0;
+
+	// configure roi
+	var	R=3;
+	var	roi=new Array();
+	var	nroi=0;
+	for(x=-R;x<=R;x++)
+	for(y=-R;y<=R;y++)
+	for(z=-R;z<=R;z++)
+	if(x*x+y*y+z*z<=R*R)
+	{
+		roi[nroi*3+0]=x;
+		roi[nroi*3+1]=y;
+		roi[nroi*3+2]=z;
+		nroi++;
+	}
+
+	var ii,refs=[],nrefs=0;
+	nLocationsLoaded=0;
+	flagLocationsLoaded=0;
+	var jj=refs[ii];
+
+	var coordsDictLength = 0;
+	// update the sum[] volume
+	var i,j,k,coord=new Array();
+	for(var coordTuple in coordsDict) {
+		coordsDictLength += 1;
+		coord = coordTuple.replace("(", "").replace(")", "").split(",");
+		coord[0]=Math.floor(coord[0]/4+22);
+		coord[1]=Math.floor(coord[1]/4+31);
+		coord[2]=Math.floor(coord[2]/4+17.5);
+		for(k=0;k<nroi;k++)
+		{
+			x=Math.floor(roi[k*3+0]+coord[0]);
+			y=Math.floor(roi[k*3+1]+coord[1]);
+			z=Math.floor(roi[k*3+2]+coord[2]);
+			if(x>=0&&x<LR && y>=0&&y<PA && z>=0&&z<IS)
+			{
+				sum[z*PA*LR+y*LR+x]+=1;
+				if(sum[z*PA*LR+y*LR+x]>max)
+					max=sum[z*PA*LR+y*LR+x];
+			}
+		}
+	}
+
+	if (coordsDictLength > 0) {
+		$("#widgetOption").css("display", "inline");
+		$("#widgetOption").text("Show widgets");
+		document.getElementById("widgetOption").disabled = false;
+		
+		// refresh the image
+		drawImages();
+		updateTranslucent();
+	}
+	else {
+		$("#widgetOption").css("display", "none");
+	}
+}
 function loadLocations()
 {
 	var i;

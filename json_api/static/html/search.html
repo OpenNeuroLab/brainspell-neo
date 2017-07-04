@@ -185,6 +185,12 @@
             }
         }
 
+        // add replaceAll (used below)
+        String.prototype.replaceAll = function(search, replacement) {
+            var target = this;
+            return target.replace(new RegExp(search, 'g'), replacement);
+        };
+
         function saveCollection() {
             var articles = [];
             $.each($("input[name='collection']:checked"), function(){
@@ -192,18 +198,7 @@
                 articles.push($(this).val());
             });
 
-            // TODO: this should not allow spaces
-            collectionName = prompt("Enter the collection name:", "").trim();
-            /*
-            for (var i = 0; i < articles.length; i++) {
-                // TODO: use bulk-add-to-collection
-                $.post("/json/add-to-collection?"+$.param({pmid: articles[i],
-                name:collectionName,
-                github_access_token:"{{github_access_token}}",
-                key:"{{api_key}}"}), function(data, err){
-                    console.log(data);
-            });
-            */
+            collectionName = prompt("Enter the collection name:", "").trim().replaceAll(" ", "-");
             $.post("/json/add-to-collection?"+$.param({pmid: JSON.stringify(articles),
                 bulk_add:1,
                 name:collectionName,
@@ -211,18 +206,6 @@
                 key:"{{api_key}}"}), function(data, err){
                     console.log(data);
             });
-
-//            //Collection is brainspell-collection-Trial4 and PMID is 19560547
-//            for (var i = 0; i < articles.length; i++) {
-//                $.ajax({
-//                    type: "POST",
-//                    url: "/add-to-collection",
-//                    data: {
-//                        "pmid": "" + articles[i],
-//                        "collection": "brainspell-collection-" + collectionName
-//                    }
-//                })
-//            }
 
         }
 

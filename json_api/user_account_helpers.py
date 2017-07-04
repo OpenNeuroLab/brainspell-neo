@@ -48,7 +48,11 @@ def register_github_user(user_dict):
         return False  # user already exists
 
 
-def add_collection_to_brainspell_database(collection_name, api_key):
+def add_collection_to_brainspell_database(
+        collection_name,
+        description,
+        api_key,
+        cold_run=True):
     """ Create a collection in our database if it doesn't exist,
     or return false if the collection already exists. """
 
@@ -66,31 +70,27 @@ def add_collection_to_brainspell_database(collection_name, api_key):
         # if the collection doesn't already exist
         if collection_name not in user_collections:
             # create the collection
-            user_collections[collection_name] = []
-            q = User.update(
-                collections=json_encode(user_collections)).where(
-                User.username == user.username)
-            q.execute()
+            user_collections[collection_name] = {}
+            user_collections[collection_name]["description"] = str(description)
+            user_collections[collection_name]["pmids"] = []
+            if not cold_run:
+                q = User.update(
+                    collections=json_encode(user_collections)).where(
+                    User.username == user.username)
+                q.execute()
             return True
     return False
 
 
-def add_article_to_brainspell_database_collection(collection, pmid, api_key):
-    """
-    Add a collection to our local database. Do not add to GitHub in this function.
+def bulk_add_articles_to_brainspell_database_collection(
+        collection, pmids, api_key, cold_run=True):
+    """ Adds the PMIDs to collection_name, if such a collection exists under
+    the given user. Assumes that the collection exists. Does not add repeats.
 
-    Assumes that the collection already exists. Assumes that the user exists.
+    Takes collection_name *without* "brainspell-collection".
 
-    Returns False if the article is already in the collection, or if an assumption
-    is violated.
+    Return False if an assumption is violated, True otherwise. """
 
-    TODO: This is an O(N) operation with respect to the collection size.
-    If someone is adding many articles, it's O(N^2). There should exist
-    a "bulk_add_article_to_brainspell_database_collection" function, which
-    more efficiently adds multiple articles.
-    """
-
-    collection = collection.replace("brainspell-collection-", "")
     user = get_user_object_from_api_key(api_key)
     if user.count > 0:
         user = list(user)[0]
@@ -98,13 +98,95 @@ def add_article_to_brainspell_database_collection(collection, pmid, api_key):
             # assumes collections are well-formed JSON
             target = json_decode(user.collections)
             if collection not in target:
-                target[collection] = []
-            if str(pmid) not in target[collection]:
-                target[collection].append(pmid)
+                target[collection] = {
+                    "description": "None",
+                    "pmids": []
+                }
+
+            pmid_set = set(map(lambda x: str(x), target[collection]["pmids"]))
+            for pmid in pmids:
+                pmid_set.add(str(pmid))
+
+            target[collection]["pmids"] = list(pmid_set)
+            if not cold_run:
                 q = User.update(
                     collections=json_encode(target)).where(
                     User.password == api_key)
                 q.execute()
+            return True
+        else:
+            return False  # user has no collections; violates assumptions
+    return False  # user does not exist
+
+
+def remove_all_brainspell_database_collections(api_key):
+    """ Dangerous! Drops all of a user's Brainspell collections
+    from our local database. Does not affect GitHub.
+
+    Called from CollectionsEndpointHandler."""
+
+    if valid_api_key(api_key):
+        q = User.update(
+            collections=json_encode({})).where(
+            User.password == api_key)
+        q.execute()
+
+
+def get_brainspell_collections_from_api_key(api_key):
+    """
+    Return a user's collections from Brainspell's database given an API key.
+
+    May be inconsistent with GitHub.
+    """
+
+    response = {}
+    if valid_api_key(api_key):
+        user = list(get_user_object_from_api_key(api_key))[0]
+        if user.collections:
+            return json_decode(user.collections)
+    return response
+
+
+def add_article_to_brainspell_database_collection(
+        collection, pmid, api_key, cold_run=True):
+    """
+    Add a collection to our local database. Do not add to GitHub in this function.
+
+    Assumes that the collection already exists. Assumes that the user exists.
+
+    Takes collection_name *without* "brainspell-collection".
+    Returns False if the article is already in the collection, or if an assumption
+    is violated.
+
+    This is an O(N) operation with respect to the collection size.
+    If you're adding many articles, it's O(N^2). If you're adding multiple articles,
+    please use bulk_add_articles_to_brainspell_database_collection.
+
+    Called by AddToCollectionEndpointHandler.
+    """
+
+    user = get_user_object_from_api_key(api_key)
+    if user.count > 0:
+        user = list(user)[0]
+        if user.collections:
+            # assumes collections are well-formed JSON
+            target = json_decode(user.collections)
+            if collection not in target:
+                target[collection] = {
+                    "description": "None",
+                    "pmids": []
+                }
+            pmids_list = set(
+                map(lambda x: str(x), target[collection]["pmids"]))
+            # provide a check for if the PMID is already in the collection
+            if str(pmid) not in pmids_list:
+                pmids_list.add(str(pmid))
+                target[collection]["pmids"] = list(pmids_list)
+                if not cold_run:
+                    q = User.update(
+                        collections=json_encode(target)).where(
+                        User.password == api_key)
+                    q.execute()
                 return True
             else:
                 return False  # article already in collection
@@ -114,12 +196,13 @@ def add_article_to_brainspell_database_collection(collection, pmid, api_key):
 
 
 def remove_article_from_brainspell_database_collection(
-        collection, pmid, api_key):
+        collection, pmid, api_key, cold_run=True):
     """ Remove an article from the Brainspell repo. Do not affect GitHub.
+
+    Takes collection_name *without* "brainspell-collection".
 
     Similar implementation to add_article_to_brainspell_database_collection. """
 
-    collection = collection.replace("brainspell-collection-", "")
     user = get_user_object_from_api_key(api_key)
     if user.count > 0:
         user = list(user)[0]
@@ -127,12 +210,16 @@ def remove_article_from_brainspell_database_collection(
             # assumes collections are well-formed JSON
             target = json_decode(user.collections)
             if collection in target:
-                if str(pmid) in target[collection]:
-                    target[collection].remove(pmid)
-                    q = User.update(
-                        collections=json_encode(target)).where(
-                        User.password == api_key)
-                    q.execute()
+                pmids_list = list(
+                    map(lambda x: str(x), target[collection]["pmids"]))
+                if str(pmid) in pmids_list:
+                    pmids_list.remove(str(pmid))
+                    target[collection]["pmids"] = pmids_list
+                    if not cold_run:
+                        q = User.update(
+                            collections=json_encode(target)).where(
+                            User.password == api_key)
+                        q.execute()
                     return True
                 else:
                     return False  # article not in collection

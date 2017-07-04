@@ -10,12 +10,11 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 
+import base_handler
+import deploy
 import github_collections
 import json_api
-from base_handler import AbstractEndpoint
-from deploy import *
-from github_collections import *
-from user_interface_handlers import *
+import user_interface
 from websockets import *
 
 # BEGIN: init I/O loop
@@ -35,7 +34,9 @@ settings = {
 def getJSONEndpoints():
     """
     Parse the JSON endpoints in json_api and create routes for the endpoint,
-    and the endpoint's help page at /json/*/help
+    and the endpoint's help page at /json/*/help.
+
+    Use AbstractEndpoint to assert that the JSON endpoints are well-formed.
     """
 
     endpoints = []
@@ -47,8 +48,22 @@ def getJSONEndpoints():
         endpoints.append((r"/json/" + name + "/", func))
         endpoints.append((r"/json/" + name + "/help", func))
         endpoints.append((r"/json/" + name + "/help/", func))
-        AbstractEndpoint.register(func)
+        base_handler.AbstractEndpoint.register(func)
     return endpoints
+
+
+def getUserInterfaceHandlers():
+    """ Parse the UI handlers and create routes. Assert that the route is specified. """
+    handlers = []
+    for func in [eval("user_interface." + f) for f in dir(user_interface)
+                 if "Handler" in f and "EndpointHandler" not in f] \
+        + [eval("github_collections." + f) for f in dir(github_collections)
+            if "Handler" in f and "EndpointHandler" not in f]:
+        if func is not base_handler.BaseHandler:
+            assert func.route is not None, "The class " + \
+                func.__name__ + " did not specify its route."
+            handlers.append(("/" + func.route, func))
+    return handlers
 
 
 def make_app():
@@ -58,17 +73,9 @@ def make_app():
         (r"/static/(.*)", tornado.web.StaticFileHandler,
          {"path": os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'static')}),
-        (r"/", MainHandler),
-        (r"/search", SearchHandler),
-        (r"/view-article", ViewArticleHandler),
-        (r"/contribute", ContributionHandler),
-        (r"/bulk-add", BulkAddHandler),
-        (r"/deploy", DeployHandler),
+        (r"/deploy", deploy.DeployHandler),
         (r"/api-socket", EndpointWebSocket),
-        (r"/oauth", GithubLoginHandler),
-        (r"/logout", GithubLogoutHandler),
-        (r"/collections", CollectionsHandler)
-    ] + getJSONEndpoints(), debug=True, **settings)
+    ] + getJSONEndpoints() + getUserInterfaceHandlers(), debug=True, **settings)
 
 
 def get_port_to_run():

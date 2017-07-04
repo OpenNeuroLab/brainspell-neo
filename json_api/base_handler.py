@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from abc import ABCMeta
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
@@ -107,8 +108,10 @@ class BaseHandler(tornado.web.RequestHandler):
         ...
         self.finish_async(response)
 
-    Web interface handlers should be named [*]Handler, and use the
-    "render_with_user_info" function (rather than self.render).
+    Web interface handlers should:
+    1) be named [*]Handler,
+    2) use the "render_with_user_info" function (rather than self.render), and
+    3) specify the "route" attribute, which will be used for the URL.
 
     The following variables will be included for use by the Tornado
     HTML template:
@@ -117,11 +120,14 @@ class BaseHandler(tornado.web.RequestHandler):
     - "github_avatar"
     - "github_access_token"
     - "api_key"
+    - "redirect_uri"
     """
 
     parameters = None
     endpoint_type = None
     process = None
+
+    route = None
 
     asynchronous = False
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
@@ -218,33 +224,47 @@ class BaseHandler(tornado.web.RequestHandler):
                     else:
                         self.process(response, argsDict["args"])
                 else:
+                    self.set_status(401)  # unauthorized
                     self.finish_async(
-                        {"success": 0, "description": "That API key is not valid."})
+                        {"success": 0, "description": "That API key is not valid."}, True)
             else:
                 # print the error message from argument parsing
-                self.finish_async(argsDict)
+                self.set_status(400)  # bad request
+                self.finish_async(argsDict, True)
 
     post = get
 
-    def finish_async(self, response):
+    def finish_async(self, response, status_set=False):
         """ Write the response dictionary, and finish this asynchronous call. """
 
+        if not status_set:
+            if isinstance(response, dict):
+                if "success" in response:
+                    if response["success"] != 1:
+                        self.set_status(422)  # unprocessable entity
         self.write(json.dumps(response))
         self.finish()
 
-    def render_with_user_info(self, url, params={}):
+    def render_with_user_info(self, url, params={}, logout_redir=None):
         """
         Render a Tornado HTML template, automatically
         appending user information.
         Do NOT mutate the params dict.
         """
 
+        redirect_uri = "/" + self.route
+        if logout_redir:
+            redirect_uri = "/" + logout_redir
+
         login_dict = {
             "github_name": self.get_current_github_name(),
             "github_username": self.get_current_github_username(),
             "github_avatar": self.get_current_github_avatar(),
             "github_access_token": self.get_current_github_access_token(),
-            "api_key": self.get_current_api_key()
+            "api_key": self.get_current_api_key(),
+            "redirect_uri": urllib.parse.urlencode({
+                "redirect_uri": redirect_uri
+            })
         }
         for k in params:
             # rather than passing both dicts, make it 3.4 compatible by merging
@@ -304,7 +324,10 @@ class BaseHandler(tornado.web.RequestHandler):
         Get the user's API key. Guaranteed to exist iff logged in.
         """
 
-        return self.get_secure_cookie("api_key")
+        api_key = self.get_secure_cookie("api_key")
+        if api_key:
+            return api_key
+        return ""
 
     def set_default_headers(self):
         """

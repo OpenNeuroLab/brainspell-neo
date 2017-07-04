@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import urllib.parse
 from base64 import b64encode
 
 from article_helpers import *
@@ -12,6 +13,8 @@ from user_account_helpers import *
 
 class MainHandler(BaseHandler):
     """ The front page of Brainspell. """
+
+    route = ""
 
     def get(self):
         try:  # handle failures in bulk_add
@@ -42,6 +45,8 @@ class MainHandler(BaseHandler):
 class SearchHandler(BaseHandler):
     """ Search articles within Brainspell's database. """
 
+    route = "search"
+
     def get(self):
         q = self.get_query_argument("q", "")
         start = self.get_query_argument("start", 0)
@@ -60,6 +65,8 @@ class ViewArticleHandler(BaseHandler):
     visualization, statistics, etc.
     """
 
+    route = "view-article"
+
     def get(self):
         article_id = -1
         try:
@@ -69,12 +76,21 @@ class ViewArticleHandler(BaseHandler):
         article_dict = {
             "article_id": article_id
         }
+
+        redirect_uri = self.route + "?" + urllib.parse.urlencode({
+            "id": self.get_query_argument("id")
+        })
+
         self.render_with_user_info(
-            "static/html/view-article.html", article_dict)
+            "static/html/view-article.html",
+            article_dict,
+            logout_redir=redirect_uri)
 
 
 class ContributionHandler(BaseHandler):
     """ Show the user how they can contribute to the Brainspell platform. """
+
+    route = "contribute"
 
     def get(self):
         self.render_with_user_info('static/html/contribute.html')
@@ -86,6 +102,8 @@ class BulkAddHandler(BaseHandler):
     (called from the /contribute page)
     This handler is deprecated; please use the JSON API instead.
     """
+
+    route = "bulk-add"
 
     def post(self):
         file_body = self.request.files['articlesFile'][0]['body'].decode(
@@ -102,6 +120,8 @@ class BulkAddHandler(BaseHandler):
 
 class CollectionsHandler(BaseHandler):
     """ Display the user's collections. """
+
+    route = "collections"
 
     def get(self):
         if self.get_current_github_access_token():

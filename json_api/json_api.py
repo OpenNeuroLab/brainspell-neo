@@ -5,6 +5,7 @@ from article_helpers import *
 from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
+import statistics
 
 
 class ListEndpointsEndpointHandler(BaseHandler):
@@ -19,6 +20,71 @@ class ListEndpointsEndpointHandler(BaseHandler):
         endpoints = brainspell.getJSONEndpoints()
         response["endpoints"] = [name for name, cls in endpoints if name[len(
             name) - 1:] != "/" and name[len(name) - 4:] != "help"]
+        return response
+
+
+# BEGIN: statistics API endpoints
+
+
+class CollectionSignificanceEndpointHandler(BaseHandler):
+    """
+    Take one or two collections, and calculate the significance of the peaks in the first collection at each (x, y, z) coordinate
+    with respect to the second collection, or with respect to the rest of the database.
+
+    Return a 3D array such that the value arr[0][0][0] corresponds to (-100, -100, 100). The center of the "brain" is arr[100][100][100].
+    """
+
+    parameters = {
+        "collection_name": {
+            "type": str
+        },
+        "other_collection": {
+            "type": str,
+            "default": "null",
+            "description": "Another collection to run this significance test against. If not specified, then the test will be run against the entire database."
+        },
+        "width": {
+            "type": int,
+            "default": 5,
+            "description": "The width for each coordinate that we'll check for significance."
+        },
+        "threshold": {
+            "type": float,
+            "default": .001,
+            "description": "The threshold that we'll use to account for multiple comparisons using Benjamini–Hochberg"
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    collection_does_not_exist = "According to Brainspell's database, that user doesn't own a collection with the name {0}. Try syncing with GitHub if this isn't accurate. (/json/collections, set force_github_refresh to 1)"
+
+    # TODO: once working, make asynchronous
+    def process(self, response, args):
+        user_collections = get_brainspell_collections_from_api_key(args["key"])
+        # ensure that collection exists
+        if args["collection_name"] in user_collections:
+            pmids = user_collections[args["collection_name"]]["pmids"]
+            other_pmids = None
+            if args["other_collection"] != "null":
+                if args["other_collection"] in user_collections:
+                    other_pmids = user_collections[args["other_collection"]]["pmids"]
+                else:
+                    response["success"] = 0
+                    response["description"] = self.collection_does_not_exist.format(
+                        args["other_collection"])
+                    return response
+            # at this point, we can assume that we have either one set of PMIDs
+            # and None, or two sets of PMIDs
+            significance = statistics.significance_from_collections(
+                pmids, other_pmids, width=args["width"], threshold=args["threshold"])
+            response["significance_grid"] = significance
+        else:
+            # collection doesn't exist
+            response["success"] = 0
+            response["description"] = self.collection_does_not_exist.format(
+                args["collection_name"])
+
         return response
 
 
@@ -132,10 +198,14 @@ class RandomQueryEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleFromSearchPageEndpointHandler(BaseHandler):
-    """ Add an article to our database via PMID (for use on the search page) """
+class AddArticleEndpointHandler(BaseHandler):
+    """
+    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
+    the article to our database. Do not add repeats.
+    """
+
     parameters = {
-        "new_pmid": {
+        "pmid": {
             "type": str
         }
     }
@@ -143,7 +213,10 @@ class AddArticleFromSearchPageEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        add_pmid_article_to_database(args["new_pmid"])
+        success = add_pmid_article_to_database(args["pmid"])
+        response["success"] = success
+        if success == 0:
+            response["description"] = "Either that PMID is not valid, or the article already exists in our database."
         return response
 
 
@@ -212,31 +285,6 @@ class BulkAddEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleEndpointHandler(BaseHandler):
-    """
-    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
-    the article to our database.
-    """
-
-    parameters = {
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        article_obj = getArticleData(args["pmid"])
-        request = Articles.insert(abstract=article_obj["abstract"],
-                                  doi=article_obj["DOI"],
-                                  authors=article_obj["authors"],
-                                  experiments=article_obj["coordinates"],
-                                  title=article_obj["title"])
-        request.execute()
-        return response
-
-
 class SetArticleAuthorsEndpointHandler(BaseHandler):
     """ Edit the authors of an article. """
 
@@ -253,6 +301,58 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         update_authors(args["pmid"], args["authors"])
+        return response
+
+
+class ToggleStereotaxicSpaceVoteEndpointHandler(BaseHandler):
+    """ Toggle a user's vote for the stereotaxic space of an article. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "space": {
+            "type": str,
+            "description": "Must be 'mni' or 'talairach' without quotes."
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        space = args["space"].lower()
+        if space == "mni" or space == "talairach":
+            vote_stereotaxic_space(
+                args["pmid"],
+                args["space"],
+                get_github_username_from_api_key(
+                    args["key"]))
+        else:
+            response["success"] = 0
+            response["description"] = "Invalid value for 'space' parameter."
+        return response
+
+
+class NumberOfSubjectsVoteEndpointHandler(BaseHandler):
+    """ Place a vote for the number of subjects for an article. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "subjects": {
+            "type": int
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        vote_number_of_subjects(
+            args["pmid"],
+            args["subjects"],
+            get_github_username_from_api_key(
+                args["key"]))
         return response
 
 
@@ -302,31 +402,6 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 # BEGIN: table API endpoints
 
 
-# TODO: change the format that this takes for db-changes
-class ChangeZScoresEndpointHandler(BaseHandler):
-    """ Update the z-scores for a table within an article. """
-    parameters = {
-        "db-changes": {
-            "type": json.loads
-        },
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        # updates z scores
-        try:
-            values = args["db-changes"]
-            update_z_scores(args["pmid"], values)
-        except BaseException:
-            response = {"success": 0}
-
-        return response
-
-
 class AddUserTagToArticleEndpointHandler(BaseHandler):
     """ Add a user tag to our database, for use in tagging articles. """
 
@@ -362,7 +437,7 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
             "type": int
         },
         "pmid": {
-            "type": int
+            "type": str
         },
         "column": {
             "type": str
@@ -401,6 +476,36 @@ class FlagTableEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         flag_table(args["pmid"], args["experiment"])
+        return response
+
+
+class EditTableTitleCaptionEndpointHandler(BaseHandler):
+    """ Flag a table as inaccurate. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "experiment": {
+            "type": int
+        },
+        "title": {
+            "type": str
+        },
+        "caption": {
+            "type": str,
+            "default": ""
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        edit_table_title_caption(
+            args["pmid"],
+            args["experiment"],
+            args["title"],
+            args["caption"])
         return response
 
 
@@ -451,6 +556,42 @@ class SplitTableEndpointHandler(BaseHandler):
         return response
 
 
+class UpdateRowEndpointHandler(BaseHandler):
+    """ Update a row of coordinates in an experiment table. """
+
+    parameters = {
+        "pmid": {
+            "type": str
+        },
+        "experiment": {
+            "type": int
+        },
+        "coordinates": {
+            "type": json.loads,
+            "description": "Takes a JSON array of three or four coordinates. (The fourth is z-effective.)"
+        },
+        "row_number": {
+            "type": int,
+            "description": "The index of the row that these coordinates will replace."
+        }
+    }
+
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        coords = args["coordinates"]
+        if len(coords) == 3 or len(coords) == 4:
+            update_coordinate_row(
+                args["pmid"],
+                args["experiment"],
+                coords,
+                args["row_number"])
+        else:
+            response["success"] = 0
+            response["description"] = "Wrong number of coordinates."
+        return response
+
+
 class AddRowEndpointHandler(BaseHandler):
     """ Add a single row of coordinates to an experiment table. """
 
@@ -462,13 +603,27 @@ class AddRowEndpointHandler(BaseHandler):
             "type": int
         },
         "coordinates": {
-            "type": str
+            "type": json.loads,
+            "description": "Takes a JSON array of three or four coordinates. (The fourth is z-effective.)"
+        },
+        "row_number": {
+            "type": int,
+            "default": -1,
+            "description": "The index that this row should be located at in the table. Defaults to the end of the table."
         }
     }
 
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        coords = args["coordinates"].replace(" ", "")
-        add_coordinate(args["pmid"], args["experiment"], coords)
+        coords = args["coordinates"]
+        if len(coords) == 3 or len(coords) == 4:
+            add_coordinate_row(
+                args["pmid"],
+                args["experiment"],
+                coords,
+                args["row_number"])
+        else:
+            response["success"] = 0
+            response["description"] = "Wrong number of coordinates."
         return response

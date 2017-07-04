@@ -12,7 +12,6 @@
     <link href="/static/css/select2.min.css" rel="stylesheet">
     <link href="/static/css/select2-bootstrap.min.css" rel="stylesheet">
     <script type="text/javascript" src="/static/js/spin.min.js"></script>
-    <meta id="user_logged_in" data-name="{{ api_key }}">
     <!--Features to add words and corresponding definitions -->
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
@@ -29,7 +28,7 @@
             <div class="col-lg-12 text-center">
                 <h1>Brainspell</h1>
                 <p class="lead">An open, human-curated classification of neuroimaging literature.</p>
-                {% if api_key != "" %}
+                {% if api_key != "" and api_key is not None %}
                 <div id="github_collections_div">
                   <label for="id_label_multiple">
                     Add to Github Collections:
@@ -92,28 +91,28 @@
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       //console.log(spinner);
-      $.get("/json/collections?pmid={{article_id}}&key={{api_key}}&github_access_token={{github_access_token}}", function(data, err){
+      $.get("/json/collections-from-brainspell?pmid={{article_id}}&key={{api_key}}", function(data, err){
         console.log(data);
         var data = data["collections"];
-        var coll_names = _.map(data, function(d){return d.name.replace("brainspell-collection-","")})
+        var coll_names = _.map(data, function(d){return d.name})
         var in_collection = _.map(_.filter(data, function(d){return d.in_collection}),
-                                  function(d){return d.name.replace("brainspell-collection-","")});
+                                  function(d){return d.name});
         $("#github_collections").select2({data: coll_names, theme: "bootstrap"});
         $("#github_collections").val(in_collection).trigger("change")
         spinner.stop(target)
 		$("#github_collections").on("select2:select", function (e) {
 		  console.log("You want to add this pmid {{article_id}} to collection:", e.params.data.id)
 		  $.post("/json/add-to-collection?"+$.param({pmid: {{article_id}},
-		   collection:"brainspell-collection-"+e.params.data.id,
+		    name:e.params.data.id,
             github_access_token:"{{github_access_token}}",
             key:"{{api_key}}"}), function(data, err){
-			 console.log(err)
+                console.log(data);
 		   })
 		});
 	 $("#github_collections").on("select2:unselect", function (e) {
         console.log("You want to remove this pmid {{article_id}} from collection:", e.params.data.id)
-		  $.post("/remove-from-collection?"+$.param({pmid: {{article_id}},
-		   collection:"brainspell-collection-"+e.params.data.id,
+		  $.post("/json/remove-from-collection?"+$.param({pmid: {{article_id}},
+		    name:e.params.data.id,
             github_access_token:"{{github_access_token}}",
             key:"{{api_key}}"}), function(data, err){
 			 console.log(err)
@@ -230,13 +229,11 @@
                         )).css("z-index","2000")));
 
             $("#articleContents").append(first);
-            if ($("#user_logged_in").data()["name"] == "None") {
-                {% if api_key == "" %}
-                $("#agree").hide();
-                $("#disagree").hide();
-                $("#closer").before("Please login to vote  ");
-                {% end %}
-            }
+            {% if api_key == "" or api_key is None %}
+            $("#agree").hide();
+            $("#disagree").hide();
+            $("#closer").before("Please login to vote  ");
+            {% end %}
             // remove the modal from the DOM on hide
             $('#myModal').on('hidden.bs.modal', function(){
                 $(this).remove();
@@ -307,8 +304,9 @@
         }).complete(function(o) { // MAIN INIT
             j = o.responseText;
             obj = JSON.parse(j);
-            if (Object.keys(obj).length <= 1) { // TODO: what is this? should comment
-                 window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
+            if (Object.keys(obj).length <= 1) {
+                // if there are no results, direct the user to the search page, where they can add this PMID
+                window.location.replace("/search?q=%5BPMID%5D{{article_id}}&req=t");
             }
 
             try {
@@ -326,7 +324,7 @@
             var linkParagraph = $("<p>");
             linkParagraph.append($("<a>").attr("href", "https://www.ncbi.nlm.nih.gov/pubmed/" + obj["pmid"]).text("PubMed"));
 
-            {% if api_key != "" %}
+            {% if api_key != "" and api_key is not None %}
             linkParagraph.append($("<span>").text(" | ")).append($("<a>").attr("href", "#!").attr("onclick", "$('#tableInputForm').fadeIn()").text("Add Table from Text File"));
             {% end %}
 
@@ -396,7 +394,9 @@
                     user_terms.append($("<button>").text(user[i]).attr("class", "dropbtn").attr("data-toggle", "modal"));
                 }
             }
+            {% if api_key != "" and api_key is not None %}
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
+            {% end %}
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
             var user_data = $("<form>").append(
                     $("<p>",{"value":"Add tag below"})).append(
@@ -408,6 +408,65 @@
             user_terms.append(user_input);
             $("#articleContents").append(user_terms);
 
+            var real_metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'));
+            console.log(real_metadata);
+            var mni_selected = "";
+            var talairach_selected = "";
+            var number_of_subjects = "";
+            var total_mni = "";
+            var total_talairach = "";
+            /*
+            MOCK OBJECT FOR TESTING
+            real_metadata["space_subjects"] = {}
+            real_metadata["space_subjects"]["radio_votes"] = [{
+                "username": "user1",
+                "type": "mni"
+            },
+            {
+                "username": "user2",
+                "type": "mni"
+            }]
+            real_metadata["space_subjects"]["number_of_subjects"] = [
+                {
+                    "username": "user1",
+                    "value": 20
+                },
+                {
+                    "username": "user2",
+                    "value": 30
+                }
+            ]
+            */
+
+            if ("space_subjects" in real_metadata) {
+                var s = real_metadata["space_subjects"];
+                if ("radio_votes" in s) {
+                    var r = s["radio_votes"];
+                    var mni_votes = 0;
+                    var talairach_votes = 0;
+                    for (var i = 0; i < r.length; i++) {
+                        var vote = r[i];
+                        if (vote["type"] == "mni") mni_votes += 1;
+                        else talairach_votes += 1;
+                    }
+                    if (mni_votes > talairach_votes) {
+                        mni_selected = " checked='checked'";
+                    } else {
+                        talairach_selected = " checked='checked'";
+                    }
+                    total_mni = " (" + mni_votes + ")"
+                    total_talairach = " (" + talairach_votes + ")"
+                }
+                if ("number_of_subjects" in s) {
+                    subjects_votes = s["number_of_subjects"];
+                    for (var i = 0; i < subjects_votes.length; i++) {
+                        number_of_subjects = " value = '" + subjects_votes[i]["value"] + "'";
+                        break; // potentially use other votes later
+                    }
+                }
+            }
+
+            $("#articleContents").append($("<div>").html("<p>Stereotaxic space: <label><input type='radio'" + mni_selected + " name='stereo-space'> MNI" + total_mni + "</label> <label><input type='radio'" + talairach_selected + " name='stereo-space'> Talairach" + total_talairach + "</label></p><p>Number of subjects: <input type='text' " + number_of_subjects + " style='width:40px'></p>"));
 
             // TODO: add "action" once that endpoint is finished (? action?)
             var form = $('<div>', {'id':"locations"});
@@ -460,7 +519,6 @@
             form.append($("<div>").css("clear", "both"));
 
             if (experimentsObj.length > 0) {
-                form.append($("<button>", {"id":"scorer","class":"btn btn-default","onclick":"submitHandler()"}).css("margin-top", "30px").text("Save Scores"));
                 $("#articleContents").append(form);
             }
             $(".experimentContainer").each(function() {
@@ -503,7 +561,9 @@
 
     <script>
     // TODO: make the voting, adding coordinates, deleting coordinates, etc. stay on the same page, and update the page on callback
-        var ws = new WebSocket("wss://brainspell.herokuapp.com/api-socket");
+        // websocket only works on localhost right now
+        /*
+        var ws = new WebSocket("ws://localhost:5000/api-socket");
 
         ws.onmessage = function (evt) {
             responseObj = JSON.parse(evt.data);
@@ -525,14 +585,14 @@
                     votes += 1;
                     $(btn).text("Agree: " + votes + " (including you)");
                 }
-                */
+                * /
 
                 // for now, just reloading
                 location.reload();
             } else {
                 console.log(responseObj);
             }
-        };
+        };*/
 
         function configureExperiments(exp) {
             $("#experiments").html("");
@@ -555,7 +615,8 @@
             var table = $("<table>").css("position", "relative");
             table.addClass("scroller");
             table.addClass("gradient-style");
-            table.append($("<caption>").text("Experiment " + position));
+            //table.append($("<caption>").text("Experiment " + position));
+            table.append($("<caption>")); // for positioning
             var contents = $('<tbody>');
             contents.addClass("experiments-tbody");
             var header = $('<tr>');
@@ -569,42 +630,51 @@
                 array[i] = array[i].split(",");
                 var z_score = array[i][3];
                 for (var j in array[i].slice(0,3)) {
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
+                    row.append($("<td>", {"style": "height:100%;"}).click(function() {
+                        /*
                         $(this).css("padding-top", "5px").css("padding-bottom", "5px");
                         let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
                         $(this).html("");
                         $(this).append(textInput);
                         textInput.focus();
+                        */
+                        {% if api_key != "" %}
+                        $(this).attr("contentEditable", "true");
+                        {% end %}
                     }).text(array[i][j]));
                 }
                 if (z_score == null) {
-                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px").append($("<input>", {
-                        "type": "number",
-                        "style": "width:60%;",
-                        "step": "0.01",
-                        "id": "" + position + i
-                    })));
+                    row.append($("<td>", {
+                        "style": "height:100%",
+                        "id": "" + position + i,
+                        "contentEditable": "true"
+                    }));
                 }
                 else {
 //                    row.append($("<td>").css("padding-top", "5px").css("padding-bottom", "5px")).text(z_score);
-                    row.append($("<td>", {"style": "height:100%;"}).dblclick(function() {
+                    row.append($("<td>", {"style": "height:100%;"}).click(function() {
+                        /*
                         $(this).css("padding-top", "5px").css("padding-bottom", "5px");
                         let textInput = $("<input>").attr("type", "text").css("width", "60%").val($(this).html());
                         $(this).html("");
                         $(this).append(textInput);
                         textInput.focus();
+                        */
+                        {% if api_key != "" %}
+                        $(this).attr("contentEditable", "true");
+                        {% end %}
                     }).text(z_score));
                 }
                 contents.append(row);
             }
 
 
-            {% if api_key != ""  %}
+            {% if api_key != "" and api_key is not None  %}
             contents.append($("<tr>").attr("onclick", "addRowTo(" + experimentNumber + ", this)").append($("<td>").css("width","100%").css("padding-top", "5px").css("padding-bottom", "5px").append($("<a>", {"href":"/account", "style":"width:60%;","id":"" + position + i})).text("Add Row").css("text-align","center")));
             {% end %}
 
             table.append(contents);
-            {% if api_key != ""  %}
+            {% if api_key != "" and api_key is not None  %}
             var footer = $("<tfoot>");
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "deleteRow(" + experimentNumber + ")").text("Delete Row"))));
             footer.append($("<tr>").css("background-color", "white").css("width", "33%").css("float", "left").append($("<td>").append($("<a>").attr("href", "#!").attr("onclick", "splitTable(" + experimentNumber + ")").text("Split Table"))));
@@ -698,35 +768,6 @@
           }
         };
 
-        // Add altered values to database
-        function submitHandler() {
-            var changes = {};
-            for (var t = 0; t < experimentsObj.length; t++) {
-                for (var row = 0; row < experimentsObj[t]["locations"].length; row++) {
-                    var table = experimentsObj[t]["id"];
-                    if ($("#" + table + row).val() != "") {
-                        changes["" + table +','+ row] = $("#" + table + row).val()
-                    }
-                }
-            }
-            changes = JSON.stringify(changes);
-
-            $.ajax({
-                type: "POST",
-                url: "/json/change-z-scores",
-                data: {
-                    "db-changes": changes,
-                    "pmid": getID(),
-                    "key": "{{api_key}}"
-                }
-            }).complete(function(o) {
-                //console.log(o);
-                location.reload();
-            });
-            //location.reload();
-            //return true;
-        }
-
         function submitTextBoxExperimentsTable() {
             var tableContents = $("#experiments-table-input-form").val();
             $.ajax({
@@ -768,10 +809,10 @@
         function checkIfRowSubmit(e, input, experiment) {
             if (e.keyCode == 13) {
                 var inputs = input.parentNode.parentNode.getElementsByTagName("input");
-                var coords = inputs[0].value + "," + inputs[1].value + "," + inputs[2].value;
+                var coords = [inputs[0].value, inputs[1].value, inputs[2].value, inputs[3].value];
                 $.ajax({
                     type: "GET",
-                    url: "/json/add-row?pmid={{article_id}}&key={{api_key}}&experiment=" + experiment + "&coordinates=" + coords
+                    url: "/json/add-row?pmid={{article_id}}&key={{api_key}}&experiment=" + experiment + "&coordinates=" + JSON.stringify(coords)
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -863,22 +904,25 @@
         // Updates the vote of a single table tag
         function updateTableVote(btn, tagName,direction,tableNum,column) {
             /*
-            Example of AJAX to Websocket:
+            Example of AJAX to Websocket:*/
             $.ajax({
                 type: "POST",
-                url: "/update-table-vote",
+                url: "/json/update-table-vote",
                 data: {
                     "tag_name": tagName,
                     "direction":direction,
                     "table_num":tableNum,
-                    "id": getID(),
-                    "column":column
+                    "pmid": getID(),
+                    "column":column,
+                    "username": "{{github_username}}",
+                    "key": "{{api_key}}"
                 }
             }).complete(function(o) {
                 //console.log(o);
                 location.reload();
             });
-            */
+            
+            /*
             var message = {
                 "type": "update-table-vote",
                 "payload": {
@@ -892,6 +936,7 @@
                 }
             };
             ws.send(JSON.stringify(message));
+            */
         }
         //Updates votes for MeshDescriptors as a whole
         function updateVote(topic, direction) {

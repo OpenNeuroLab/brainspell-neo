@@ -167,14 +167,13 @@
             var name = $.trim($('#new_pmid').val());
             var pattern = new RegExp("[0-9]{8}");
             if (pattern.test(name)) {
-                alert("OK!");
                 
                 // TODO: make an add-article UI
                $.ajax({
                 type: "POST",
-                url: "/json/add-article-from-search-page",
+                url: "/json/add-article",
                 data: {
-                    "new_pmid": name,
+                    "pmid": name,
                     "key": "{{api_key}}"
                 }
             }).complete(function() {
@@ -192,19 +191,27 @@
                 console.log($(this).val());
                 articles.push($(this).val());
             });
-            collectionName = prompt("Enter the collection name:", "").trim();
 
-//            alert("Articles to save: " + articles.join(", "));
+            // TODO: this should not allow spaces
+            collectionName = prompt("Enter the collection name:", "").trim();
+            /*
             for (var i = 0; i < articles.length; i++) {
+                // TODO: use bulk-add-to-collection
                 $.post("/json/add-to-collection?"+$.param({pmid: articles[i],
-                collection:"brainspell-collection-"+collectionName,
+                name:collectionName,
                 github_access_token:"{{github_access_token}}",
                 key:"{{api_key}}"}), function(data, err){
-                    console.log(err)
+                    console.log(data);
+            });
+            */
+            $.post("/json/add-to-collection?"+$.param({pmid: JSON.stringify(articles),
+                bulk_add:1,
+                name:collectionName,
+                github_access_token:"{{github_access_token}}",
+                key:"{{api_key}}"}), function(data, err){
+                    console.log(data);
             });
 
-
-            }
 //            //Collection is brainspell-collection-Trial4 and PMID is 19560547
 //            for (var i = 0; i < articles.length; i++) {
 //                $.ajax({

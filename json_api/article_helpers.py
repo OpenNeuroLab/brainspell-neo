@@ -8,10 +8,24 @@ from Bio import Entrez, Medline
 from Bio.Entrez import efetch, esearch, parse, read
 
 from models import *
+from torngithub import json_encode
 
 Entrez.email = "neel@berkeley.edu"
 
 # BEGIN: article helper functions
+
+
+def get_article_object(query):
+    """ Get a single article PeeWee object. """
+
+    search = Articles.select().where(Articles.pmid == query)
+    return search.execute()
+
+
+def get_all_articles():
+    """ Get all article objects in the database. """
+
+    return Articles.select().execute()
 
 
 def update_authors(pmid, authors):
@@ -20,43 +34,38 @@ def update_authors(pmid, authors):
     Articles.update(authors=authors).where(Articles.pmid == pmid).execute()
 
 
-def toggle_vote(pmid, topic, username, direction):
-    """ Toggle a user's vote on an article tag. """
+def update_vote_in_struct(struct, tag_name, username, direction, label_name):
+    """ Update a voting structure to toggle a user's vote. Modifies the input structure. """
 
-    fullArticle = next(
-        Articles.select(
-            Articles.metadata).where(
-            Articles.pmid == pmid).execute())
-
-    target = eval(fullArticle.metadata)['meshHeadings']
+    # get the index for the tag
     entry = -1
-
-    for i in range(len(target)):
-        if target[i]['name'] == topic:
-            entry = i
-            break
-
+    for i in range(len(struct)):
+        # some entries might be malformed, so check if "tag" is in the dict
+        if label_name in struct[i]:
+            if struct[i][label_name] == tag_name:
+                entry = i
+                break
     if entry == -1:  # if the tag hasn't been added yet, then add it
-        target.append({
-            "name": topic,
-            "majorTopic": "N"
+        struct.append({
+            label_name: tag_name,
         })
-        entry = len(target) - 1
+        entry = len(struct) - 1
 
     # if no one has voted, then add voting structures
-    if "vote" not in target[entry]:
-        target[entry]["vote"] = {}
-        target[entry]["vote"]["up"] = []
-        target[entry]["vote"]["down"] = []
+    if "vote" not in struct[entry]:
+        struct[entry]["vote"] = {}
+        struct[entry]["vote"]["up"] = []
+        struct[entry]["vote"]["down"] = []
 
     # toggle the vote
     toggled = False
-    for v in range(len(target[entry]["vote"][direction])):
-        if target[entry]["vote"][direction][v]["username"] == username:
-            del target[entry]["vote"][direction][v]
+    for v in range(len(struct[entry]["vote"][direction])):
+        if struct[entry]["vote"][direction][v]["username"] == username:
+            del struct[entry]["vote"][direction][v]
             toggled = True
+
     if not toggled:
-        target[entry]["vote"][direction].append({
+        struct[entry]["vote"][direction].append({
             "username": username  # leave open for any other metadata we may eventually want to include
         })
 
@@ -64,18 +73,83 @@ def toggle_vote(pmid, topic, username, direction):
     otherDirectionLst = ["up", "down"]
     otherDirection = otherDirectionLst[-1 *
                                        otherDirectionLst.index(direction) + 1]
-    for v in range(len(target[entry]["vote"][otherDirection])):
-        if target[entry]["vote"][otherDirection][v]["username"] == username:
-            del target[entry]["vote"][otherDirection][v]
+    for v in range(len(struct[entry]["vote"][otherDirection])):
+        if struct[entry]["vote"][otherDirection][v]["username"] == username:
+            del struct[entry]["vote"][otherDirection][v]
 
-    updatedMetadata = {
-        "meshHeadings": target
-    }
 
-    # print(updatedMetadata)
+def toggle_vote(pmid, topic, username, direction):
+    """ Toggle a user's vote on an article tag. """
+
+    fullArticle = next(get_article_object(pmid))
+
+    metadata = eval(fullArticle.metadata)
+
+    update_vote_in_struct(
+        metadata['meshHeadings'],
+        topic,
+        username,
+        direction,
+        "name")
 
     query = Articles.update(
-        metadata=updatedMetadata).where(
+        metadata=metadata).where(
+        Articles.pmid == pmid)
+    query.execute()
+
+
+def vote_stereotaxic_space(pmid, space, username):
+    """ Toggle a user's vote for the stereotaxic space of an article. """
+
+    fullArticle = next(get_article_object(pmid))
+
+    target = eval(fullArticle.metadata)
+
+    if "space_subjects" not in target:
+        target["space_subjects"] = {}
+
+    if "radio_votes" not in target["space_subjects"]:
+        target["space_subjects"]["radio_votes"] = []
+
+    for i in range(len(target["space_subjects"]["radio_votes"])):
+        if target["space_subjects"]["radio_votes"][i]["username"] == username:
+            del target["space_subjects"]["radio_votes"][i]
+
+    target["space_subjects"]["radio_votes"].append({
+        "username": username,
+        "type": space
+    })
+
+    query = Articles.update(
+        metadata=target).where(
+        Articles.pmid == pmid)
+    query.execute()
+
+
+def vote_number_of_subjects(pmid, subjects, username):
+    """ Place a vote for the number of subjects for this article. """
+
+    fullArticle = next(get_article_object(pmid))
+
+    target = eval(fullArticle.metadata)
+
+    if "space_subjects" not in target:
+        target["space_subjects"] = {}
+
+    if "number_of_subjects" not in target["space_subjects"]:
+        target["space_subjects"]["number_of_subjects"] = []
+
+    for i in range(len(target["space_subjects"]["number_of_subjects"])):
+        if target["space_subjects"]["number_of_subjects"][i]["username"] == username:
+            del target["space_subjects"]["number_of_subjects"][i]
+
+    target["space_subjects"]["number_of_subjects"].append({
+        "username": username,
+        "value": subjects
+    })
+
+    query = Articles.update(
+        metadata=target).where(
         Articles.pmid == pmid)
     query.execute()
 
@@ -109,45 +183,48 @@ def add_pmid_article_to_database(article_id):
     Given a PMID, use external APIs to get the necessary article data
     in order to add the article to our database.
     """
-
-    pmid = str(article_id)
-    handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
-    records = list(Medline.parse(handle))
-    records = records[0]
-    article_info = {}
-    article_info["title"] = records.get("TI")
-    article_info["PMID"] = pmid
-    article_info["authors"] = ', '.join(records.get("AU"))
-    article_info["abstract"] = records.get("AB")
-    article_info["DOI"] = getDOI(records.get("AID"))
-    article_info["experiments"] = ""
-    article["metadata"] = str({"meshHeadings": []})
-    article["reference"] = None
-    identity = ""
-    try:
-        article_info["experiments"] = {
-            "locations": eval(
-                urllib.request.urlopen(
-                    "http://neurosynth.org/api/studies/peaks/" +
-                    str(pmid) +
-                    "/").read().decode())["data"]}
-        k = article_info["experiments"]["locations"]
-        for i in range(len(k)):
-            if len(k[i]) == 4:
-                identity = k[0]
-                k[i] = k[i][1:]
-            k[i] = ",".join([str(x) for x in (k[i])])
-    except BaseException:
-        pass
-    article_info["id"] = identity
-    article_info["experiments"] = [article_info["experiments"]]
-    Articles.create(abstract=article_info["abstract"],
-                    authors=article_info["authors"],
-                    doi=article_info["DOI"],
-                    experiments=article_info["experiments"],
-                    pmid=article_info["PMID"],
-                    title=article_info["title"])
-    return article_info
+    if len(list(get_article_object(article_id))) == 0:
+        pmid = str(article_id)
+        handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
+        records = list(Medline.parse(handle))
+        records = records[0]
+        if "TI" not in records:
+            return False  # catch bad PMIDs
+        article_info = {}
+        article_info["title"] = records["TI"]
+        article_info["PMID"] = pmid
+        article_info["authors"] = ', '.join(records["AU"])
+        article_info["abstract"] = records["AB"]
+        article_info["DOI"] = getDOI(records["AID"])
+        article_info["experiments"] = ""
+        article_info["metadata"] = str({"meshHeadings": []})
+        article_info["reference"] = None
+        identity = ""
+        try:
+            article_info["experiments"] = {
+                "locations": eval(
+                    urllib.request.urlopen(
+                        "http://neurosynth.org/api/studies/peaks/" +
+                        str(pmid) +
+                        "/").read().decode())["data"]}
+            k = article_info["experiments"]["locations"]
+            for i in range(len(k)):
+                if len(k[i]) == 4:
+                    identity = k[0]
+                    k[i] = k[i][1:]
+                k[i] = ",".join([str(x) for x in (k[i])])
+        except BaseException:
+            pass
+        article_info["id"] = identity
+        article_info["experiments"] = [article_info["experiments"]]
+        Articles.insert(abstract=article_info["abstract"],
+                        authors=article_info["authors"],
+                        doi=article_info["DOI"],
+                        experiments=article_info["experiments"],
+                        pmid=article_info["PMID"],
+                        title=article_info["title"]).execute()
+        return True
+    return False
 
 
 def getDOI(lst):
@@ -225,10 +302,7 @@ def add_bulk(papers, limit=100):  # papers is the entire formatted data set
 def delete_row(pmid, exp, row):
     """ Delete a row of coordinates from an experiment. """
 
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
-    target = next(target)
+    target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[exp]
     locations = elem["locations"]
@@ -241,10 +315,7 @@ def delete_row(pmid, exp, row):
 def flag_table(pmid, exp):
     """ Flag a table as inaccurate. """
 
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
-    target = next(target)
+    target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
     if "flagged" in elem:
@@ -256,13 +327,23 @@ def flag_table(pmid, exp):
         Articles.pmid == pmid).execute()
 
 
+def edit_table_title_caption(pmid, exp, title, caption):
+    """ Edit the title and caption of a table. """
+
+    target = next(get_article_object(pmid))
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    elem["title"] = title
+    elem["caption"] = caption
+    Articles.update(
+        experiments=experiments).where(
+        Articles.pmid == pmid).execute()
+
+
 def split_table(pmid, exp, row):
     """ Split a coordinate table into two. """
 
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
-    target = next(target)
+    target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[exp]
     locations = elem["locations"]
@@ -282,16 +363,35 @@ def split_table(pmid, exp, row):
         Articles.pmid == pmid).execute()
 
 
-def add_coordinate(pmid, exp, coords):
-    """ Add a coordinate row to the end of a table. """
+def add_coordinate_row(pmid, exp, coords, row_number=-1):
+    """ Add a coordinate row to the end of a table.
 
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
-    target = next(target)
+    Take a list of three or four coordinates.
+    Take a row number. -1 will add to the end of the list. """
+
+    target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
-    elem["locations"].append(coords)
+    row_list = ",".join([str(c) for c in coords])
+    if row_number == -1:
+        elem["locations"].append(row_list)
+    else:
+        elem["locations"].insert(row_number, row_list)
+    Articles.update(
+        experiments=json_encode(experiments)).where(
+        Articles.pmid == pmid).execute()
+
+
+def update_coordinate_row(pmid, exp, coords, row_number):
+    """ Add a coordinate row to the end of a table.
+
+    Take a list of three or four coordinates. Take a row number. """
+
+    target = next(get_article_object(pmid))
+    experiments = eval(target.experiments)
+    elem = experiments[int(exp)]
+    row_list = ",".join([str(c) for c in coords])
+    elem["locations"][row_number] = row_list
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
@@ -300,10 +400,7 @@ def add_coordinate(pmid, exp, coords):
 def add_table_through_text_box(pmid, values):
     """ Add an experiment table using a CSV-formatted string. """
 
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
-    target = next(target)
+    target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     values = values.replace(" ", "").split("\n")
     secondTable = {"title": "", "caption": "", "locations": values,
@@ -312,33 +409,6 @@ def add_table_through_text_box(pmid, values):
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
-
-
-def update_z_scores(id, values):
-    """ Update the z-scores for an experiment table. """
-
-    target = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == id).execute()
-    target = next(target)
-    experiments = eval(target.experiments)
-    for key, value in values.items():
-        table, row = key.split(',')[0], key.split(',')[1]
-        table = eval(table)
-        row = eval(row)
-        target = 0
-        for i in range(len(experiments)):
-            if experiments[i].get('id') == table:
-                target = i
-                break
-        position = experiments[target]
-        location_set = position['locations'][row]
-        location_set = location_set + ',' + str(value)
-        experiments[target]['locations'][row] = location_set
-        query = Articles.update(
-            experiments=experiments).where(
-            Articles.pmid == id)
-        query.execute()
 
 
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
@@ -352,48 +422,15 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
 
     # get the table object
     table_obj = article_obj[table_num]
-    entry = -1
     if not table_obj.get(column):
         table_obj[column] = []
 
-    # get the index for the tag
-    for i in range(len(table_obj[column])):
-        # some entries might be malformed, so check if "tag" is in the dict
-        if "tag" in table_obj[column][i]:
-            if table_obj[column][i]["tag"] == tag_name:
-                entry = i
-                break
-    if entry == -1:  # if the tag hasn't been added yet, then add it
-        table_obj[column].append({
-            "tag": tag_name,
-        })
-        entry = len(table_obj[column]) - 1
-
-    # if no one has voted, then add voting structures
-    if "vote" not in table_obj[column][entry]:
-        table_obj[column][entry]["vote"] = {}
-        table_obj[column][entry]["vote"]["up"] = []
-        table_obj[column][entry]["vote"]["down"] = []
-
-    # toggle the vote
-    toggled = False
-    for v in range(len(table_obj[column][entry]["vote"][direction])):
-        if table_obj[column][entry]["vote"][direction][v]["username"] == username:
-            del table_obj[column][entry]["vote"][direction][v]
-            toggled = True
-
-    if not toggled:
-        table_obj[column][entry]["vote"][direction].append({
-            "username": username
-        })
-
-    # delete any votes in the opposite direction
-    otherDirectionLst = ["up", "down"]
-    otherDirection = otherDirectionLst[-1 *
-                                       otherDirectionLst.index(direction) + 1]
-    for v in range(len(table_obj[column][entry]["vote"][otherDirection])):
-        if table_obj[column][entry]["vote"][otherDirection][v]["username"] == username:
-            del table_obj[column][entry]["vote"][otherDirection][v]
+    update_vote_in_struct(
+        table_obj[column],
+        tag_name,
+        username,
+        direction,
+        "tag")
 
     article_obj[table_num] = table_obj
 

@@ -67,7 +67,6 @@ def formatted_search(query, start, param=None, experiments=False):
 
     columns, term, formatted_query = parse_helper(query)
     query = formatted_query
-    print(query)
     if columns:
         search = Articles.select(
             Articles.pmid,
@@ -100,13 +99,6 @@ def formatted_search(query, start, param=None, experiments=False):
         # doing this
         return Articles.select(
             *fields).where(match).limit(numberResults).offset(start).execute()
-
-
-def get_article_object(query):
-    """ Get a single article PeeWee object. """
-
-    search = Articles.select().where(Articles.pmid == query)
-    return search.execute()
 
 
 def generate_circle(coordinate):  # Coordinate of form "-26,54,14"

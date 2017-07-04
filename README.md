@@ -4,7 +4,9 @@
 
 Working on a new version on Brainspell.
 
-Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/.
+Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/. 
+
+To view a list of all JSON API endpoints, take a look at https://brainspell.herokuapp.com/json/list-endpoints. If you're unsure about the parameters for an endpoint, add `/help` to the end of the URL (e.g., the documentation for https://brainspell.herokuapp.com/json/split-table is available at https://brainspell.herokuapp.com/json/split-table/help).
 
 ## Running Brainspell
 
@@ -32,8 +34,8 @@ Brainspell should be running at `http://localhost:5000/`. The next time that you
 `json_api/brainspell.py` runs the Tornado main event loop.  
 Handlers go in one of three files:
 1. `json_api.py`, which contains JSON API endpoints that do not make GitHub API requests,
-2. `user_interface_handlers.py`, which contains all handlers that render Tornado HTML templates, or
-3. `github_collections.py`, which contains all API endpoints that communicate with GitHub.
+2. `user_interface.py`, which contains all handlers that render Tornado HTML templates, or
+3. `github_collections.py`, which contains all API endpoints and handlers that communicate with GitHub.
 
 Our naming convention is to use `[*]EndpointHandler` for API endpoint handlers, and `[*]Handler` for web interface handlers. 
  

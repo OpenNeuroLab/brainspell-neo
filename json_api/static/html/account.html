@@ -40,7 +40,7 @@
       <div class="row container-fluid">
   </div>
 
-  <div class="row container" id="collections-container">Loading... This might take a while.</div></div>  <!-- /.container -->
+  <div class="row container" id="collections-container"><p style="padding-top:20px;">Loading... This might take a while.</p></div></div>  <!-- /.container -->
 
 
       <div class="row container" style="padding-top:20px; padding-bottom:20px;">
@@ -198,7 +198,7 @@
       contents += block1 + block2 + "<div id='submitter' class='col-md-2'><br><input type='button' class='btn btn-default' id='significanceBtn' onclick='significance(this)' value='Significance test'></div>";
 
       contents += "</div>";
-      contents += "<p id='advanced'><a onclick='showAdvanced();'>Advanced Parameters</a></p>";
+      contents += "<p id='advanced' style='padding-top:10px;'><a onclick='showAdvanced();'>Advanced Parameters</a></p>";
       if (list.length == 0) {
         contents = "You have no collections."
       }
@@ -265,7 +265,7 @@
         // you only need the keys.
         console.log(significant_coordinates_dict);
         // generate brain widget
-        loadLocations(significant_coordinates_dict);
+        loadLocationsFromDict(significant_coordinates_dict);
         // TODO: let the user specify what the threshold and width should be
         // TODO: potentially display the p-values
         $(btn).removeAttr("disabled");

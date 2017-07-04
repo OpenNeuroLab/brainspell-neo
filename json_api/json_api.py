@@ -403,17 +403,8 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        def toggle(switch): return "up" if switch == "down" else "down"
         username = get_github_username_from_api_key(args["key"])
-        toggled = toggle_vote(
-            args["pmid"],
-            args["topic"],
-            username,
-            args["direction"])
-        if not toggled:
-            response["direction"] = args["direction"]
-        else:
-            response["direction"] = toggle(args["direction"])
+        toggle_vote(args["pmid"], args["topic"], username, args["direction"])
         return response
 
 # BEGIN: table API endpoints

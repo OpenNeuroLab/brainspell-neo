@@ -76,7 +76,6 @@ def update_vote_in_struct(struct, tag_name, username, direction, label_name):
     for v in range(len(struct[entry]["vote"][otherDirection])):
         if struct[entry]["vote"][otherDirection][v]["username"] == username:
             del struct[entry]["vote"][otherDirection][v]
-    return toggled
 
 
 def toggle_vote(pmid, topic, username, direction):
@@ -86,18 +85,16 @@ def toggle_vote(pmid, topic, username, direction):
 
     metadata = eval(fullArticle.metadata)
 
-    toggled = update_vote_in_struct(
+    update_vote_in_struct(
         metadata['meshHeadings'],
         topic,
         username,
         direction,
         "name")
 
-    query = Articles.update(
+    Articles.update(
         metadata=metadata).where(
-        Articles.pmid == pmid)
-    query.execute()
-    return toggled
+        Articles.pmid == pmid).execute()
 
 
 def vote_stereotaxic_space(pmid, space, username):
@@ -122,10 +119,9 @@ def vote_stereotaxic_space(pmid, space, username):
         "type": space
     })
 
-    query = Articles.update(
+    Articles.update(
         metadata=target).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()
 
 
 def vote_number_of_subjects(pmid, subjects, username):
@@ -150,26 +146,24 @@ def vote_number_of_subjects(pmid, subjects, username):
         "value": subjects
     })
 
-    query = Articles.update(
+    Articles.update(
         metadata=target).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()
 
 
-def add_user_tag(user_tag, id):
+def add_user_tag(user_tag, pmid):
     """ Add a custom user tag to the database. """
 
     main_target = next(
         Articles.select(
             Articles.metadata).where(
-            Articles.pmid == id).execute())
+            Articles.pmid == pmid).execute())
     target = eval(main_target.metadata)
     if target.get("user"):
         target["user"].append(user_tag)
     else:
         target["user"] = [user_tag]
-    query = Articles.update(metadata=target).where(Articles.pmid == id)
-    query.execute()
+    Articles.update(metadata=target).where(Articles.pmid == pmid).execute()
 
 
 def get_number_of_articles():
@@ -416,9 +410,7 @@ def add_table_through_text_box(pmid, values):
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     """ Update the vote on an experiment tag for a given user. """
 
-    article_obj = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
+    article_obj = get_article_object(pmid)
     article_obj = next(article_obj)
     article_obj = eval(article_obj.experiments)
 
@@ -436,7 +428,6 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
 
     article_obj[table_num] = table_obj
 
-    query = Articles.update(
+    Articles.update(
         experiments=article_obj).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()

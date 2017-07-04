@@ -6,9 +6,9 @@ import urllib.request
 import Bio
 from Bio import Entrez, Medline
 from Bio.Entrez import efetch, esearch, parse, read
+from torngithub import json_encode
 
 from models import *
-from torngithub import json_encode
 
 Entrez.email = "neel@berkeley.edu"
 

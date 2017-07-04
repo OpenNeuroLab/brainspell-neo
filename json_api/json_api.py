@@ -67,7 +67,6 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
         return statistics.significance_from_collections(
             pmids, other_pmids, width, threshold)
 
-    # TODO: once working, make asynchronous
     @tornado.gen.coroutine
     def process(self, response, args):
         user_collections = get_brainspell_collections_from_api_key(args["key"])

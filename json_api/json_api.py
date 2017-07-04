@@ -1,12 +1,14 @@
 # JSON API classes
 
+import statistics
+
+from tornado.concurrent import run_on_executor
+
 import brainspell
 from article_helpers import *
 from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
-import statistics
-from tornado.concurrent import run_on_executor
 
 
 class ListEndpointsEndpointHandler(BaseHandler):

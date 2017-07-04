@@ -1,10 +1,12 @@
-from article_helpers import get_all_articles, get_article_object
-from torngithub import json_decode
+""" A set of statistical functions for analyzing collections, papers, etc. """
+
 import collections
-import scipy.stats as st
 import operator
 
-""" A set of statistical functions for analyzing collections, papers, etc. """
+import scipy.stats as st
+from torngithub import json_decode
+
+from article_helpers import get_all_articles, get_article_object
 
 
 class Brain:
@@ -65,7 +67,7 @@ class Brain:
         return string_dict
 
     def insert_at_location(self, value, x, y, z, width=1):
-        """ Inserts "value" at the corresponding location of the brain grid.
+        """ Insert "value" at the corresponding location of the brain grid.
 
         Take a "width" parameter, which specifies the width of the cube of
         coordinates to affect. """
@@ -169,7 +171,7 @@ def get_boolean_map_from_article_object(article, width=5):
 
 
 def get_boolean_map_from_pmid(pmid, width=5):
-    """ Gets a boolean map of an article given a PMID. """
+    """ Get a boolean map of an article given a PMID. """
 
     return get_boolean_map_from_article_object(
         next(get_article_object(pmid)), width)

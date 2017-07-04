@@ -16,8 +16,8 @@ from tornado.concurrent import run_on_executor
 from tornado.httputil import url_concat
 from torngithub import json_decode, json_encode
 
-from base_handler import *
 from article_helpers import get_article_object
+from base_handler import *
 from user_account_helpers import *
 
 # BEGIN: read environment variables

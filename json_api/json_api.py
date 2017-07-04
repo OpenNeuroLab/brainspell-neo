@@ -6,6 +6,7 @@ from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
 import statistics
+from tornado.concurrent import run_on_executor
 
 
 class ListEndpointsEndpointHandler(BaseHandler):
@@ -59,7 +60,15 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
 
     collection_does_not_exist = "According to Brainspell's database, that user doesn't own a collection with the name {0}. Try syncing with GitHub if this isn't accurate. (/json/collections, set force_github_refresh to 1)"
 
+    asynchronous = True
+
+    @run_on_executor
+    def get_significance(self, pmids, other_pmids, width, threshold):
+        return statistics.significance_from_collections(
+            pmids, other_pmids, width, threshold)
+
     # TODO: once working, make asynchronous
+    @tornado.gen.coroutine
     def process(self, response, args):
         user_collections = get_brainspell_collections_from_api_key(args["key"])
         # ensure that collection exists
@@ -76,16 +85,14 @@ class CollectionSignificanceEndpointHandler(BaseHandler):
                     return response
             # at this point, we can assume that we have either one set of PMIDs
             # and None, or two sets of PMIDs
-            significance = statistics.significance_from_collections(
-                pmids, other_pmids, width=args["width"], threshold=args["threshold"])
-            response["significance_grid"] = significance
+            response["significance_grid"] = yield self.get_significance(pmids, other_pmids, width=args["width"], threshold=args["threshold"])
         else:
             # collection doesn't exist
             response["success"] = 0
             response["description"] = self.collection_does_not_exist.format(
                 args["collection_name"])
 
-        return response
+        self.finish_async(response)
 
 
 # BEGIN: search API endpoints

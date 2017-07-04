@@ -76,6 +76,7 @@ def update_vote_in_struct(struct, tag_name, username, direction, label_name):
     for v in range(len(struct[entry]["vote"][otherDirection])):
         if struct[entry]["vote"][otherDirection][v]["username"] == username:
             del struct[entry]["vote"][otherDirection][v]
+    return toggled
 
 
 def toggle_vote(pmid, topic, username, direction):
@@ -85,7 +86,7 @@ def toggle_vote(pmid, topic, username, direction):
 
     metadata = eval(fullArticle.metadata)
 
-    update_vote_in_struct(
+    toggled = update_vote_in_struct(
         metadata['meshHeadings'],
         topic,
         username,
@@ -96,6 +97,7 @@ def toggle_vote(pmid, topic, username, direction):
         metadata=metadata).where(
         Articles.pmid == pmid)
     query.execute()
+    return toggled
 
 
 def vote_stereotaxic_space(pmid, space, username):

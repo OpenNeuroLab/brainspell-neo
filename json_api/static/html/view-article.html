@@ -191,7 +191,7 @@
                                             "type": "button",
                                             "id": "agree",
                                             "class": "btn btn-default",
-                                            "onclick": `updateVote('${element}','up')`
+                                            "onclick": `updateVote('${element}','up',this)`
                                         }).text("Agree: " + agreements + userVotedAgree).attr("data-voted-agree", votedAgree);
                                     } else { // TODO: move this somewhere else; not clear that this is for table votes vs non-table
                                         return $("<a>", {
@@ -210,7 +210,7 @@
                                             "type": "button",
                                             "id": "disagree",
                                             "class": "btn btn-default",
-                                            "onclick": `updateVote('${element}','down')`
+                                            "onclick": `updateVote('${element}','down',this)`
                                         }).text("Disagree: " + disagree + userVotedDisagree).attr("data-voted-disagree", votedDisagree);
 
                                     } else {
@@ -939,7 +939,7 @@
             */
         }
         //Updates votes for MeshDescriptors as a whole
-        function updateVote(topic, direction) {
+        function updateVote(topic, direction,item) {
             $.ajax({
                 type: "GET",
                 url: "/json/toggle-user-vote?username={{github_username}}&pmid={{article_id}}&key={{api_key}}&direction=" + direction + "&topic=" + topic
@@ -947,7 +947,24 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                location.reload();
+                if (obj["success"] == 1) {
+                    var text = $('#' + item.id).text().replace("(including you)","");
+                    var vote = text.split(": ");
+                    var num = JSON.parse(vote[1]);
+                    if (obj["direction"] === "up" && item.id === "agree") {
+                        $('#' + item.id).text(vote[0] + ": " + (num + 1) + " (including you)")
+                    }
+                    else if (obj["direction"] === "down" && item.id === "agree") {
+                        $('#' + item.id).text(vote[0] + ": " + (num - 1))
+                    }
+                    else if (obj["direction"] === "down" && item.id === "disagree") {
+                        $('#' + item.id).text(vote[0] + ": " + (num + 1) + " (including you)")
+                    }
+                    else if (obj['direction'] === "up" && item.id === "disagree") {
+                       $('#' + item.id).text(vote[0] + ": " + (num - 1));
+                    }
+                }
+
             });
         }
 

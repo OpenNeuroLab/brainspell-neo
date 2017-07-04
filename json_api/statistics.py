@@ -124,10 +124,15 @@ class Brain:
         # find the greatest i : P(i) <= i * filtering_threshold
         # (this function actually finds the element right after that, and adds all elements before it)
         i = 0
+        found_maximum = False
         for j in range(len(sorted_brain_grid_tuples)):
-            if sorted_brain_grid_tuples[j][1] > j * filtering_threshold:
+            if sorted_brain_grid_tuples[j][1] > (j + 1) * filtering_threshold:
                 i = j
+                found_maximum = True
                 break
+
+        if not found_maximum:
+            i = len(sorted_brain_grid_tuples)
 
         self.init_brain_grid()  # add in only the results that are significant
         for k in range(i):
@@ -182,7 +187,7 @@ def significance_from_collections(
     brain = Brain()
 
     # get the binomial distribution sample for pmids
-    print("Generating cumulative Brain of the articles in this collection...")
+    # print("Generating cumulative Brain of the articles in this collection...")
     for pmid in pmids:
         # get the boolean repr of this PMID, then sum in the aggregate Brain
         brain_to_sum = get_boolean_map_from_pmid(pmid, width)
@@ -192,7 +197,7 @@ def significance_from_collections(
 
     if other_pmids is not None:
         # get the sample for other_pmids
-        print("Generating cumulative Brain of the articles in the other collection...")
+        # print("Generating cumulative Brain of the articles in the other collection...")
         for pmid in other_pmids:
             brain_to_sum = get_boolean_map_from_pmid(pmid, width)
             other_brain.sum(brain_to_sum)
@@ -201,7 +206,7 @@ def significance_from_collections(
         all_articles = get_all_articles()
         # TODO: can cache this value once we start using this feature, and instead "subtract" the
         # elements of the collection from (a clone of) the all_articles_brain
-        print("Generating cumulative Brain of all articles in the database, minus the collection...")
+        # print("Generating cumulative Brain of all articles in the database, minus the collection...")
         article_checker = set(pmids)
         for article in all_articles:
             if article.pmid not in article_checker:
@@ -209,13 +214,13 @@ def significance_from_collections(
                     article, width)
                 other_brain.sum(brain_to_sum)
 
-    print("Calculating significance...")
+    # print("Calculating significance...")
     # calculate significance for each location, brain to other brain
     brain.transform_to_z_scores(other_brain)
 
     # convert to p values
     brain.transform_to_p_values()
-    print("Filtering insignificant values...")
+    # print("Filtering insignificant values...")
     # filter for significant values, accounting for multiple comparisons with
     # Benjamini–Hochberg
     brain.benjamini_hochberg(threshold)

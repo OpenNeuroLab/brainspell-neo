@@ -101,11 +101,11 @@
     <script src='/static/js/subdivision-modifier.js'></script>
     <script src="/static/js/PLYLoader.js"></script>
     <script src="/static/js/trackball-controls.js"></script>
-    <script src="/static/js/collection-widgets.js"></script>
+    <script src="/static/js/search-widgets.js"></script>
 
     <script>
 
-    initSearch();
+    initSearch(1);
     document.getElementById("widgetsHolder").style.display = "none"; // hide the widgets initially; need to initially show in DOM for translucent to work
 
     function significance(btn) {
@@ -132,7 +132,7 @@
         // you only need the keys. 
         console.log(significant_coordinates_dict);
         // generate brain widget
-        loadLocations(significant_coordinates_dict);
+        loadLocationsFromDict(significant_coordinates_dict);
         // TODO: let the user specify what the threshold and width should be
         // TODO: potentially display the p-values
         $(btn).removeAttr("disabled");

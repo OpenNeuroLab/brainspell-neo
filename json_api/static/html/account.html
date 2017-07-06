@@ -228,7 +228,7 @@
               "collection_name": col1,
               "other_collection": col2,
               "width": w == "" || w === undefined ? 5 : JSON.parse(w),
-              "threshold": thresh == "" || thresh === undefined ? 10 : JSON.parse(thresh)
+              "threshold": thresh == "" || thresh === undefined ? .001 : parseFloat(thresh)
           }
       }).complete(function(o) {
         var significant_coordinates_dict = JSON.parse(o["responseText"])["significance_grid"];

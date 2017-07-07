@@ -6,6 +6,7 @@ GitHub API.
 
 import hashlib
 import os
+import re
 from base64 import b64encode
 
 import tornado

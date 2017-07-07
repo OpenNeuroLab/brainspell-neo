@@ -1,27 +1,14 @@
 Consider:
-- add-article-manual endpoint, which allows users to add articles that aren’t on PubMed. (potentially make PMID optional)
-- Make "add article" UI.
-- Maybe an endpoint to get the titles (or all of the information) for a set of PMIDs.
 - A validation for articles before they're sent to the bulk-add endpoint.
 - A cron job to automatically update DOIs.
 
-
-Github Functionality 
-- Check in search and random whether an article is already in a collection 
-- Store Collection names and articles associated in database 
-	- Use that to generate Widgets 
-- Integrate User pages 
-- Store collections in userId in the database 
-- Store the PMID’s in each collection as well. 
-- Integrate the two login systems 
-- Add notes in each Article in the collection 
+GitHub:
+- Potentially add notes in each article in the collection 
 - Paginate the collections page 
-- The bar should be a database request
+- The bar should be a database request (what does this mean?)
 
 Potentially reimplement:
 - Tables: reimplement using jQuery Datatables 
-
 - Brain Browser: a tool for visualization of translucent images that can take advantage of multi-core systems 
-
-- Continuous Activation Graphic:
+- Continuous Activation Graphic
 - Brainsprite: a tool that uses PNG files to show activation with depth 

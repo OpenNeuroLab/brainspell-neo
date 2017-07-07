@@ -30,10 +30,10 @@ class Brain:
         # better off using a hash map
         self.brain_grid = collections.defaultdict(lambda: 0)
 
-    def __init__(self):
+    def __init__(self, total_samples=1):
         self.init_brain_grid()
         # indicating the number of PMIDs that this brain represents
-        self.total_samples = 1
+        self.total_samples = total_samples
 
     def grid(self):
         """ Return a dict representation of the brain grid. """
@@ -186,7 +186,7 @@ def significance_from_collections(
     at each x, y, z coordinate, with the second collection acting as the
     null hypothesis. Default to entire dataset - pmids. """
 
-    brain = Brain()
+    brain = Brain(total_samples=0)
 
     # get the binomial distribution sample for pmids
     # print("Generating cumulative Brain of the articles in this collection...")
@@ -195,7 +195,7 @@ def significance_from_collections(
         brain_to_sum = get_boolean_map_from_pmid(pmid, width)
         brain.sum(brain_to_sum)
 
-    other_brain = Brain()
+    other_brain = Brain(total_samples=0)
 
     if other_pmids is not None:
         # get the sample for other_pmids

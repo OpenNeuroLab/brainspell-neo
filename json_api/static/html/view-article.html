@@ -129,11 +129,11 @@
         //Generates the popup widget when a vote element is clicked
       // TODO: might be worth making a class for popup, or potentially putting it in its own file
         function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
-            column = JSON.stringify(column);
-            var targets = JSON.parse(elements);
             var agreements = 0;
             var disagree = 0;
             var use_local = false;
+            column = JSON.stringify(column);
+            var targets = JSON.parse(elements);
             //If users changed something in the local interface indicate it here
 
             if (typeof(agr) === "string" && typeof(disagr) === "string"
@@ -150,6 +150,7 @@
                 if (disagr != -1) {
                     disagree = disagr
                 }
+
             }
             var userVotedAgree = ""; // TODO: clean all of this up
             var userVotedDisagree = "";
@@ -170,7 +171,7 @@
                         }
                         for (var i = 0; i < agreements; i++) {
                             if (votes["up"][i]["username"] == "{{github_username}}") {
-                                userVotedAgree = " (including you)"
+                                userVotedAgree = " (including you)";
                                 votedAgree = true;
                             }
                         }
@@ -1001,7 +1002,9 @@
                     }
                     var urlParams = new URLSearchParams(this.url);
                     var title = urlParams.get("topic");
-                    $("#" + title).attr("onclick", `popup(${title}, undefined, undefined, ${$("#agree").text()}, ${$("#disagree").text()})`)
+                    console.log(title);
+                    $(`[id='${title}']`).attr("onclick", "popup('" + JSON.stringify(title) + "'" + ',' + undefined + ',' + undefined + ',' + `'${$("#agree").text().replace("Agree: ","")}'` + ',' + `'${$("#disagree").text().replace("Disagree: ","")}'` + ")");
+{#                    attr("onclick", `popup( ${title}, undefined, undefined, ${$("#agree").text()}, ${$("#disagree").text()} )`)#}
                 }
             });
         }

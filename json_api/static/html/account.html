@@ -44,6 +44,7 @@
 
 
       <div class="row container" style="padding-top:20px; padding-bottom:20px;">
+            <div id="no-significance" style="color:red;padding-bottom:20px;display:none;">No significant results.</div>
             <button class="btn btn-default" id="widgetOption" style="display:none;" onclick="this.style.display = 'none'; $('#widgetsHolder').fadeIn();">Show widgets</button>
             <div id="widgetsHolder" style="margin-top:15px;">
               <!-- StereotaxicViewer -->
@@ -212,6 +213,7 @@
     }
     function significance(btn) {
       $(btn).attr("disabled", "disabled");
+      $("#no-significance").css("display", "none");
       var colNames = document.getElementsByName("collectionSelect");
       var col1 = colNames[0].value;
       var col2 = colNames[1].value;
@@ -237,7 +239,10 @@
         console.log(significant_coordinates_dict);
         // generate brain widget
         loadLocationsFromDict(significant_coordinates_dict);
-        // TODO: let the user specify what the threshold and width should be
+        if (Object.keys(significant_coordinates_dict).length === 0) {
+          // if there are no significant results, indicate this
+          $("#no-significance").css("display", "block");
+        }
         // TODO: potentially display the p-values
         $(btn).removeAttr("disabled");
       });

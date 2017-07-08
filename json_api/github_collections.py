@@ -6,6 +6,7 @@ GitHub API.
 
 import hashlib
 import os
+import re
 from base64 import b64encode
 
 import tornado
@@ -16,8 +17,8 @@ from tornado.concurrent import run_on_executor
 from tornado.httputil import url_concat
 from torngithub import json_decode, json_encode
 
+from article_helpers import get_article_object
 from base_handler import *
-from search_helpers import *
 from user_account_helpers import *
 
 # BEGIN: read environment variables
@@ -132,7 +133,7 @@ def get_user_repos(http_client, access_token):
         access_token=access_token) for i in range(2, max_pages + 1)]
 
     for repo in repos_list:
-        data.extend(res.body)
+        data.extend(repo.body)
 
     raise tornado.gen.Return(data)
 

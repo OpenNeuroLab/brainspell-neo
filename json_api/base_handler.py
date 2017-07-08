@@ -93,7 +93,8 @@ class BaseHandler(tornado.web.RequestHandler):
     the "asynchronous" boolean, decorating your "process" function with
     @tornado.gen.coroutine, and calling self.finish_async when your
     function finishes execution (MANDATORY). Then, any blocking code
-    should be decorated with @run_on_executor.
+    should be decorated with @run_on_executor. (Make sure that you import
+    run_on_executor with `from tornado.concurrent import run_on_executor`.)
 
     asynchronous :: True | False
 

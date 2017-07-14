@@ -13,3 +13,6 @@ scipy==0.19.1
 simplejson==3.10.0
 tornado==4.4.1
 torngithub==0.2.0
+statsmodels>=0.8.0
+ipython>=6.1
+nibabel>=2.1

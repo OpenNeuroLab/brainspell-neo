@@ -1,7 +1,7 @@
 """ A set of statistical functions for analyzing collections, papers, etc. """
 
 # import collections
-import operator
+# import operator
 
 import numpy as np
 import scipy.linalg as lin
@@ -84,11 +84,21 @@ class Brain:
         """
         return self.brain_grid
 
+    def coords(self):
+        """
+        returns the coordinates in the grid that are non zero and non nan
+        """
+
+        coords = np.where(np.logical_and(~np.isnan(self.brain_grid),
+                                         self.brain_grid > 0))
+        self.coords = list(zip(*coords))
+
     def insert_at_location(self, value, x, y, z):
         """ Insert "value" at the corresponding location of the brain grid.
 
         Take a "width" parameter, which specifies the width of the cube of
         coordinates to affect. """
+
         """
         half_width = (width - 1) // 2
 
@@ -181,7 +191,7 @@ class Brain:
 
     def transform_to_z_scores(self, other):
         """ Take another brain, and calculate the z-score of each coordinate in
-        this brain with respect to the other brain. """
+        this brain with respect to the other brain."""
         """
         for k in self.brain_grid:
             # z = (p1hat - p2hat) / sqrt(phat * (1 - phat) * (1 / n1 + 1 / n2))
@@ -199,34 +209,32 @@ class Brain:
         n1 = self.total_samples
         n2 = other.total_samples
 
-        p1hat = self.brain_grid.astype(float)
-        p1hat /= n1
-        p2hat = self.brain_grid.astype(float)
-        p2hat /= n2
+        p1hat = self.brain_grid.astype(float)/n1
+        p2hat = self.brain_grid.astype(float)/n2
 
         phat = (n1 * p1hat + n2 * p2hat) / (n1 + n2)
         denominator = (phat * (1 - phat) * (1 / n1 + 1 / n2))**(.5)
-        coord = np.where(denominator != 0)
-        values = (p1hat(coord) - p2hat(coord))/denominator(coord)
+        non_zero = denominator != 0
+        values = (p1hat(non_zero) - p2hat(non_zero))/denominator(non_zero)
         # put minus infinity for the z-score where it cannot be computed
         # so that p-value is 1 ? or nan ?
         self.brain_grid = np.nan
-        self.brain_grid[coord] = values
+        self.brain_grid[non_zero] = values
 
     def transform_to_p_values(self):
-        """ Tranform a Brain of z-scores to a Brain of p-values. """
-        # survivor function
-        # that survival function is a survivor
         """
+        z brain to p brain
         for k in self.brain_grid:
             self.brain_grid[k] = st.norm.sf(abs(self.brain_grid[k]))
         """
+
         # dont work on non a numeral values
         not_nan = ~np.isnan(self.brain_grid)
         self.brain_grid[not_nan] = st.norm.sf(self.brain_grid[not_nan])
 
     def benjamini_hochberg(self, threshold):
-        """ Use Benjamini–Hochberg to account for multiple comparisons. """
+        """
+        Use Benjamini–Hochberg to account for multiple comparisons.  """
         """
         filtering_threshold = threshold / self.total_samples
         # get the brain_grid sorted by p-value
@@ -252,18 +260,22 @@ class Brain:
             self.brain_grid[sorted_brain_grid_tuples[k]
                             [0]] = sorted_brain_grid_tuples[k][1]
         """
+
+        from statsmodels.sandbox.stats import multicomp as mc
+
         # extract p-value
         non_nan = ~np.isnan(self.brain_grid)
-        p_values = self.brain_grid(non_nan)
-        coords = np.where(non_nan)
-        p_values.sort()
-        N = len(p_values)
-        q = threshold
-        i = np.arange(1, N)
-        below = p_values < (q * i / N)
+        pvals = self.brain_grid(non_nan)
+        pvals_coo = np.where(non_nan)
 
+        # return signif a boolean array
+        signif, _, _, _ = mc.multipletests(pvals, method='fdr_bh')
+        x_ = pvals_coo[0][signif]
+        y_ = pvals_coo[1][signif]
+        z_ = pvals_coo[2][signif]
 
-        # find threshold
+        self.init_brain_grid()
+        self.brain_grid[x_, y_, z_] = 1
 
 
 def get_boolean_map_from_article_object(article, width=3):

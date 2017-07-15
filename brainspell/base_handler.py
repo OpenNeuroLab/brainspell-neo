@@ -160,7 +160,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     }
 
         if self.endpoint_type == Endpoint.PUSH_API or (
-                "key" in self.request.arguments):
+                "key" in arguments_dict):
             try:
                 args["key"] = str(accessor("key"))
             except BaseException:

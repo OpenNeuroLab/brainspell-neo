@@ -124,7 +124,7 @@ def test_procfile():
     with open("../Procfile", "r") as f:
         contents = f.read()
         filename = contents.replace(
-            "web: python3 json_api/",
+            "web: python3 brainspell/",
             "").replace(
             "\n",
             "")

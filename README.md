@@ -16,7 +16,7 @@ To run Brainspell locally:
 3) Make sure that you're using Python 3.5.
 4) Enter the repo with `cd brainspell-neo/`, and install the Python dependencies with `pip install -r requirements.txt`.
 
-Now you can run Brainspell with `python3 json_api/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
+Now you can run Brainspell with `python3 brainspell/brainspell.py`. Brainspell should be running at `http://localhost:5000`.
 
 Having difficulty getting Brainspell running? Install [Conda](https://conda.io/docs/get-started.html), and create an environment for Python 3.5.
 
@@ -31,7 +31,7 @@ Brainspell should be running at `http://localhost:5000/`. The next time that you
 
 ## Code Organization
 
-`json_api/brainspell.py` runs the Tornado main event loop.  
+`brainspell/brainspell.py` runs the Tornado main event loop.  
 Handlers go in one of three files:
 1. `json_api.py`, which contains JSON API endpoints that do not make GitHub API requests,
 2. `user_interface.py`, which contains all handlers that render Tornado HTML templates, or
@@ -39,15 +39,15 @@ Handlers go in one of three files:
 
 Our naming convention is to use `[*]EndpointHandler` for API endpoint handlers, and `[*]Handler` for web interface handlers. 
  
-`json_api/article_helpers.py` contains helper functions for adding articles to the database.  
-`json_api/base_handler.py` is our abstract handler, which provides various helper functions. All handlers should subclass `BaseHandler`.  
-`json_api/deploy.py` is a module for deploying to a remote server using Git.  
-`json_api/models.py` is for our ORM, PeeWee, which lets us treat our database like a Python object.   
-`json_api/search_helpers.py` contains helper functions for searching articles in the database.   
-`json_api/test_tornado.py` is our suite of continuous integration tests.  
-`json_api/user_account_helpers.py` contains helper functions for accessing and mutating user information.  
-`json_api/websockets.py` contains a WebSocket that allows developers to connect to the API using the WebSockets protocol.   
-`json_api/static/` contains the HTML, CSS, images, fonts, and Javascript code for the website.
+`brainspell/article_helpers.py` contains helper functions for adding articles to the database.  
+`brainspell/base_handler.py` is our abstract handler, which provides various helper functions. All handlers should subclass `BaseHandler`.  
+`brainspell/deploy.py` is a module for deploying to a remote server using Git.  
+`brainspell/models.py` is for our ORM, PeeWee, which lets us treat our database like a Python object.   
+`brainspell/search_helpers.py` contains helper functions for searching articles in the database.   
+`brainspell/test_tornado.py` is our suite of continuous integration tests.  
+`brainspell/user_account_helpers.py` contains helper functions for accessing and mutating user information.  
+`brainspell/websockets.py` contains a WebSocket that allows developers to connect to the API using the WebSockets protocol.   
+`brainspell/static/` contains the HTML, CSS, images, fonts, and Javascript code for the website.
 
 Our official Postgres database is hosted on AWS, but we have a static database available on Heroku. The full database is available in the `database_dumps` folder.
 

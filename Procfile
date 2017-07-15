@@ -1,1 +1,1 @@
-web: python3 json_api/brainspell.py
+web: python3 brainspell/brainspell.py

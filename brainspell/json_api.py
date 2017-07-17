@@ -404,7 +404,13 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         username = get_github_username_from_api_key(args["key"])
-        toggle_vote(args["pmid"], args["topic"], username, args["direction"])
+
+        toggle_vote(
+            args["pmid"],
+            args["topic"],
+            username,
+            args["direction"])
+
         return response
 
 # BEGIN: table API endpoints

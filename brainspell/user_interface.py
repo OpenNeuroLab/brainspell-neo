@@ -145,6 +145,8 @@ class SwaggerHandler(BaseHandler):
             "title": "Brainspell",
             "description": "An open, human-curated repository of neuroimaging literature, with various statistical features.",
             "version": "1.0.0"},
+        "host": "brainspell.herokuapp.com",
+        "schemes": ["https"],
         "basePath": "/json/",
         "paths": {}}
 
@@ -181,8 +183,8 @@ class SwaggerHandler(BaseHandler):
                     p, func.parameters[p]))
 
         operation = {
-            "operationId": name,
             "parameters": parameters_object,
+            "produces": ["application/json"],
             "responses": {
                 "default": {
                     "description": "The basic structure of a Brainspell response. Endpoint-specific JSON attributes not shown.",
@@ -193,7 +195,7 @@ class SwaggerHandler(BaseHandler):
                             "success": {
                                 "type": "integer"}}}}}}
 
-        swagger_info["paths"][name] = {
+        swagger_info["paths"]["/" + name] = {
             "get": operation,
             "post": operation
         }

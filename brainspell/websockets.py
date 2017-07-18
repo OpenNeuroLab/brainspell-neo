@@ -26,7 +26,8 @@ for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
 
 
 class EndpointWebSocket(tornado.websocket.WebSocketHandler):
-    """ Allow developers to access the JSON API via WebSockets. """
+    """ Allow developers to access the JSON API via WebSockets.
+    Only works for synchronous handlers. """
 
     def open(self):
         # setup

@@ -132,7 +132,7 @@ class RandomQueryEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleFromSearchPageEndpointHandler(BaseHandler):
+class AddArticleFromPmidEndpointHandler(BaseHandler):
     """ Add an article to our database via PMID (for use on the search page) """
     parameters = {
         "new_pmid": {
@@ -209,31 +209,6 @@ class BulkAddEndpointHandler(BaseHandler):
         except BaseException:
             response["success"] = 0
             response["description"] = "You must POST a file with the parameter name 'articlesFile' to this endpoint."
-        return response
-
-
-class AddArticleEndpointHandler(BaseHandler):
-    """
-    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
-    the article to our database.
-    """
-
-    parameters = {
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        article_obj = getArticleData(args["pmid"])
-        request = Articles.insert(abstract=article_obj["abstract"],
-                                  doi=article_obj["DOI"],
-                                  authors=article_obj["authors"],
-                                  experiments=article_obj["coordinates"],
-                                  title=article_obj["title"])
-        request.execute()
         return response
 
 

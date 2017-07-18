@@ -65,7 +65,8 @@ def test_abstraction_layer():
     for f in files_to_enforce:
         with open(f, "r") as python_file_handler:
             python_contents = python_file_handler.read()
-            assert ("from models import" not in python_contents) and ("import models" not in python_contents), "You should not access the models directly in your handler. The file " + \
+            assert ("from models import" not in python_contents) and ("import models" not in python_contents)  \
+                and (".execute()") not in python_contents, "You should not access the models directly in your handler. The file " + \
                 f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
             if f == "json_api.py" or f == "github_collections.py":
                 assert "self.render" not in python_contents, "The file " + f + \

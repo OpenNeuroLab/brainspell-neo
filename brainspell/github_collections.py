@@ -166,7 +166,7 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
         # need to use GitHub, because not storing "contributors_url" in
         # Brainspell's database
         data = yield get_user_repos(self.get_auth_http_client(),
-                                    self.get_current_github_access_token())
+                                    args["github_access_token"])
         repos = [d for d in data if d["name"].startswith(
             "brainspell-collection-")]
 
@@ -215,7 +215,7 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
                                                                        repo=repo_contents["name"],
                                                                        path=""
                                                                        ),
-                        access_token=self.get_current_github_access_token(),
+                        access_token=args["github_access_token"],
                         method="GET")
                     content = content_data["body"]
 

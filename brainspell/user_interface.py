@@ -162,13 +162,21 @@ class SwaggerHandler(BaseHandler):
             # default value of string
             return "string"
 
-        return {
+        parameter_obj = {
             "name": name,
             "in": "query",
-            "required": "default" in p,
+            "required": "default" not in p,
             "type": convert_type(p["type"]),
             "default": "" if "default" not in p else p["default"]
         }
+
+        if "default" in p:
+            parameter_obj["default"] = p["default"]
+
+        if "description" in p:
+            parameter_obj["description"] = p["description"]
+
+        return parameter_obj
 
     # add the paths to the swagger.json file
     for name, func in [(convert(f.replace("EndpointHandler", "")), eval("json_api." + f))
@@ -176,11 +184,21 @@ class SwaggerHandler(BaseHandler):
         + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
             for f in dir(github_collections) if "EndpointHandler" in f]:
 
+        # add parameters from each endpoint
         parameters_object = []
         for p in func.parameters:
             parameters_object.append(
                 parameter_object_to_swagger(
                     p, func.parameters[p]))
+
+        # API key isn't explicitly listed for PUSH API endpoints
+        if func.endpoint_type == Endpoint.PUSH_API:
+            parameters_object.append(
+                parameter_object_to_swagger(
+                    "key", {
+                        "type": str,
+                        "description": "The user's Brainspell API key."
+                    }))
 
         operation = {
             "parameters": parameters_object,

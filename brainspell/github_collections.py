@@ -6,7 +6,7 @@ GitHub API.
 
 import hashlib
 import os
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
 
 import tornado
 import tornado.gen
@@ -311,10 +311,13 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
     parameters = {
         "name": {
-            "type": str
+            "type": str,
+            "description": "The name of the new collection; this is the name that the user will see."
         },
         "description": {
-            "type": str
+            "type": str,
+            "default": "",
+            "description": "An optional description for this collection."
         },
         "github_access_token": {
             "type": str

@@ -315,7 +315,7 @@
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
 
-            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"];
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user_tags"];
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -389,17 +389,17 @@
             var user_terms = $("<div/>");
             user_terms.append($("<p>").css("color", "#c0c0c0").text("User descriptors: "));
             if (user != undefined) {
-                for (var i = 0; i < user.length; i++) {
-                    user_terms.append($("<button>").text(user[i]).attr("class", "dropbtn").attr("data-toggle", "modal"));
+                for (var u in user) {
+                    user_terms.append($("<button>").text(user[u]["tag_name"]).attr("class", "dropbtn").attr("data-toggle", "modal"));
                 }
             }
             {% if api_key != "" and api_key is not None %}
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
             {% end %}
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
-            var user_data = $("<form>").append(
+            var user_data = $("<div>").append(
                     $("<p>",{"value":"Add tag below"})).append(
-                $("<input>").attr("name", "values").attr("id", "user-tag-values")
+                $("<input>").attr("name", "tag_name").attr("id", "user-tag-values")
             ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{article_id}}")).append(
                 $("<div>").append($("<button>").attr("class", "btn btn-default").attr("onclick", "submitUserTagToArticle()").css("margin-top", "5px").text("Submit"))
             );
@@ -769,12 +769,13 @@
 
         function submitTextBoxExperimentsTable() {
             var tableContents = $("#experiments-table-input-form").val();
+            var pmid = "{{article_id}}";
             $.ajax({
                 type: "POST",
                 url: "/json/add-experiments-table-via-text",
                 data: {
-                    "values": values,
-                    "pmid": pmid,
+                    "values": tableContents,
+                    "pmid": "{{article_id}}",
                     "key": "{{api_key}}"
                 }
             }).complete(function(o) {
@@ -789,9 +790,9 @@
 
             $.ajax({
                 type: "POST",
-                url: "/json/add-user-table-to-article",
+                url: "/json/toggle-user-tag-on-article",
                 data: {
-                    "values": values,
+                    "tag_name": values,
                     "pmid": pmid,
                     "key": "{{api_key}}"
                 }
@@ -832,7 +833,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/json/delete-row?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row=" + r
+                    url: "/json/delete-row?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row_number=" + r
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -854,7 +855,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/json/split-table?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row=" + r
+                    url: "/json/split-table?pmid={{article_id}}&key={{api_key}}&experiment=" + element + "&row_number=" + r
                 }).complete(function(o) {
                     j = o.responseText;
                     console.log(j);
@@ -910,10 +911,9 @@
                 data: {
                     "tag_name": tagName,
                     "direction":direction,
-                    "table_num":tableNum,
+                    "experiment":tableNum,
                     "pmid": getID(),
                     "column":column,
-                    "username": "{{github_username}}",
                     "key": "{{api_key}}"
                 }
             }).complete(function(o) {

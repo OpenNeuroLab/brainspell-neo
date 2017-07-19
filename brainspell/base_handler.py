@@ -11,6 +11,12 @@ from torngithub import json_decode
 from user_account_helpers import *
 
 MAX_WORKERS = 16
+PMID_DESC = "The PMID of an article."
+GITHUB_ACCESS_TOKEN_DESC = "The user's GitHub API access token."
+EXPERIMENT_DESC = "The index of the experiment table to modify, zero-indexed."
+ROW_NUMBER_DESC = "The index of the row of coordinates to modify."
+API_KEY_DESC = "The user's Brainspell API key."
+DIRECTION_DESC = "The direction to vote in. Options are 'up' or 'down'."
 
 
 class Endpoint(Enum):
@@ -86,6 +92,9 @@ class BaseHandler(tornado.web.RequestHandler):
     which is the user's API key. This key will be automatically validated
     before the "process" function is called, and it will be included in
     the "args" dict.
+    * Note: If the "key" parameter is specified for a PULL_API endpoint, and
+    the key is invalid, then the invalid key will be replaced with the empty
+    string "". A PUSH_API endpoint will never be called with an invalid key.
 
     Asynchronous endpoints:
     If your endpoint is going to block the main thread for a reasonable
@@ -158,13 +167,6 @@ class BaseHandler(tornado.web.RequestHandler):
                         k
                     }
 
-        if self.endpoint_type == Endpoint.PUSH_API or (
-                "key" in self.request.arguments):
-            try:
-                args["key"] = str(accessor("key"))
-            except BaseException:
-                args["key"] = ""
-
         return {
             "success": 1,
             "args": args
@@ -200,10 +202,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 formatted_parameters[p]["type"] = type_name
                 if "description" in self.parameters[p]:
                     formatted_parameters[p]["description"] = self.parameters[p]["description"]
-            if self.endpoint_type == Endpoint.PUSH_API:
-                formatted_parameters["key"] = {}
-                formatted_parameters["key"]["required"] = True
-                formatted_parameters["key"]["type"] = str.__name__
             self.finish_async({
                 "success": 1,
                 "parameters": formatted_parameters
@@ -213,10 +211,15 @@ class BaseHandler(tornado.web.RequestHandler):
             argsDict = self.get_safe_arguments(
                 self.request.arguments, self.get_argument)
             if argsDict["success"] == 1:
-                # validate API key if push endpoint
+                # validate API key
+                if "key" in argsDict["args"] and not valid_api_key(
+                        argsDict["args"]["key"]):
+                    # an invalid API key gets replaced with ""
+                    argsDict["args"]["key"] = ""
+
+                # only allow PUSH API if valid API key
                 if self.endpoint_type == Endpoint.PULL_API or (
-                    self.endpoint_type == Endpoint.PUSH_API and valid_api_key(
-                        argsDict["args"]["key"])):
+                        self.endpoint_type == Endpoint.PUSH_API and argsDict["args"]["key"] != ""):
                     response = {"success": 1}
                     if not self.asynchronous:
                         response = self.process(response, argsDict["args"])
@@ -343,15 +346,41 @@ class BaseHandler(tornado.web.RequestHandler):
 class AbstractEndpoint(metaclass=ABCMeta):
     """ An abstract class to enforce the structure of API endpoints. """
 
+    NO_ENDPOINT_TYPE = "The class {0} does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
+    NO_PROCESS_FUNCTION = "The class {0} does not override the \"process\" function. Please reimplement the class to conform to this specification."
+    NO_PARAMETERS_SPECIFIED = "The class {0} does not specify its parameters. Please reimplement the class to conform to this specification."
+
     def register(subclass):
         """
         Enforce the API specification described in BaseHandler.
         Called by the "brainspell" module on all API endpoints.
         """
 
-        assert subclass.endpoint_type, "The class " + subclass.__name__ + \
-            " does not indicate what type of endpoint it is (using the endpoint_type variable). Please reimplement the class to conform to this specification."
-        assert subclass.process, "The class " + subclass.__name__ + \
-            " does not override the \"process\" function. Please reimplement the class to conform to this specification."
-        assert subclass.parameters is not None, "The class " + subclass.__name__ + \
-            " does not specify its parameters. Please reimplement the class to conform to this specification."
+        assert subclass.endpoint_type, self.NO_ENDPOINT_TYPE.format(
+            subclass.__name__)
+        assert subclass.process, self.NO_PROCESS_FUNCTION.format(
+            subclass.__name__)
+        assert subclass.parameters is not None, self.NO_PARAMETERS_SPECIFIED.format(
+            subclass.__name__)
+
+        for p in subclass.parameters:
+            # autofill the description for known fields, if not already
+            # specified
+            if "description" not in subclass.parameters[p]:
+                if p == "pmid":
+                    subclass.parameters[p]["description"] = PMID_DESC
+                elif p == "github_access_token":
+                    subclass.parameters[p]["description"] = GITHUB_ACCESS_TOKEN_DESC
+                elif p == "experiment":
+                    subclass.parameters[p]["description"] = EXPERIMENT_DESC
+                elif p == "row_number":
+                    subclass.parameters[p]["description"] = ROW_NUMBER_DESC
+                elif p == "direction":
+                    subclass.parameters[p]["description"] = DIRECTION_DESC
+
+        # IMPORTANT: forces PUSH API endpoints to require an API key
+        if subclass.endpoint_type == Endpoint.PUSH_API:
+            subclass.parameters["key"] = {
+                "type": str,
+                "description": API_KEY_DESC
+            }

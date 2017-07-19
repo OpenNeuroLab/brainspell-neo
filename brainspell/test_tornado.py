@@ -58,6 +58,10 @@ def test_abstraction_layer():
     module.
     """
 
+    DAO_VIOLATION = "You should not access the models directly in your handler. The file {0} should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
+    UI_IN_WRONG_FILE = "The file {0} appears to render an HTML template. Please move this to the 'user_interface' module."
+    WRONG_RENDER_FUNCTION = "The file {0} appears to be calling the self.render function. Please use self.render_with_user_info instead."
+
     files_to_enforce = [
         "json_api.py",
         "user_interface.py",
@@ -65,21 +69,25 @@ def test_abstraction_layer():
     for f in files_to_enforce:
         with open(f, "r") as python_file_handler:
             python_contents = python_file_handler.read()
-            assert ("from models import" not in python_contents) and ("import models" not in python_contents), "You should not access the models directly in your handler. The file " + \
-                f + " should be rewritten to no longer import models, and instead use a layer of abstraction (so that we can reimplement our data access layer if needed)."
+            # checks for ORM use in the wrong files
+            assert ("from models import" not in python_contents) and ("import models" not in python_contents)  \
+                and (".execute()") not in python_contents, DAO_VIOLATION.format(f)
+            # checks that UI classes are in the correct file
             if f == "json_api.py" or f == "github_collections.py":
-                assert "self.render" not in python_contents, "The file " + f + \
-                    " appears to render an HTML template. Please move this to the 'user_interface' module."
-            else:  # assert that self.render_with_user_info is being used
-                assert "self.render(" not in python_contents, "The file " + f + \
-                    " appears to be calling the self.render function. Please use self.render_with_user_info instead."
+                assert "self.render" not in python_contents, UI_IN_WRONG_FILE.format(
+                    f)
+            # assert that self.render_with_user_info is being used
+            else:
+                assert "self.render(" not in python_contents, WRONG_RENDER_FUNCTION.format(
+                    f)
 
 
 def test_endpoint_handlers_are_in_the_correct_file():
     """ Test that there are no EndpointHandlers in the user_interface file. """
+    ENDPOINT_IN_WRONG_FILE = "There is an EndpointHandler in the user_interface file. Please move this to json_api or github_collections."
 
     assert len([f for f in dir(user_interface) if "EndpointHandler" in f]
-               ) == 0, "There is an EndpointHandler in the user_interface file. Please move this to json_api or github_collections."
+               ) == 0, ENDPOINT_IN_WRONG_FILE
 
 
 def test_requirements_file_is_sorted():
@@ -87,14 +95,17 @@ def test_requirements_file_is_sorted():
     Test whether requirements.txt is alphabetized (important to identify
     missing/redundant requirements)
     """
+    UNSORTED_REQUIREMENTS_FILE = "The requirements.txt file is not sorted."
 
     with open('../requirements.txt') as f:
         lines = f.readlines()
-    assert sorted(lines) == lines, "The requirements.txt file is not sorted."
+    assert sorted(lines) == lines, UNSORTED_REQUIREMENTS_FILE
 
 
 def test_python_style_check():
     """ Test for PEP8 style """
+
+    STYLE_CHECK_FAILED = "Style check failed on {0}. Run `autopep8 --in-place --aggressive --aggressive {0}`, or `autopep8 --in-place --aggressive --aggressive *.py`"
 
     files_in_directory = os.listdir()
     for f in files_in_directory:
@@ -108,27 +119,31 @@ def test_python_style_check():
                             'aggressive': 2}).encode()).hexdigest()
                 original_hash = hashlib.md5(
                     python_contents.encode()).hexdigest()
-                assert styled_hash == original_hash, "Style check failed on " + f + \
-                    ". Run `autopep8 --in-place --aggressive --aggressive " + f + "`, or `autopep8 --in-place --aggressive --aggressive *.py`"
+                assert styled_hash == original_hash, STYLE_CHECK_FAILED.format(
+                    f)
 
 
 def test_search():
     """ Test that search results appear for a common search target """
 
-    assert len(formatted_search("brain", 0)) > 0
+    SEARCH_BROKEN = "A search for 'brain' is returning nothing."
+
+    assert len(formatted_search("brain", 0)) > 0, SEARCH_BROKEN
 
 
 def test_procfile():
     """ Assert that the Procfile points to a valid Python script. """
 
+    PROCFILE_NOT_VALID = "The Procfile is referring to a file that doesn't exist."
+
     with open("../Procfile", "r") as f:
         contents = f.read()
         filename = contents.replace(
-            "web: python3 json_api/",
+            "web: python3 brainspell/",
             "").replace(
             "\n",
             "")
-        assert filename in os.listdir()
+        assert filename in os.listdir(), PROCFILE_NOT_VALID
 
 
 """ TODO: get selenium testing working

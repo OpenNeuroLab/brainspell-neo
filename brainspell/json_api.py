@@ -6,6 +6,9 @@ from base_handler import *
 from search_helpers import *
 from user_account_helpers import *
 
+REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
+START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
+
 
 class ListEndpointsEndpointHandler(BaseHandler):
     """ Return a list of all JSON API endpoints.
@@ -24,21 +27,23 @@ class ListEndpointsEndpointHandler(BaseHandler):
 
 # BEGIN: search API endpoints
 
-
 class QueryEndpointHandler(BaseHandler):
     """ Endpoint to handle search queries. Return 10 results at a time. """
     parameters = {
         "q": {
             "type": str,
-            "default": ""
+            "default": "",
+            "description": "The query to search for."
         },
         "start": {
             "type": int,
-            "default": 0
+            "default": 0,
+            "description": START_DESC
         },
         "req": {
             "type": str,
-            "default": "t"
+            "default": "t",
+            "description": REQ_DESC
         }
     }
 
@@ -78,15 +83,18 @@ class CoordinatesEndpointHandler(BaseHandler):
     parameters = {
         "q": {
             "type": str,
-            "default": ""
+            "default": "",
+            "description": "The search query to return the coordinates for."
         },
         "start": {
             "type": int,
-            "default": 0
+            "default": 0,
+            "description": START_DESC
         },
         "req": {
             "type": str,
-            "default": "t"
+            "default": "t",
+            "description": REQ_DESC
         }
     }
 
@@ -132,11 +140,12 @@ class RandomQueryEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleFromSearchPageEndpointHandler(BaseHandler):
+class AddArticleFromPmidEndpointHandler(BaseHandler):
     """ Add an article to our database via PMID (for use on the search page) """
     parameters = {
         "new_pmid": {
-            "type": str
+            "type": str,
+            "description": PMID_DESC
         }
     }
 
@@ -212,31 +221,6 @@ class BulkAddEndpointHandler(BaseHandler):
         return response
 
 
-class AddArticleEndpointHandler(BaseHandler):
-    """
-    Fetch PubMed and Neurosynth data using a user-specified PMID, and add
-    the article to our database.
-    """
-
-    parameters = {
-        "pmid": {
-            "type": str
-        }
-    }
-
-    endpoint_type = Endpoint.PUSH_API
-
-    def process(self, response, args):
-        article_obj = getArticleData(args["pmid"])
-        request = Articles.insert(abstract=article_obj["abstract"],
-                                  doi=article_obj["DOI"],
-                                  authors=article_obj["authors"],
-                                  experiments=article_obj["coordinates"],
-                                  title=article_obj["title"])
-        request.execute()
-        return response
-
-
 class SetArticleAuthorsEndpointHandler(BaseHandler):
     """ Edit the authors of an article. """
 
@@ -245,7 +229,8 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
             "type": str
         },
         "authors": {
-            "type": str
+            "type": str,
+            "description": "The string to set as the 'authors' for this article."
         }
     }
 
@@ -293,7 +278,8 @@ class NumberOfSubjectsVoteEndpointHandler(BaseHandler):
             "type": str
         },
         "subjects": {
-            "type": int
+            "type": int,
+            "description": "The number of subjects that should be set for this article."
         }
     }
 
@@ -316,7 +302,8 @@ class AddExperimentsTableViaTextEndpointHandler(BaseHandler):
 
     parameters = {
         "values": {
-            "type": str
+            "type": str,
+            "description": "Takes a CSV formatted string of coordinates; i.e., x, y, z separated by commas, and each coordinate separated by a newline."
         },
         "pmid": {
             "type": str
@@ -334,13 +321,15 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
     """ Endpoint for a user to vote on an article tag. """
     parameters = {
         "topic": {
-            "type": str
+            "type": str,
+            "description": "The name of the tag to place a vote for."
         },
         "pmid": {
             "type": str
         },
         "direction": {
-            "type": str
+            "type": str,
+            "description": "The direction that the user clicked in. Will toggle; i.e., if the user votes up on an article they've already upvoted, then it will clear the vote."
         }
     }
 
@@ -354,24 +343,26 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 # BEGIN: table API endpoints
 
 
-class AddUserTagToArticleEndpointHandler(BaseHandler):
-    """ Add a user tag to our database, for use in tagging articles. """
+class ToggleUserTagOnArticleEndpointHandler(BaseHandler):
+    """ Toggle a user tag on an article in our database. """
 
     parameters = {
         "pmid": {
             "type": str
         },
-        "values": {
-            "type": str
+        "tag_name": {
+            "type": str,
+            "description": "The name of the tag to add."
         }
     }
 
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        pmid = self.get_argument("pmid")
-        user_tag = self.get_argument("values")
-        add_user_tag(user_tag, pmid)
+        pmid = args["pmid"]
+        user_tag = args["tag_name"]
+        username = get_github_username_from_api_key(args["key"])
+        toggle_user_tag(user_tag, pmid, username)
         return response
 
 
@@ -385,30 +376,34 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
         "direction": {
             "type": str
         },
-        "table_num": {
+        "experiment": {
             "type": int
         },
         "pmid": {
             "type": str
         },
         "column": {
-            "type": str
-        },
-        "username": {
-            "type": str
+            "type": str,
+            "description": "The column to place the vote under. Options are 'T' for tasks, 'B' for behavioral, and 'C' for cognitive."
         }
     }
 
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        update_table_vote(
-            args["tag_name"],
-            args["direction"],
-            args["table_num"],
-            args["pmid"],
-            args["column"],
-            args["username"])
+        username = get_github_username_from_api_key(args["key"])
+        c = args["column"]
+        if c != "T" and c != "B" and c != "C":
+            response["success"] = 0
+            response["description"] = "That is not a valid option for the column parameter."
+        else:
+            update_table_vote(
+                args["tag_name"],
+                args["direction"],
+                args["table_num"],
+                args["pmid"],
+                c,
+                username)
         return response
 
 
@@ -432,7 +427,7 @@ class FlagTableEndpointHandler(BaseHandler):
 
 
 class EditTableTitleCaptionEndpointHandler(BaseHandler):
-    """ Flag a table as inaccurate. """
+    """ Edit the title and caption for an experiment table. """
 
     parameters = {
         "pmid": {
@@ -471,7 +466,7 @@ class DeleteRowEndpointHandler(BaseHandler):
         "experiment": {
             "type": int
         },
-        "row": {
+        "row_number": {
             "type": int
         }
     }
@@ -496,7 +491,7 @@ class SplitTableEndpointHandler(BaseHandler):
         "experiment": {
             "type": int
         },
-        "row": {
+        "row_number": {
             "type": int
         }
     }
@@ -523,8 +518,7 @@ class UpdateRowEndpointHandler(BaseHandler):
             "description": "Takes a JSON array of three or four coordinates. (The fourth is z-effective.)"
         },
         "row_number": {
-            "type": int,
-            "description": "The index of the row that these coordinates will replace."
+            "type": int
         }
     }
 

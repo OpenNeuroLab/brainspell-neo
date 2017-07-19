@@ -26,7 +26,7 @@ assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs
 
 settings = {
     "cookie_secret": public_key,
-    "login_url": "/oauth",
+    "login_url": "/" + github_collections.GithubLoginHandler.route,
     "compress_response": True
 }
 
@@ -54,14 +54,17 @@ def getJSONEndpoints():
 
 def getUserInterfaceHandlers():
     """ Parse the UI handlers and create routes. Assert that the route is specified. """
+
+    NO_ROUTE_SPECIFIED = "The class {0} did not specify its route."
+
     handlers = []
     for func in [eval("user_interface." + f) for f in dir(user_interface)
                  if "Handler" in f and "EndpointHandler" not in f] \
         + [eval("github_collections." + f) for f in dir(github_collections)
             if "Handler" in f and "EndpointHandler" not in f]:
         if func is not base_handler.BaseHandler:
-            assert func.route is not None, "The class " + \
-                func.__name__ + " did not specify its route."
+            assert func.route is not None, NO_ROUTE_SPECIFIED.format(
+                func.__name__)
             handlers.append(("/" + func.route, func))
     return handlers
 
@@ -106,5 +109,5 @@ if __name__ == "__main__":
     port_to_run = get_port_to_run()
 
     http_server.listen(port_to_run)  # runs at localhost:5000 by default
-    print("Running Brainspell at http://localhost:" + str(port_to_run) + "...")
+    print("Running Brainspell at http://localhost:{0}...".format(port_to_run))
     tornado.ioloop.IOLoop.current().start()

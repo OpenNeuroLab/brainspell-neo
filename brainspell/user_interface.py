@@ -147,8 +147,7 @@ class SwaggerHandler(BaseHandler):
             "version": "1.0.0"},
         "host": "brainspell.herokuapp.com",
         "schemes": ["https"],
-        "basePath": "/json/",
-        "paths": {}}
+        "basePath": "/json/"}
 
     def parameter_object_to_swagger(name, p):
         """ Convert Brainspell parameters objects to Swagger. """
@@ -178,45 +177,41 @@ class SwaggerHandler(BaseHandler):
 
         return parameter_obj
 
-    # add the paths to the swagger.json file
-    for name, func in [(convert(f.replace("EndpointHandler", "")), eval("json_api." + f))
-                       for f in dir(json_api) if "EndpointHandler" in f] \
-        + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
-            for f in dir(github_collections) if "EndpointHandler" in f]:
-
-        # add parameters from each endpoint
-        parameters_object = []
-        for p in func.parameters:
-            parameters_object.append(
-                parameter_object_to_swagger(
-                    p, func.parameters[p]))
-
-        # API key isn't explicitly listed for PUSH API endpoints
-        if func.endpoint_type == Endpoint.PUSH_API:
-            parameters_object.append(
-                parameter_object_to_swagger(
-                    "key", {
-                        "type": str,
-                        "description": "The user's Brainspell API key."
-                    }))
-
-        operation = {
-            "parameters": parameters_object,
-            "produces": ["application/json"],
-            "responses": {
-                "default": {
-                    "description": "The basic structure of a Brainspell response. Endpoint-specific JSON attributes not shown.",
-                    "schema": {
-                        "type": "object",
-                        "required": ["success"],
-                        "properties": {
-                            "success": {
-                                "type": "integer"}}}}}}
-
-        swagger_info["paths"]["/" + name] = {
-            "get": operation,
-            "post": operation
-        }
-
     def get(self):
+        """ Add the paths to the swagger.json file, if they're not already added. """
+
+        if "paths" not in self.swagger_info:
+            self.swagger_info["paths"] = {}
+            for name, func in [(convert(f.replace("EndpointHandler", "")), eval("json_api." + f))
+                               for f in dir(json_api) if "EndpointHandler" in f] \
+                + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
+                    for f in dir(github_collections) if "EndpointHandler" in f]:
+
+                # add parameters from each endpoint
+                parameters_object = []
+                for p in func.parameters:
+                    parameters_object.append(
+                        SwaggerHandler.parameter_object_to_swagger(
+                            p, func.parameters[p]))
+
+                operation = {
+                    "parameters": parameters_object,
+                    "summary": func.__doc__.strip(' \t\n\r'),
+                    "produces": ["application/json"],
+                    "responses": {
+                        "default": {
+                            "description": "The basic structure of a Brainspell response. Endpoint-specific JSON attributes not shown.",
+                            "schema": {
+                                "type": "object",
+                                "required": ["success"],
+                                "properties": {
+                                    "success": {
+                                        "type": "integer"}}}}}}
+
+                self.swagger_info["paths"]["/" + name] = {
+                    "get": operation,
+                    "post": operation
+                }
+
+        self.set_header('Content-Type', 'application/json')
         self.finish_async(self.swagger_info)

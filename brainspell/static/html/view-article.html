@@ -315,7 +315,7 @@
                 metadata = JSON.parse(obj["metadata"].replace(/'/g, '"'))["meshHeadings"];
             }
 
-            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user"];
+            var user = JSON.parse(obj["metadata"].replace(/'/g, '"'))["user_tags"];
             $("#articleContents").html("");
             $("#articleContents").append($("<h2>").text(obj["title"].replace(/\\"/g, '"').replace(/\\'/g, "'")));
             $("#articleContents").append($("<p>").css("color", "#c0c0c0").text(obj["authors"].split(",").join(", ").replace(/\\"/g, '"').replace(/\\'/g, "'")));
@@ -397,9 +397,9 @@
             user_terms.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn", "id":"Addition"}).text("Add descriptor").attr("onclick","$('#userInput').fadeIn()").css("font-weight","bold"));
             {% end %}
             var user_input = $("<div>").css("display", "none").attr("id", "userInput").css("padding-bottom", "20px");
-            var user_data = $("<form>").append(
+            var user_data = $("<div>").append(
                     $("<p>",{"value":"Add tag below"})).append(
-                $("<input>").attr("name", "values").attr("id", "user-tag-values")
+                $("<input>").attr("name", "tag_name").attr("id", "user-tag-values")
             ).append($("<input>").attr("type", "hidden").attr("id","id").attr("name", "pmid").attr("value", "{{article_id}}")).append(
                 $("<div>").append($("<button>").attr("class", "btn btn-default").attr("onclick", "submitUserTagToArticle()").css("margin-top", "5px").text("Submit"))
             );

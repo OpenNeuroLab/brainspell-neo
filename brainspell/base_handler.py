@@ -219,7 +219,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
                 # only allow PUSH API if valid API key
                 if self.endpoint_type == Endpoint.PULL_API or (
-                        self.endpoint_type == Endpoint.PUSH_API and argsDict["key"] != ""):
+                        self.endpoint_type == Endpoint.PUSH_API and argsDict["args"]["key"] != ""):
                     response = {"success": 1}
                     if not self.asynchronous:
                         response = self.process(response, argsDict["args"])

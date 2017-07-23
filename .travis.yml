@@ -14,7 +14,7 @@ script: cd json_api && pytest
 script: cd brainspell && pytest
 
 before_script:
-  - python3 brainspell/brainspell.py
+  - python3 brainspell/brainspell.py &
   - sleep 2
 
 addons:

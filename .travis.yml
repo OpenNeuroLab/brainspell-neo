@@ -14,6 +14,7 @@ script: cd json_api && pytest
 script: cd brainspell && pytest
 
 before_script:
+  - curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
   - export SAUCE_USERNAME=$SAUCE_USERNAME
   - export SAUCE_ACCESS_KEY=$SAUCE_ACCESS_KEY
   - python3 brainspell/brainspell.py &

@@ -14,6 +14,8 @@ script: cd json_api && pytest
 script: cd brainspell && pytest
 
 before_script:
+  - export SAUCE_USERNAME=$SAUCE_USERNAME
+  - export SAUCE_ACCESS_KEY=$SAUCE_ACCESS_KEY
   - python3 brainspell/brainspell.py &
   - sleep 2
 

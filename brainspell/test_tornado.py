@@ -149,13 +149,13 @@ def test_procfile():
 
 
 def test_existence():  # Using selenium testing to verify existence of site elements
-    # driver.get("https://brainspell.herokuapp.com")
-    driver.get("localhost:5000")
+    driver.get("https://brainspell.herokuapp.com")
+    #driver.get("localhost:5000")
     driver.implicitly_wait(0.5)
     assert "Brainspell" in driver.title  # Checks website was correctly received
 
     # Ensuring elements of view article page are all present
-    driver.get("localhost:5000/view-article?id=00000000")
+    driver.get("https://brainspell.herokuapp.com/view-article?id=00000000")
     WebDriverWait(
         driver, 3).until(
         expected_conditions.presence_of_element_located(
@@ -176,7 +176,7 @@ def test_existence():  # Using selenium testing to verify existence of site elem
     driver.find_element_by_id("closer").click()
 
     # Evaluate search page
-    driver.get("localhost:5000/search?q=brain&req=t")
+    driver.get("https://brainspell.herokuapp.com/search?q=brain&req=t")
     show_widgets = WebDriverWait(driver, 10).until(
         expected_conditions.element_to_be_clickable((By.ID, "widgetOption"))
     )

@@ -20,25 +20,26 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
 
-
 application = brainspell.make_app()
 
 
 """Configuring SauceLabs for Selenium Testing """
-capabilities = {}
-username = os.environ["SAUCE_USERNAME"]
-access_key = os.environ["SAUCE_ACCESS_KEY"]
-capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
-hub_url = "%s:%s@localhost:4445" % (username, access_key)
-capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
-capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
-capabilities["browserName"] = "firefox"
-driver = webdriver.Remote(
-    desired_capabilities=capabilities,
-    command_executor="http://%s/wd/hub" %
-    hub_url)
 
-
+if os.environ.get("TRAVIS_JOB_NUMBER"):
+    capabilities = {}
+    username = os.environ["SAUCE_USERNAME"]
+    access_key = os.environ["SAUCE_ACCESS_KEY"]
+    capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
+    hub_url = "%s:%s@localhost:4445" % (username, access_key)
+    capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
+    capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
+    capabilities["browserName"] = "firefox"
+    driver = webdriver.Remote(
+        desired_capabilities=capabilities,
+        command_executor="http://%s/wd/hub" %
+        hub_url)
+else:
+    driver = webdriver.Chrome()
 
 
 """
@@ -134,60 +135,45 @@ def test_procfile():
         assert filename in os.listdir()
 
 
-
-def test_existence(): #Using selenium testing to verify existence of site elements
+def test_existence():  # Using selenium testing to verify existence of site elements
     driver.get("https://brainspell.herokuapp.com")
-    driver.implicitly_wait(3)
-    assert "Brainspell" in driver.title #Checks website was correctly received
+    # driver.get("/")
+    driver.implicitly_wait(0.5)
+    assert "Brainspell" in driver.title  # Checks website was correctly received
 
-    #Ensuring elements of view article page are all present
+    # Ensuring elements of view article page are all present
     driver.get("https://brainspell.herokuapp.com/view-article?id=00000000")
-    WebDriverWait(driver,3).until(
-        expected_conditions.presence_of_element_located((By.CLASS_NAME,"dropbtn"))
-    )
+    WebDriverWait(
+        driver, 3).until(
+        expected_conditions.presence_of_element_located(
+            (By.CLASS_NAME, "dropbtn")))
     meshButtons = driver.find_elements_by_class_name("dropbtn")
 
-    assert meshButtons != None #Ensure Mesh terms are included
+    assert meshButtons, "Voting Buttons not included"
     table = driver.find_elements_by_class_name("experiment-table-row")
-    assert table != None
+    assert table, "Experiments Table not Generated"
 
-    #Examine Modal window that appears
     buttons = driver.find_elements_by_class_name("dropbtn")
     buttons[0].click()
-    WebDriverWait(driver,3).until(
-        expected_conditions.presence_of_element_located((By.CLASS_NAME,"modal-body"))
-    )
+    WebDriverWait(
+        driver, 3).until(
+        expected_conditions.presence_of_element_located(
+            (By.CLASS_NAME, "modal-body")))
     assert "modal-body" in driver.page_source
     driver.find_element_by_id("closer").click()
 
-
-    #Evaluate search page
+    # Evaluate search page
     driver.get("https://brainspell.herokuapp.com/search?q=brain&req=t")
-    show_widgets = WebDriverWait(driver,10).until(
-        expected_conditions.element_to_be_clickable((By.ID,"widgetOption"))
+    show_widgets = WebDriverWait(driver, 10).until(
+        expected_conditions.element_to_be_clickable((By.ID, "widgetOption"))
     )
     show_widgets.click()
     assert show_widgets.value_of_css_property("display") == "none"
 
-    #Evaluate whether 10 results are properly returned
+    # Evaluate whether 10 results are properly returned
     link = driver.find_elements_by_css_selector('[href^=view-article]')
-    assert len(link) == 10, "10 Search Results were not Found!"
-
-
-
-    return "All test cases Passed"
-
-
-
-    #Test search page TODO: Only works when user logged in
-    # driver.get("https://brainspell.herokuapp.com/search?q=brain&req=t")
-    # items = driver.find_elements_by_class_name("must-login")
-    # assert len(items) > 9
-
-    #Make sure showing the widget doesn't break regardless of article
-    #TODO: Find a way to wait until the page is ready
-    # driver.find_element_by_id("widgetOption").click()
-
+    assert len(link) == 10, "10 search results were not found!"
+    print("All cases passed")
 
 
 @pytest.fixture

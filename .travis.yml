@@ -10,9 +10,12 @@ env:
 
 script: cd json_api && pytest
 
-script: python3 brainspell/brainspell.py
 
 script: cd brainspell && pytest
+
+before_script:
+  - python3 brainspell/brainspell.py
+  - sleep 2
 
 addons:
   sauce_connect:

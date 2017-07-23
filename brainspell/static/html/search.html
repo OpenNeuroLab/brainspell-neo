@@ -97,10 +97,6 @@
             <input id="new_pmid" name="new_pmid" placeholder="Enter article PMID">
             <button onclick="validatePMID()">Submit</button>
         </div>
-        <!--
-        <form method="post" action="/add-article">
-        </form>
-        -->
     </div>
     <div class="container" style="padding-bottom:30px;" id="navButtons">
         <div class="btn-group" role="group">
@@ -171,7 +167,7 @@
                 // TODO: make an add-article UI
                $.ajax({
                 type: "POST",
-                url: "/json/add-article",
+                url: "/json/add-article-from-pmid",
                 data: {
                     "pmid": name,
                     "key": "{{api_key}}"

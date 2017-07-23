@@ -6,7 +6,7 @@ Working on a new version on Brainspell.
 
 Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/. 
 
-To view a list of all JSON API endpoints, take a look at https://brainspell.herokuapp.com/json/list-endpoints. If you're unsure about the parameters for an endpoint, add `/help` to the end of the URL (e.g., the documentation for https://brainspell.herokuapp.com/json/split-table is available at https://brainspell.herokuapp.com/json/split-table/help).
+To view a list of all JSON API endpoints, take a look at https://brainspell.herokuapp.com/json/list-endpoints. If you're unsure about the parameters for an endpoint, add `/help` to the end of the URL (e.g., the documentation for https://brainspell.herokuapp.com/json/split-table is available at https://brainspell.herokuapp.com/json/split-table/help). Alternatively, you can try our API via [Swagger](https://swaggerhub.com/apis/neelsomani/brainspell/1.0.0).
 
 ## Running Brainspell
 

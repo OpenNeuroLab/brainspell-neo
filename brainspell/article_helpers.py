@@ -151,19 +151,40 @@ def vote_number_of_subjects(pmid, subjects, username):
         Articles.pmid == pmid).execute()
 
 
-def add_user_tag(user_tag, pmid):
-    """ Add a custom user tag to the database. """
+
+def toggle_user_tag(user_tag, pmid, username):
+    """ Toggle a custom user tag to the database. """
+
 
     main_target = next(
         Articles.select(
             Articles.metadata).where(
             Articles.pmid == pmid).execute())
     target = eval(main_target.metadata)
-    if target.get("user"):
-        target["user"].append(user_tag)
+
+    if "user_tags" in target:
+        toggled = False
+
+        for user in target["user_tags"]:
+            # if the tag is already present, then delete it
+            if target["user_tags"][user]["tag_name"] == user_tag:
+                del target["user_tags"][user]
+                toggled = True
+                break
+
+        if not toggled:
+            target["user_tags"][username] = {
+                "tag_name": user_tag
+            }
     else:
-        target["user"] = [user_tag]
-    Articles.update(metadata=target).where(Articles.pmid == pmid).execute()
+        target["user_tags"] = {
+            username: {
+                "tag_name": user_tag
+            }
+        }
+    query = Articles.update(metadata=target).where(Articles.pmid == pmid)
+    query.execute()
+
 
 
 def get_number_of_articles():
@@ -315,6 +336,7 @@ def flag_table(pmid, exp):
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
     if "flagged" in elem:
+        # toggle the flag if it exists
         elem["flagged"] = 1 - elem["flagged"]
     else:
         elem["flagged"] = 1

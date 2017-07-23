@@ -9,7 +9,8 @@ env:
 # command to run tests
 
 script: cd json_api && pytest
-# TODO: unless we can get sauce working properly, then remove
+
+script: python3 brainspell/brainspell.py
 
 script: cd brainspell && pytest
 

@@ -1,0 +1,23 @@
+version: '2'
+services:
+  db:
+     build: postgres
+     ports:
+         - "5432:5432"
+     environment:
+         POSTGRES_PASSWORD: password
+         POSTGRES_DB: brainspell
+     volumes:
+         # Creates trouble unless we make it world-writable or play tricks to
+         # match the group or user id inside and outside the container.
+         # By default, some Docker magic will create an external volume
+         # somewhere...
+         - ./postgres/data:/docker-entrypoint-initdb.d
+  web:
+    build: python-tornado
+    volumes:
+      - .:/brainspell-neo
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db

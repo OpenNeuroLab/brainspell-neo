@@ -58,6 +58,7 @@ class BaseModel(signals.Model):
 
 
 class Articles(BaseModel):
+    uniqueid = peewee.PrimaryKeyField(null=True)
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
     abstract = CharField(null=True)
     authors = CharField(null=True)
@@ -68,7 +69,7 @@ class Articles(BaseModel):
     pmid = CharField(null=True, unique=True)
     reference = CharField(null=True)
     title = CharField(null=True)
-    uniqueid = peewee.PrimaryKeyField(null=True)
+
 
     class Meta:
         db_table = 'articles'

@@ -22,7 +22,7 @@ before_script:
 
 addons:
   sauce_connect:
-    username: "brainspell"
-    access_key: "56abf217-04be-441a-b624-1f889a4e237f"
+    username: brainspell
+    access_key: 56abf217-04be-441a-b624-1f889a4e237f
 
 

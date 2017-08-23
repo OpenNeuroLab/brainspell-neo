@@ -148,7 +148,7 @@ def test_procfile():
 
 
 def test_existence():  # Using selenium testing to verify existence of site elements
-    driver.get("https://brainspell.herokuapp.com")
+    driver.get("/")
     #driver.get("localhost:5000")
     driver.implicitly_wait(0.5)
     assert "Brainspell" in driver.title  # Checks website was correctly received

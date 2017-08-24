@@ -17,8 +17,8 @@ config = dict(
     user="docker",
     password='docker',
     host="0.0.0.0",
-    port=5432,
-    sslmode='require',
+    port=5433,
+
 )
 
 conn = PostgresqlExtDatabase(

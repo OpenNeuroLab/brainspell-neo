@@ -10,8 +10,8 @@ env:
 # command to run tests
 script: cd brainspell && pytest
 
-addons:
-  sauce_connect:
-    username: "brainspell"
-    access_key: "56abf217-04be-441a-b624-1f889a4e237f"
+# addons:
+#   sauce_connect:
+#     username: "brainspell"
+#     access_key: "56abf217-04be-441a-b624-1f889a4e237f"
 

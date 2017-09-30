@@ -148,7 +148,7 @@ def test_procfile():
 
 
 def test_existence():  # Using selenium testing to verify existence of site elements
-    base_url = "https://" + os.environ["SAUCE_USERNAME"] + ":" + os.environ["SAUCE_ACCESS_KEY"] + "@ondemand.saucelabs.com:443/wd/hub/"
+    base_url = "http://localhost:5000"
     driver.get(base_url)
     #driver.get("localhost:5000")
     driver.implicitly_wait(0.5)

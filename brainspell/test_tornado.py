@@ -100,7 +100,7 @@ def test_requirements_file_is_sorted():
 
     with open('../requirements.txt') as f:
         lines = f.readlines()
-    lines = [dependency for dependency in lines if dependency != '\n']
+
     assert sorted(lines) == lines, UNSORTED_REQUIREMENTS_FILE
 
 

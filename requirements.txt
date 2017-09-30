@@ -15,4 +15,3 @@ selenium==3.0.2
 simplejson==3.10.0
 tornado==4.4.1
 torngithub==0.2.0
-

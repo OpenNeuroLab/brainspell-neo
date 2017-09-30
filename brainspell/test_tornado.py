@@ -100,6 +100,7 @@ def test_requirements_file_is_sorted():
 
     with open('../requirements.txt') as f:
         lines = f.readlines()
+
     assert sorted(lines) == lines, UNSORTED_REQUIREMENTS_FILE
 
 
@@ -148,9 +149,9 @@ def test_procfile():
 
 
 def test_existence():  # Using selenium testing to verify existence of site elements
-    base_url = "https://" + os.environ["SAUCE_USERNAME"] + ":" + os.environ["SAUCE_ACCESS_KEY"] + "@ondemand.saucelabs.com:443/wd/hub/"
+    base_url = "http://localhost:5000"
     driver.get(base_url)
-    #driver.get("localhost:5000")
+    # driver.get("localhost:5000")
     driver.implicitly_wait(0.5)
     assert "Brainspell" in driver.title  # Checks website was correctly received
 
@@ -176,7 +177,7 @@ def test_existence():  # Using selenium testing to verify existence of site elem
     driver.find_element_by_id("closer").click()
 
     # Evaluate search page
-    driver.get(base_url + "search?q=brain&req=t")
+    driver.get(base_url + "/search?q=brain&req=t")
     show_widgets = WebDriverWait(driver, 10).until(
         expected_conditions.element_to_be_clickable((By.ID, "widgetOption"))
     )

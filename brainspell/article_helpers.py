@@ -151,10 +151,8 @@ def vote_number_of_subjects(pmid, subjects, username):
         Articles.pmid == pmid).execute()
 
 
-
 def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
-
 
     main_target = next(
         Articles.select(
@@ -184,7 +182,6 @@ def toggle_user_tag(user_tag, pmid, username):
         }
     query = Articles.update(metadata=target).where(Articles.pmid == pmid)
     query.execute()
-
 
 
 def get_number_of_articles():

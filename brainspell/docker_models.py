@@ -5,8 +5,6 @@ from playhouse.postgres_ext import *
 from playhouse.csv_loader import *
 
 
-
-
 print("USING DOCKER")
 config = dict(
     database="docker",
@@ -26,27 +24,65 @@ conn = PostgresqlExtDatabase(
 
 
 """Initialize Articles table"""
-fields = [IntegerField(),DateTimeField(null=True),TextField(null=True),TextField(null=True),TextField(null=True),
-          TextField(null=True),TextField(null=True),TextField(null=True),TextField(null=True),TextField(null=True),TextField(null=True)]
-field_names = ['uniqueid','timestamp','abstract','authors','doi','experiments','metadata','neurosynthid','pmid','reference','title']
+fields = [
+    IntegerField(), DateTimeField(
+        null=True), TextField(
+            null=True), TextField(
+                null=True), TextField(
+                    null=True), TextField(
+                        null=True), TextField(
+                            null=True), TextField(
+                                null=True), TextField(
+                                    null=True), TextField(
+                                        null=True), TextField(
+                                            null=True)]
+field_names = [
+    'uniqueid',
+    'timestamp',
+    'abstract',
+    'authors',
+    'doi',
+    'experiments',
+    'metadata',
+    'neurosynthid',
+    'pmid',
+    'reference',
+    'title']
 
-Articles = load_csv(conn,'../data/articles_2016_07-23.csv',fields=fields,field_names=field_names)
+Articles = load_csv(
+    conn,
+    '../data/articles_2016_07-23.csv',
+    fields=fields,
+    field_names=field_names)
 
 
 """Initialize User table """
-fields = [TextField(null=True),TextField(null=True),TextField(null=True),TextField(null=True),TextField(null=True)]
-field_names = ["password","emailaddress","userid","username","collections"]
+fields = [
+    TextField(
+        null=True), TextField(
+            null=True), TextField(
+                null=True), TextField(
+                    null=True), TextField(
+                        null=True)]
+field_names = ["password", "emailaddress", "userid", "username", "collections"]
 
-User = load_csv(conn, '../data/user_data.csv',fields=fields,field_names=field_names)
+User = load_csv(
+    conn,
+    '../data/user_data.csv',
+    fields=fields,
+    field_names=field_names)
 
 
 """Leave remaining fields uninitialized for the time being"""
+
+
 class User_metadata():
     pass
+
 
 class Log():
     pass
 
+
 class Concepts():
     pass
-

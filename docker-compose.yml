@@ -9,14 +9,9 @@ services:
          - POSTGRES_PASSWORD=docker
          - POSTGRES_DB=docker
          - POSTGRES_USER=docker
-     #volumes:
-         # Creates trouble unless we make it world-writable or play tricks to
-         # match the group or user id inside and outside the container.
-         # By default, some Docker magic will create an external volume
-         # somewhere...
-     #    - ./postgres/data:/docker-entrypoint-initdb.d
+
   web:
-    build: b2
+    build: .
     ports:
       - "5000:5000"
     depends_on:

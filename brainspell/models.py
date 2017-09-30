@@ -1,28 +1,15 @@
 # contains PeeWee database models (our ORM)
 
-import os
-import subprocess
-from peewee import *
-from playhouse.postgres_ext import *
-from playhouse.csv_loader import *
-import os
-import time
-
-
 from urllib.parse import urlparse
-
 import peewee
 from playhouse import signals
 from playhouse.postgres_ext import *
-
-
-import subprocess
 from playhouse.csv_loader import *
 
 
-DOCKER_RUNNING = False
+DOCKER_RUNNING = True
 
-if DOCKER_RUNNING:
+if not DOCKER_RUNNING:
     # in case no DATABASE_URL is specified, default to Heroku
     url = urlparse(
         "postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
@@ -137,7 +124,7 @@ else:
         database="docker",
         user="docker",
         password='docker',
-        host="192.168.99.100",
+        host="localhost",
         port=5433,
 
     )

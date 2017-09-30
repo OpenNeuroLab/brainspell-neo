@@ -3,9 +3,13 @@
 {% block header %}
 
     <title>Brainspell v2 - My Github</title>
-
+    <!-- jQuery Version 1.11.1 -->
+    <script src="static/js/jquery.js"></script>
     <!-- Bootstrap Core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.2/css/bootstrap-select.min.css" />
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.2/js/bootstrap-select.min.js"></script>
+
 
 
 {% end %}
@@ -19,6 +23,7 @@
           <div class="col-lg-12 text-center">
               <h1>Brainspell Collections</h1>
               <p class="lead">Your open, curated classification of neuroimaging literature.</p>
+              <p class="lead"><a onclick="forceRefresh(); this.disable=true;" id="refreshBtn">Sync With Github.</a></p>
               <form data-toggle="validator" role="form" action="javascript:createCollection()" id="new_collection">
               <div class="input-group has-feedback">
                  <input type="text" name="name" id="new-collection-name" style="width:20%"  pattern="^[_A-z0-9]{1,}$" minlength="3" placeholder="Name" class="form-control" required>
@@ -30,35 +35,102 @@
               </div>
              </form>
           </div>
-          <div class="col-lg-12" style="padding-top:20px;">
-            <input type="submit" id="refreshBtn" class="btn btn-default" onclick="forceRefresh(); this.disabled = true;" value="Sync with GitHub" />
+
+
+      <div class="row container-fluid">
+  </div>
+
+  <div class="row container" id="collections-container"><p style="padding-top:20px;">Loading... This might take a while.</p></div></div>  <!-- /.container -->
+
+
+      <div class="row container" style="padding-top:20px; padding-bottom:20px;">
+            <button class="btn btn-default" id="widgetOption" style="display:none;" onclick="this.style.display = 'none'; $('#widgetsHolder').fadeIn();">Show widgets</button>
+            <div id="widgetsHolder" style="margin-top:15px;">
+              <!-- StereotaxicViewer -->
+              <span style="display:inline-block; float: left;">
+                  <table style="border:1px solid lightGrey;padding:5px">
+                      <tr>
+                      <td>
+                          <canvas id="brainCanvas"  style="width:250px;height:300px;background-color:black"></canvas>
+                      </td>
+                      </tr>
+                      <tr>
+                      <td>
+                          <button class="btn btn-default" onclick="changeView('sagittal')">Sag</button>
+                          <button class="btn btn-default" onclick="changeView('coronal')">Cor</button>
+                          <button class="btn btn-default" onclick="changeView('axial')">Axi</button>
+                          <input type="range" name="slice" oninput="changeSlice(this.value)"style="width:100%;vertical-align:middle"/>
+                      </td>
+                      </tr>
+                  </table>
+              </span>
+              <!-- /StereotaxicViewer -->
+
+              &nbsp;
+
+              <!-- MeshViewer -->
+              <span style="position: absolute; display:inline-block">
+                  <table style="margin: 0; border:1px solid lightGrey;padding:5px">
+                      <tr>
+                      <td>
+                          <div style="width:320px;height:340px" id="meshCanvas"></div>
+                      </td>
+                      </tr>
+                      <tr>
+                      <td>
+                          <input type="range" name="level" oninput="changeLevel(this.value)"style="width:100%;vertical-align:middle"/>
+                      </td>
+                      </tr>
+                  </table>
+              </span>
+              <!-- /MeshViewer -->
           </div>
       </div>
 
-      <div class="row">
-    <div class="col-lg-12 text-center">
-      <h2>My Collections</h2>
-    </div>
-  </div>
-
-  <div class="row container" id="collections-container">Loading... This might take a while.</div>
-  </div>  <!-- /.container -->
 
 
-
-    <!-- jQuery Version 1.11.1 -->
-    <script src="static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
     <script src="static/js/bootstrap.min.js"></script>
 
     <script src="http://cdn.rawgit.com/1000hz/bootstrap-validator/master/dist/validator.min.js"></script>
 
+
+    <!-- Translucent Viewer -->
+    <script src="/static/js/three.min.js"></script>
+    <script src="/static/js/detector.js"></script>
+    <script src='/static/js/subdivision-modifier.js'></script>
+    <script src="/static/js/PLYLoader.js"></script>
+    <script src="/static/js/trackball-controls.js"></script>
+    <script src="/static/js/search-widgets.js"></script>
+
     <script>
+
+    initSearch(1);
+    document.getElementById("widgetsHolder").style.display = "none"; // hide the widgets initially; need to initially show in DOM for translucent to work
+
+
+
+
+    function htmlEncode(value){
+      return $('<div/>').text(value).html();
+    }
+
     function generateCollectionsContainer(list) {
       console.log(list);
 
       var contents = '<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">';
+
+      var collectionSelector = "<select name='collectionSelect' class='form-control'>";
+
+      for (var i = 0; i < list.length; i++) {
+        collectionSelector = collectionSelector + "<option value='" + htmlEncode(list[i]["name"]) + "'>" + htmlEncode(list[i]["name"]) + "</option>";
+      }
+
+      collectionSelector1 = collectionSelector + "</select>"
+      collectionSelector2 = collectionSelector + "<option value='-1'>Rest of database</option></select>";
+
+      contents = "<div style='padding-bottom:20px'></div>";
 
       for (var i = 0; i < list.length; i++) {
         var collectionObj = list[i];
@@ -67,17 +139,12 @@
               <h4 class="panel-title">\
               <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse' + i + '" aria-expanded="' + (i == 0) + '" aria-controls="collapse'+i+'">\
                 '+collectionObj["name"]+'\
-              </a>\
-            </h4>\
-          <div>\
-            '+collectionObj["description"];
+              </a></h4><div>'+collectionObj["description"];
         for (var j = 0; j < list[i]["contributors"].length; j++) {
             var contributorObj = list[i]["contributors"][j];
             contents = contents + '<img class="img-circle pull-right" src="'+contributorObj["avatar_url"]+'" width="25px" height="25px">';
         }
-        contents = contents + '</div>\
-\
-        </div>\
+        contents = contents + '</div></div>\
         <div id="collapse'+i+'" class="panel-collapse collapse';
         if (i == 0) contents = contents + " in ";
          contents = contents + '" role="tabpanel" aria-labelledby="heading'+i+'">\
@@ -88,14 +155,21 @@
               '+articleObj["reference"]+'\
               <br>';
         }
-        contents = contents + '\
-          </div>\
-        </div>\
-      </div>';
+        contents = contents + '</div></div></div>';
       }
-      
-      contents = contents + '</div>';
 
+      contents = contents + '</div>';
+      contents += "<div id='sig' class='container row'>";
+      contents += "<div id='inner'>";
+      contents += "<h4 style='text-align:center'>Significance</h4>";
+      contents += "<p style='text-align:center'>Is the appearence of peaks in your collection significant? Run a significance test to evaluate.</p>"
+      block1 = "<div id='one' class='col-md-5'>" + "Collection 1: " + collectionSelector1 + "</div>";
+      block2 = "<div id'two' class='col-md-5'>" + "Collection 2: " + collectionSelector2 + "</div>";
+      contents += "</div>";
+      contents += block1 + block2 + "<div id='submitter' class='col-md-2'><br><input type='button' class='btn btn-default' id='significanceBtn' onclick='significance(this)' value='Significance test'></div>";
+
+      contents += "</div>";
+      contents += "<p id='advanced' style='padding-top:10px;'><a onclick='showAdvanced();'>Advanced Parameters</a></p>";
       if (list.length == 0) {
         contents = "You have no collections."
       }
@@ -128,6 +202,49 @@
           generateCollectionsContainer(JSON.parse(o["responseText"])["collections"]);
         });
     }
+    function showAdvanced() {
+        $("#advanced").hide();
+        $("#one").attr("class","col-md-6");
+        $("#two").attr("class","col-md-6");
+        $("#inner").append($("<div>", {"class":"col-md-6"}).append($("<input>",{"placeholder":"Width","class":"form-control","type":"text","id":"width"})));
+        $("#inner").append($("<div>", {"class":"col-md-5"}).append($("<input>",{"placeholder":"Threshold","class":"form-control","type":"text","id":"threshold"})));
+
+    }
+    function significance(btn) {
+      $(btn).attr("disabled", "disabled");
+      var colNames = document.getElementsByName("collectionSelect");
+      var col1 = colNames[0].value;
+      var col2 = colNames[1].value;
+      var thresh = $("#threshold").val();
+      var w = $("#width").val();
+      if (col2 == "-1") {
+        col2 = "null";
+      }
+      $.ajax({
+          type: "POST",
+          url: "/json/collection-significance",
+          data: {
+              "key": "{{api_key}}",
+              "collection_name": col1,
+              "other_collection": col2,
+              "width": w == "" || w === undefined ? 5 : JSON.parse(w),
+              "threshold": thresh == "" || thresh === undefined ? 10 : JSON.parse(thresh)
+          }
+      }).complete(function(o) {
+        var significant_coordinates_dict = JSON.parse(o["responseText"])["significance_grid"];
+        // this is a dict with keys as string tuples "(x, y, z)", values as p-values (e.g., .004)
+        // you only need the keys.
+        console.log(significant_coordinates_dict);
+        // generate brain widget
+        loadLocationsFromDict(significant_coordinates_dict);
+        // TODO: let the user specify what the threshold and width should be
+        // TODO: potentially display the p-values
+        $(btn).removeAttr("disabled");
+      });
+
+    }
+
+
 
     function createCollection() {
         $.ajax({
@@ -152,6 +269,7 @@
             location.reload();
         });
       }
+
     </script>
 
 {% end %}

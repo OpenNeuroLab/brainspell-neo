@@ -87,7 +87,7 @@
       , hwaccel: false // Whether to use hardware acceleration
       , position: 'absolute' // Element positioning
       };
-
+    {% if api_key %}
       var target = document.getElementById('github_collections_div');
       var spinner = new Spinner(opts).spin(target);
       //console.log(spinner);
@@ -124,46 +124,62 @@
         $("#github_collections").select2({placeholder: response.statusText});
         $("#github_collections").prop("disabled", true)
       });
+    {% end %}
 
         //Generates the popup widget when a vote element is clicked
       // TODO: might be worth making a class for popup, or potentially putting it in its own file
         function popup(elements, table_num = -1, column='NA',agr=-1,disagr=-1) {
-            column = JSON.stringify(column);
-            var targets = JSON.parse(elements);
             var agreements = 0;
             var disagree = 0;
-            if (agr != -1) {
+            var use_local = false;
+            column = JSON.stringify(column);
+            var targets = JSON.parse(elements);
+            //If users changed something in the local interface indicate it here
+
+            if (typeof(agr) === "string" && typeof(disagr) === "string"
+                    &&(agr.search("(including you)") > 0
+                    || disagr.search("(including you)") > 0)) {
+                use_local = true;
                 agreements = agr;
+                disagree = disagr;
             }
-            if (disagr != -1) {
-                disagree = disagr
+            else {
+                if (agr != -1) {
+                    agreements = agr;
+                }
+                if (disagr != -1) {
+                    disagree = disagr
+                }
+
             }
             var userVotedAgree = ""; // TODO: clean all of this up
             var userVotedDisagree = "";
             var votedAgree = false;
             var votedDisagree = false;
             var element = targets;
-            if (typeof(targets) == "object") { // Specifies votes were provided
-                element = targets[0];
-                var votes = targets[1];
-                if (votes != "NOVOTES") {
-                    console.log(votes);
-                    if (agreements != 0 || votes["up"].length != 0) {
-                        agreements = votes["up"].length;
-                    }
-                    if (disagree != 0 || votes["down"].length != 0) {
-                        disagree = votes["down"].length;
-                    }
-                    for (var i = 0; i < agreements; i++) {
-                        if (votes["up"][i]["username"] == "{{github_username}}") {
-                            userVotedAgree = " (including you)"
-                            votedAgree = true;
+            if (!use_local) {
+                if (typeof(targets) == "object") { // Specifies votes were provided
+                    element = targets[0];
+                    var votes = targets[1];
+                    if (votes != "NOVOTES") {
+                        console.log(votes);
+                        if (agreements != 0 || votes["up"].length != 0) {
+                            agreements = votes["up"].length;
                         }
-                    }
-                    for (var i = 0; i < disagree; i++) {
-                        if (votes["down"][i]["username"] == "{{github_username}}") {
-                            userVotedDisagree = " (including you)"
-                            votedDisagree = true;
+                        if (disagree != 0 || votes["down"].length != 0) {
+                            disagree = votes["down"].length;
+                        }
+                        for (var i = 0; i < agreements; i++) {
+                            if (votes["up"][i]["username"] == "{{github_username}}") {
+                                userVotedAgree = " (including you)";
+                                votedAgree = true;
+                            }
+                        }
+                        for (var i = 0; i < disagree; i++) {
+                            if (votes["down"][i]["username"] == "{{github_username}}") {
+                                userVotedDisagree = " (including you)"
+                                votedDisagree = true;
+                            }
                         }
                     }
                 }
@@ -190,7 +206,7 @@
                                             "type": "button",
                                             "id": "agree",
                                             "class": "btn btn-default",
-                                            "onclick": `updateVote('${element}','up')`
+                                            "onclick": `updateVote('${element}','up',this)`
                                         }).text("Agree: " + agreements + userVotedAgree).attr("data-voted-agree", votedAgree);
                                     } else { // TODO: move this somewhere else; not clear that this is for table votes vs non-table
                                         return $("<a>", {
@@ -209,7 +225,7 @@
                                             "type": "button",
                                             "id": "disagree",
                                             "class": "btn btn-default",
-                                            "onclick": `updateVote('${element}','down')`
+                                            "onclick": `updateVote('${element}','down',this)`
                                         }).text("Disagree: " + disagree + userVotedDisagree).attr("data-voted-disagree", votedDisagree);
 
                                     } else {
@@ -366,7 +382,7 @@
                 for (var i = 0; i < metadatalst.length; i++) {
                     var temp = metadatalst[i];
                     temp = JSON.stringify(temp);
-                    var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
+                    var voteTagBtn = $("<button>").text(metadatalst[i][0]).attr("class", "dropbtn").attr("id",metadatalst[i][0]).attr("onclick", "popup('" + temp + "')").attr("data-toggle", "modal").attr("data-target", "#myModal")
                     if (metadatalst[i][1] != "NOVOTES") { // add visual feedback based on whether upvotes vs. downvotes are greater
                         if (metadatalst[i][1]["up"].length == metadatalst[i][1]["down"].length) {
                             voteTagBtn.css("color", "#FFA500"); // orange
@@ -378,8 +394,6 @@
                     }
                     dropper.append(voteTagBtn);
                 }
-
-
                 $("#articleContents").append($("<p>").css("color", "#c0c0c0").text("MeSH descriptors: "));
             }
             dropper.append($("<button>",{"data-toggle":"modal","data-target":".bs-example-modal-lg","class":"dropbtn"}).text("Add MeSH descriptor").attr("onclick","meshAdder()").css("font-weight","bold"));
@@ -937,8 +951,19 @@
             ws.send(JSON.stringify(message));
             */
         }
+        function toggle(vote) {
+            if (vote == "agree") {
+                return "disagree";
+            }
+            else if (vote === "disagree") {
+                return "agree";
+            }
+            else {
+                return vote == "up" ? "down" : "up";
+            }
+        }
         //Updates votes for MeshDescriptors as a whole
-        function updateVote(topic, direction) {
+        function updateVote(topic, direction,item) {
             $.ajax({
                 type: "GET",
                 url: "/json/toggle-user-vote?username={{github_username}}&pmid={{article_id}}&key={{api_key}}&direction=" + direction + "&topic=" + topic
@@ -946,7 +971,41 @@
                 j = o.responseText;
                 console.log(j);
                 obj = JSON.parse(j);
-                location.reload();
+                var toggled = false;
+                var other = toggle(item.id);
+                var update_remaining = false;
+                var remaining_text;
+                if ($("#" + other).text().search("(including you)") > 0) {
+                    update_remaining = true;
+                    remaining_text = $("#" + other).text().replace("(including you)","").split(": ");
+                }
+                if (obj["success"] == 1) {
+                    if ($("#" + item.id).text().search("(including you)") > 0) {
+                        toggled = true;
+                    }
+                    var text = $('#' + item.id).text().replace("(including you)","");
+                    var vote = text.split(": ");
+                    console.log(vote);
+                    var num = JSON.parse(vote[1]);
+                    var direction = "up";
+                    if (toggled) {
+                        direction = "down";
+                    }
+                    if (direction === "up") {
+                        $('#' + item.id).text(vote[0] + ": " + (num + 1) + " (including you)")
+                    }
+                    else if (direction === "down") {
+                        $('#' + item.id).text(vote[0] + ": " + (num - 1))
+                    }
+                    if (update_remaining) {
+                        $("#" + other).text(remaining_text[0] + ": " + (JSON.parse(remaining_text[1]) - 1))
+                    }
+                    var urlParams = new URLSearchParams(this.url);
+                    var title = urlParams.get("topic");
+                    console.log(title);
+                    $(`[id='${title}']`).attr("onclick", "popup('" + JSON.stringify(title) + "'" + ',' + undefined + ',' + undefined + ',' + `'${$("#agree").text().replace("Agree: ","")}'` + ',' + `'${$("#disagree").text().replace("Disagree: ","")}'` + ")");
+{#                    attr("onclick", `popup( ${title}, undefined, undefined, ${$("#agree").text()}, ${$("#disagree").text()} )`)#}
+                }
             });
         }
 

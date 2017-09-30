@@ -1,8 +1,19 @@
 version: '2'
+
 services:
+  db:
+     image: postgres:9.6
+     ports:
+         - "5433:5432"
+     environment:
+         - POSTGRES_PASSWORD=docker
+         - POSTGRES_DB=docker
+         - POSTGRES_USER=docker
+
   web:
     build: .
     ports:
-     - "5000:5000"
-    volumes:
-     - .:/brainspell-neo
+      - "5000:5000"
+    depends_on:
+      - db
+

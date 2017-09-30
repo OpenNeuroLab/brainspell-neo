@@ -6,13 +6,26 @@ import urllib.request
 import Bio
 from Bio import Entrez, Medline
 from Bio.Entrez import efetch, esearch, parse, read
+from torngithub import json_encode
 
 from models import *
-from search_helpers import get_article_object
 
 Entrez.email = "neel@berkeley.edu"
 
 # BEGIN: article helper functions
+
+
+def get_article_object(query):
+    """ Get a single article PeeWee object. """
+
+    search = Articles.select().where(Articles.pmid == query)
+    return search.execute()
+
+
+def get_all_articles():
+    """ Get all article objects in the database. """
+
+    return Articles.select().execute()
 
 
 def update_authors(pmid, authors):
@@ -79,10 +92,9 @@ def toggle_vote(pmid, topic, username, direction):
         direction,
         "name")
 
-    query = Articles.update(
+    Articles.update(
         metadata=metadata).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()
 
 
 def vote_stereotaxic_space(pmid, space, username):
@@ -107,10 +119,9 @@ def vote_stereotaxic_space(pmid, space, username):
         "type": space
     })
 
-    query = Articles.update(
+    Articles.update(
         metadata=target).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()
 
 
 def vote_number_of_subjects(pmid, subjects, username):
@@ -135,14 +146,15 @@ def vote_number_of_subjects(pmid, subjects, username):
         "value": subjects
     })
 
-    query = Articles.update(
+    Articles.update(
         metadata=target).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()
+
 
 
 def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
+
 
     main_target = next(
         Articles.select(
@@ -174,6 +186,7 @@ def toggle_user_tag(user_tag, pmid, username):
     query.execute()
 
 
+
 def get_number_of_articles():
     """ Get the total number of articles in the database. """
 
@@ -187,45 +200,48 @@ def add_pmid_article_to_database(article_id):
     Given a PMID, use external APIs to get the necessary article data
     in order to add the article to our database.
     """
-
-    pmid = str(article_id)
-    handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
-    records = list(Medline.parse(handle))
-    records = records[0]
-    article_info = {}
-    article_info["title"] = records.get("TI")
-    article_info["PMID"] = pmid
-    article_info["authors"] = ', '.join(records.get("AU"))
-    article_info["abstract"] = records.get("AB")
-    article_info["DOI"] = getDOI(records.get("AID"))
-    article_info["experiments"] = ""
-    article["metadata"] = str({"meshHeadings": []})
-    article["reference"] = None
-    identity = ""
-    try:
-        article_info["experiments"] = {
-            "locations": eval(
-                urllib.request.urlopen(
-                    "http://neurosynth.org/api/studies/peaks/" +
-                    str(pmid) +
-                    "/").read().decode())["data"]}
-        k = article_info["experiments"]["locations"]
-        for i in range(len(k)):
-            if len(k[i]) == 4:
-                identity = k[0]
-                k[i] = k[i][1:]
-            k[i] = ",".join([str(x) for x in (k[i])])
-    except BaseException:
-        pass
-    article_info["id"] = identity
-    article_info["experiments"] = [article_info["experiments"]]
-    Articles.create(abstract=article_info["abstract"],
-                    authors=article_info["authors"],
-                    doi=article_info["DOI"],
-                    experiments=article_info["experiments"],
-                    pmid=article_info["PMID"],
-                    title=article_info["title"])
-    return article_info
+    if len(list(get_article_object(article_id))) == 0:
+        pmid = str(article_id)
+        handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
+        records = list(Medline.parse(handle))
+        records = records[0]
+        if "TI" not in records:
+            return False  # catch bad PMIDs
+        article_info = {}
+        article_info["title"] = records["TI"]
+        article_info["PMID"] = pmid
+        article_info["authors"] = ', '.join(records["AU"])
+        article_info["abstract"] = records["AB"]
+        article_info["DOI"] = getDOI(records["AID"])
+        article_info["experiments"] = ""
+        article_info["metadata"] = str({"meshHeadings": []})
+        article_info["reference"] = None
+        identity = ""
+        try:
+            article_info["experiments"] = {
+                "locations": eval(
+                    urllib.request.urlopen(
+                        "http://neurosynth.org/api/studies/peaks/" +
+                        str(pmid) +
+                        "/").read().decode())["data"]}
+            k = article_info["experiments"]["locations"]
+            for i in range(len(k)):
+                if len(k[i]) == 4:
+                    identity = k[0]
+                    k[i] = k[i][1:]
+                k[i] = ",".join([str(x) for x in (k[i])])
+        except BaseException:
+            pass
+        article_info["id"] = identity
+        article_info["experiments"] = [article_info["experiments"]]
+        Articles.insert(abstract=article_info["abstract"],
+                        authors=article_info["authors"],
+                        doi=article_info["DOI"],
+                        experiments=article_info["experiments"],
+                        pmid=article_info["PMID"],
+                        title=article_info["title"]).execute()
+        return True
+    return False
 
 
 def getDOI(lst):
@@ -380,7 +396,7 @@ def add_coordinate_row(pmid, exp, coords, row_number=-1):
     else:
         elem["locations"].insert(row_number, row_list)
     Articles.update(
-        experiments=experiments).where(
+        experiments=json_encode(experiments)).where(
         Articles.pmid == pmid).execute()
 
 
@@ -416,9 +432,7 @@ def add_table_through_text_box(pmid, values):
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     """ Update the vote on an experiment tag for a given user. """
 
-    article_obj = Articles.select(
-        Articles.experiments).where(
-        Articles.pmid == pmid).execute()
+    article_obj = get_article_object(pmid)
     article_obj = next(article_obj)
     article_obj = eval(article_obj.experiments)
 
@@ -436,7 +450,6 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
 
     article_obj[table_num] = table_obj
 
-    query = Articles.update(
+    Articles.update(
         experiments=article_obj).where(
-        Articles.pmid == pmid)
-    query.execute()
+        Articles.pmid == pmid).execute()

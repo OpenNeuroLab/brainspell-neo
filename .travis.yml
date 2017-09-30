@@ -1,6 +1,5 @@
 language: python
 python:
-  - "3.4"
   - "3.5"
 # command to install dependencies
 install: "pip install -r requirements.txt"
@@ -8,10 +7,24 @@ install: "pip install -r requirements.txt"
 env:
   - DATABASE_URL="postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35" COOKIE_SECRET="password"
 # command to run tests
+
+script: cd json_api && pytest
+
+
 script: cd brainspell && pytest
 
-# addons:
-#   sauce_connect:
-#     username: "brainspell"
-#     access_key: "56abf217-04be-441a-b624-1f889a4e237f"
+
+before_script:
+  - curl https://gist.github.com/santiycr/5139565/raw/sauce_connect_setup.sh | bash
+  - export SAUCE_USERNAME=$SAUCE_USERNAME
+  - export SAUCE_ACCESS_KEY=$SAUCE_ACCESS_KEY
+  - python3 brainspell/brainspell.py &
+  - sleep 2
+
+addons:
+  sauce_connect:
+    username: brainspell
+    access_key: bda31cf7-daf3-49da-87f2-554f6a2d3ab0
+
+
 

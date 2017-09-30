@@ -25,19 +25,19 @@ application = brainspell.make_app()
 
 """Configuring SauceLabs for Selenium Testing """
 
-#
-# capabilities = {}
-# username = os.environ["SAUCE_USERNAME"]
-# access_key = os.environ["SAUCE_ACCESS_KEY"]
-# capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
-# hub_url = "{0}:{1}@localhost:4445".format(username, access_key)
-# capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
-# capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
-# capabilities["browserName"] = "firefox"
-# driver = webdriver.Remote(
-#     desired_capabilities=capabilities,
-#     command_executor="http://{0}/wd/hub".format(hub_url))
-#
+
+capabilities = {}
+username = os.environ["SAUCE_USERNAME"]
+access_key = os.environ["SAUCE_ACCESS_KEY"]
+capabilities["tunnel-identifier"] = os.environ["TRAVIS_JOB_NUMBER"]
+hub_url = "{0}:{1}@localhost:4445".format(username, access_key)
+capabilities["build"] = os.environ["TRAVIS_BUILD_NUMBER"]
+capabilities["tags"] = [os.environ["TRAVIS_PYTHON_VERSION"], "CI"]
+capabilities["browserName"] = "firefox"
+driver = webdriver.Remote(
+    desired_capabilities=capabilities,
+    command_executor="http://{0}/wd/hub".format(hub_url))
+
 
 """
 TODO: need to make tests for:

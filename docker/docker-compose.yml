@@ -1,14 +1,13 @@
 version: '2'
-
 services:
-  db:
-     image: postgres:9.6
-     ports:
-         - "5433:5432"
-     environment:
-         - POSTGRES_PASSWORD=docker
-         - POSTGRES_DB=docker
-         - POSTGRES_USER=docker
+#  db:
+#     image: postgres:9.6
+#     ports:
+#         - "5433:5432"
+#     environment:
+#         - POSTGRES_PASSWORD=docker
+#         - POSTGRES_DB=docker
+#         - POSTGRES_USER=docker
      #volumes:
          # Creates trouble unless we make it world-writable or play tricks to
          # match the group or user id inside and outside the container.
@@ -16,9 +15,9 @@ services:
          # somewhere...
      #    - ./postgres/data:/docker-entrypoint-initdb.d
   web:
-    build: b2
+    build: main
+
     ports:
       - "5000:5000"
-    depends_on:
-      - db
-
+#    depends_on:
+#      - db

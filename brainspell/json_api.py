@@ -214,7 +214,6 @@ class RandomQueryEndpointHandler(BaseHandler):
         return response
 
 
-
 class AddArticleFromPmidEndpointHandler(BaseHandler):
     """ Add an article to our database via PMID (for use on the search page) """
     parameters = {

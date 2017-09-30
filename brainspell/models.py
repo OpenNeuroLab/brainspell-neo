@@ -69,7 +69,6 @@ class Articles(BaseModel):
     reference = CharField(null=True)
     title = CharField(null=True)
 
-
     class Meta:
         db_table = 'articles'
 
@@ -118,4 +117,3 @@ class User_metadata(BaseModel):
 
     class Meta:
         db_table = 'user_metadata'
-

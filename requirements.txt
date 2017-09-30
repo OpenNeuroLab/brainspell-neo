@@ -11,7 +11,8 @@ pycurl==7.43.0
 pytest-tornado==0.4.5
 pytest==3.0.3
 scipy==0.19.1
+selenium==3.0.2
 simplejson==3.10.0
 tornado==4.4.1
 torngithub==0.2.0
-selenium==3.0.2
+

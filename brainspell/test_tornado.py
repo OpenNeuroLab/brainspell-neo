@@ -176,7 +176,7 @@ def test_existence():  # Using selenium testing to verify existence of site elem
     driver.find_element_by_id("closer").click()
 
     # Evaluate search page
-    driver.get(base_url + "search?q=brain&req=t")
+    driver.get(base_url + "/search?q=brain&req=t")
     show_widgets = WebDriverWait(driver, 10).until(
         expected_conditions.element_to_be_clickable((By.ID, "widgetOption"))
     )

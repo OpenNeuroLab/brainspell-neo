@@ -1,14 +1,15 @@
 # contains PeeWee database models (our ORM)
 
+import os
+import time
 from urllib.parse import urlparse
+
 import peewee
+import playhouse
+import psycopg2
+from peewee import CharField, DateTimeField, IntegerField
 from playhouse import signals
 from playhouse.postgres_ext import *
-from playhouse.csv_loader import *
-
-
-DOCKER_RUNNING = True
-
 
 # in case no DATABASE_URL is specified, default to Heroku
 url = urlparse(
@@ -57,7 +58,6 @@ class BaseModel(signals.Model):
 
 
 class Articles(BaseModel):
-    uniqueid = peewee.PrimaryKeyField(null=True)
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
     abstract = CharField(null=True)
     authors = CharField(null=True)
@@ -68,7 +68,7 @@ class Articles(BaseModel):
     pmid = CharField(null=True, unique=True)
     reference = CharField(null=True)
     title = CharField(null=True)
-
+    uniqueid = peewee.PrimaryKeyField(null=True)
 
     class Meta:
         db_table = 'articles'
@@ -118,4 +118,3 @@ class User_metadata(BaseModel):
 
     class Meta:
         db_table = 'user_metadata'
-

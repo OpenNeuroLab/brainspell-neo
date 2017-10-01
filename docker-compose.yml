@@ -2,18 +2,13 @@ version: '2'
 
 services:
   db:
-     image: postgres:9.6
-     ports:
-         - "5433:5432"
-     environment:
-         - POSTGRES_PASSWORD=docker
-         - POSTGRES_DB=docker
-         - POSTGRES_USER=docker
-
+    image: postgres
   web:
     build: .
+    command: python3 json_api/brainspell.py 
+    volumes:
+      - .:/brainspell-neo
     ports:
       - "5000:5000"
     depends_on:
       - db
-

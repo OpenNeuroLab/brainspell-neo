@@ -16,6 +16,24 @@
     <script type="text/javascript" src="/static/js/cogatlas-cognitive.js"></script>
     <script type="text/javascript" src="/static/js/cogatlas-tasks.js"></script>
     <script type="text/javascript" src="/static/js/brainmap-behavioral.js"></script>
+    <style>
+
+    .tag {
+      display: inline-block;
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 5px;
+      margin: 2px;
+      font-size: 0.8em;
+    }
+
+    .tag:hover {
+      background-color: #347ab7;
+      color: white;
+    }
+
+
+    </style>
 {% end %}
 
 {% block content %}
@@ -261,7 +279,7 @@
             var items = $("<ul>", {"class":"list-group"});
             for (var i = 0; i < term.length; i++) {
                 var temp = JSON.stringify(term[i]["name"]);
-                var single = $("<li>", {"class":"list-group-item"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "'," + table_num +"," +  JSON.stringify(column) +  ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                var single = $("<li>", {"class":"list-group-item tag"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "'," + table_num +"," +  JSON.stringify(column) +  ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
                 items.append(single);
             }
             var descriptor = $("<div>", {"class": "container"}).append(
@@ -338,7 +356,7 @@
             );
             tableInputForm.append(tableForm);
             $("#articleContents").append(tableInputForm);
-            
+
             var dropper = $("<div/>");
             if (metadata != undefined) { // TODO: what does this do?
                 var metadataStr = "";
@@ -545,7 +563,7 @@
         this.page.url = "https://brainspell.herokuapp.com/view-article?id={{article_id}}";
         this.page.identifier = "{{article_id}}";
         };
-        
+
         (function() { // DON'T EDIT BELOW THIS LINE
         var d = document, s = d.createElement('script');
         s.src = 'https://brainspell.disqus.com/embed.js';
@@ -554,7 +572,7 @@
         })();
         </script>
         <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-                                        
+
         </div>
     </div>
 
@@ -838,7 +856,7 @@
                     j = o.responseText;
                     console.log(j);
                     obj = JSON.parse(j);
-                    
+
                     location.reload();
                 });
             }
@@ -880,7 +898,7 @@
                 if (link.innerHTML == "Flag Table") {
                     link.innerHTML = "Unflag Table";
                     link.style.color = "red";
-                } 
+                }
                 else {
                     link.innerHTML = "Flag Table";
                     link.style.color = "#337ab7";
@@ -920,7 +938,7 @@
                 //console.log(o);
                 location.reload();
             });
-            
+
             /*
             var message = {
                 "type": "update-table-vote",

@@ -32,6 +32,20 @@
       color: white;
     }
 
+    .mesh_heading {
+      text-align: center;
+    }
+
+#descriptorModal .modal-dialog {
+  width: 95%;
+  height: 100%;
+  padding: 0;
+}
+
+#descriptorModal .modal-content {
+  height: 100%;
+  border-radius: 5px;
+}
 
     </style>
 {% end %}
@@ -277,10 +291,16 @@
         //Creates the mesh Popup whenever an "Add Descriptor" term is selected
         function meshAdder(term = descriptors, table_num = -1, column='NA') {
             var items = $("<ul>", {"class":"list-group"});
+            
             for (var i = 0; i < term.length; i++) {
                 var temp = JSON.stringify(term[i]["name"]);
-                var single = $("<li>", {"class":"list-group-item tag"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "'," + table_num +"," +  JSON.stringify(column) +  ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
-                items.append(single);
+                if (term[i].superClass){
+                  var label = $("<h6>", {"class": "mesh_heading"}).text(term[i].name)
+                  items.append(label)
+                } else{
+                  var single = $("<li>", {"class":"list-group-item tag"}).text(term[i]["name"]).attr("onclick", "popup('" + temp + "'," + table_num +"," +  JSON.stringify(column) +  ")").attr("data-toggle", "modal").attr("data-target", "#myModal");
+                  items.append(single);
+                }
             }
             var descriptor = $("<div>", {"class": "container"}).append(
                 $("<div>", {"class":"row"}).append(
@@ -292,8 +312,8 @@
                                             $("<input>",{"id":"search","type":"text","class":"form-control input-lg","placeholder":"Search Descriptor"})
                                     ).append(
                                         $("<span>",{"class":"input-group-btn"}).append(
-                                                $("<button>",{"class":"btn btn-info btn-lg","type":"button"}).append(
-                                                        $("<i>",{"class":"glyphicon glyphicon-search"})
+                                                $("<button>",{"class":"btn btn-info btn-lg","type":"button", "data-dismiss":"modal"}).append(
+                                                        $("<i>", {"class": "glyphicon glyphicon-remove"})
                                                 )
                                         )
                                     )

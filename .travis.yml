@@ -13,15 +13,10 @@ script: cd json_api && pytest
 
 script: cd brainspell && pytest
 
-before_script:
-  - export SAUCE_USERNAME=$SAUCE_USERNAME
-  - export SAUCE_ACCESS_KEY=$SAUCE_ACCESS_KEY
-  - python3 brainspell/brainspell.py &
-  - sleep 2
+# addons:
+#   sauce_connect:
+#     username: "brainspell"
+#     access_key: "56abf217-04be-441a-b624-1f889a4e237f"
 
-addons:
-  sauce_connect:
-    username: "brainspell"
-    access_key: "56abf217-04be-441a-b624-1f889a4e237f"
 
 

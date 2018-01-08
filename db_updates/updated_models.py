@@ -1,5 +1,4 @@
 # contains PeeWee database models (our ORM)
-
 import os
 import time
 from urllib.parse import urlparse
@@ -104,6 +103,7 @@ class Locations_updated(BaseModel):
 class Tags_updated(BaseModel):
     name = peewee.CharField(null=True)
     ontology = peewee.CharField(null=True)
+    # TODO: Evaluate Agree and disagree are being kept here for rapid reads, though this will cause slower writes
     agree = peewee.IntegerField(null=True)
     disagree = peewee.IntegerField(null=True)
     experiment_id = peewee.ForeignKeyField(
@@ -115,22 +115,40 @@ class Tags_updated(BaseModel):
         primary_key = CompositeKey("name","experiment_id")
 
 
+class Votes(BaseModel):
+    userid = peewee.ForeignKeyField(
+        User,
+        to_field='userid'
+    )
+    # A vote on a key is uniqely identified by a name and experiment
+    name = peewee.CharField(null=True)
+    experiment_id = peewee.IntegerField(null=True,db_column='experimentID')
+    # A boolean value represents up or down: True = Upvote, False = Downvote
+    vote = peewee.BooleanField(null=True)
+
+    class Meta:
+        db_table = 'votes'
+        primary_key = CompositeKey("userid","name","experiment_id")
+
+
 """ End Article Table Update"""
 
 
 
-
-class Concepts(BaseModel):
-    name = CharField(db_column='Name', null=True)
-    definition = CharField(null=True)
-    metadata = CharField(null=True)
-    ontology = CharField(null=True)
-    uniqueid = peewee.PrimaryKeyField()
+class User(BaseModel):
+    userid = peewee.PrimaryKeyField()
+    password = CharField(db_column='Password', null=True)
+    emailaddress = CharField(null=True)
+    username = CharField(null=True)
+    collections = CharField(null=True)
 
     class Meta:
-        db_table = 'concepts'
+        db_table = 'users'
 
 
+
+
+""" Basically Obsolete Tables at this point """
 class Log(BaseModel):
     data = CharField(db_column='Data', null=True)
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
@@ -144,20 +162,14 @@ class Log(BaseModel):
         db_table = 'log'
 
 
-class User(BaseModel):
-    # TODO: change capitalization of this column for consistency
-    password = CharField(db_column='Password', null=True)
-    emailaddress = CharField(null=True)
-    userid = peewee.PrimaryKeyField()
-    username = CharField(null=True)
-    collections = CharField(null=True)
+
+class Concepts(BaseModel):
+    name = CharField(db_column='Name', null=True)
+    definition = CharField(null=True)
+    metadata = CharField(null=True)
+    ontology = CharField(null=True)
+    uniqueid = peewee.PrimaryKeyField()
 
     class Meta:
-        db_table = 'users'
-
-
-
-
-
-
+        db_table = 'concepts'
 

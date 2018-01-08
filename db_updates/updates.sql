@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS articles_updated CASCADE;
 DROP TABLE IF EXISTS experiments_updated CASCADE ;
 DROP TABLE IF EXISTS locations_updated CASCADE ;
 DROP TABLE IF EXISTS tags_updated CASCADE;
+DROP TABLE IF EXISTS votes CASCADE;
 
 CREATE TABLE articles_updated(
   uniqueid bigserial PRIMARY KEY,
@@ -39,13 +40,22 @@ CREATE TABLE locations_updated(
 );
 
 CREATE TABLE tags_updated(
-  'name' VARCHAR(20),
+  'name' VARCHAR(50),
   ontology text,
   agree INTEGER,
   disagree INTEGER,
   experimentID INTEGER,
   FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
   PRIMARY KEY('name',experimentID)
+);
+
+CREATE TABLE votes(
+  userid INTEGER,
+  'name' VARCHAR(50),
+  experimentID INTEGER,
+  vote BOOLEAN,
+  FOREIGN KEY (userid) REFERENCES users(userid),
+  PRIMARY KEY('userid','name','experimentID')
 );
 
 

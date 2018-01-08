@@ -52,8 +52,10 @@ CREATE TABLE tags_updated(
 
 
 
--- Constraint Generation
+                  -- Constraint Generation --
 ALTER TABLE articles_updated ADD CONSTRAINT uniqueness UNIQUE (pmid);
+
+                  -- Index Generation --
 CREATE INDEX pmid_lookup ON articles_updated USING HASH (pmid);
 CREATE INDEX experiment_lookup ON experiments_updated (articleId);
 CREATE INDEX coordinate_lookup ON locations_updated (experimentID);

@@ -75,7 +75,7 @@ class Articles_updated(BaseModel):
         db_table = 'articles_updated'
 
 class Experiments_updated(BaseModel):
-    experiment_id = peewee.PrimaryKeyField()
+    experiment_id = peewee.PrimaryKeyField(null=True) # Null allows auto-generation
     title = CharField(null=True)
     caption = CharField(null=True, db_column="markBadTable")
     mark_bad_table = CharField(null=True)
@@ -91,7 +91,7 @@ class Locations_updated(BaseModel):
     x = peewee.IntegerField()
     y = peewee.IntegerField()
     z = peewee.IntegerField()
-    z_score = peewee.IntegerField(db_column='zScore')
+    z_score = peewee.IntegerField(db_column='zScore',null=True)
     experiment_id = peewee.ForeignKeyField(
         Experiments_updated,
         to_field='experiment_id',

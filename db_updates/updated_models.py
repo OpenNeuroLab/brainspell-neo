@@ -4,9 +4,6 @@ import time
 from urllib.parse import urlparse
 
 import peewee
-import playhouse
-import psycopg2
-from peewee import CharField, DateTimeField, IntegerField
 from playhouse import signals
 from playhouse.postgres_ext import *
 
@@ -67,7 +64,7 @@ class Articles_updated(BaseModel):
     pmid = CharField(null=True, unique=True)
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
-    metadata = CharField(null=True)
+    metadata = CharField(null=True) # TODO: Break apart further
     # Removed experiments = CharField(null=True)
 
     class Meta:

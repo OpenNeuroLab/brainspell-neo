@@ -69,3 +69,8 @@ ALTER TABLE articles_updated ADD CONSTRAINT uniqueness UNIQUE (pmid);
 CREATE INDEX pmid_lookup ON articles_updated USING HASH (pmid);
 CREATE INDEX experiment_lookup ON experiments_updated (articleId);
 CREATE INDEX coordinate_lookup ON locations_updated (experimentID);
+
+-- Gin (Inverted) Indices for Full Text Search Optimization
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+--- Trigram based index
+CREATE INDEX article_lookup ON articles_updated USING gin (title gin_trgm_ops, abstract gin_trgm_ops);

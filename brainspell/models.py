@@ -100,7 +100,7 @@ class Log(BaseModel):
 
 class User(BaseModel):
     # TODO: change capitalization of this column for consistency
-    password = CharField(db_column='Password', null=True)
+    password = CharField(null=True)
     emailaddress = CharField(null=True)
     userid = peewee.PrimaryKeyField()
     username = CharField(null=True)

@@ -57,7 +57,9 @@ class BaseModel(signals.Model):
     class Meta:
         database = conn
 
+
 """ Updated models """
+
 
 class Articles_updated(BaseModel):
     uniqueid = peewee.PrimaryKeyField()
@@ -69,53 +71,63 @@ class Articles_updated(BaseModel):
     pmid = CharField(null=True, unique=True)
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
-    mesh_tags = JSONField(null=True,db_column='meshTags') # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT}]
+    # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT}]
+    mesh_tags = JSONField(null=True, db_column='meshTags')
     # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
     # Removed experiments = CharField(null=True)
 
     class Meta:
         db_table = 'articles_updated'
 
+
 class Experiments_updated(BaseModel):
-    experiment_id = peewee.PrimaryKeyField(null=True) # Null allows auto-generation
+    experiment_id = peewee.PrimaryKeyField(
+        null=True)  # Null allows auto-generation
     title = CharField(null=True)
     caption = CharField(null=True, db_column="markBadTable")
     mark_bad_table = CharField(null=True)
     article_id = ForeignKeyField(
         Articles_updated,
-        to_field = 'pmid',
+        to_field='pmid',
         db_column="articleId"
     )
+
     class Meta:
         db_table = "experiments_updated"
+
 
 class Locations_updated(BaseModel):
     x = peewee.IntegerField()
     y = peewee.IntegerField()
     z = peewee.IntegerField()
-    z_score = peewee.IntegerField(db_column='zScore',null=True)
+    z_score = peewee.IntegerField(db_column='zScore', null=True)
     experiment_id = peewee.ForeignKeyField(
         Experiments_updated,
         to_field='experiment_id',
         db_column='experimentID'
     )
+
     class Meta:
         db_table = "locations_updated"
-        primary_key = CompositeKey("x","y","z","experiment_id")
+        primary_key = CompositeKey("x", "y", "z", "experiment_id")
+
 
 class Tags_updated(BaseModel):
     name = peewee.CharField(null=True)
     ontology = peewee.CharField(null=True)
-    # TODO: Evaluate Agree and disagree are being kept here for rapid reads, though this will cause slower writes
+    # TODO: Evaluate Agree and disagree are being kept here for rapid reads,
+    # though this will cause slower writes
     agree = peewee.IntegerField(null=True)
     disagree = peewee.IntegerField(null=True)
     experiment_id = peewee.ForeignKeyField(
         Experiments_updated,
         to_field='experiment_id'
     )
+
     class Meta:
         db_table = 'tags_updated'
-        primary_key = CompositeKey("name","experiment_id")
+        primary_key = CompositeKey("name", "experiment_id")
+
 
 """
 Votes updated represents user votes on experiment specific fields
@@ -134,35 +146,34 @@ Our usage currently supports two kinds of voting:
         - Note that for this to work: if type == True, experiment_id must be NULL
 
 """
+
+
 class Votes_updated(BaseModel):
     userid = peewee.ForeignKeyField(
         User,
         to_field='userid'
     )
-    # An experiment vote on a key is uniqely identified by a name and experimentID
+    # An experiment vote on a key is uniqely identified by a name and
+    # experimentID
     name = peewee.CharField(null=True)
     experiment_id = peewee.IntegerField(null=True, db_column='experimentID')
     # An article vote on a key is uniqely identified by a name and article_id
-    article_id = peewee.IntegerField(db_column='articleID') # Not null
+    article_id = peewee.IntegerField(db_column='articleID')  # Not null
 
     # A boolean value represents up or down: True = Upvote, False = Downvote
     vote = peewee.BooleanField(null=True)
     # Type specifies what the vote actually indicates -> Experiment / Article
-    type  = peewee.BooleanField() # True implies Article, False implies Experiment (For space considerations)
-
+    # True implies Article, False implies Experiment (For space considerations)
+    type = peewee.BooleanField()
 
     class Meta:
         db_table = 'votes'
-        constraints = [SQL("UNIQUE('name','experiment_id','article_id','userid'")]
+        constraints = [
+            SQL("UNIQUE('name','experiment_id','article_id','userid'")]
         primary_key = False
 
 
-
-
-
-
 """  End Article Table Update  """
-
 
 
 class User(BaseModel):
@@ -176,9 +187,9 @@ class User(BaseModel):
         db_table = 'users'
 
 
-
-
 """ Basically Obsolete Tables at this point """
+
+
 class Log(BaseModel):
     data = CharField(db_column='Data', null=True)
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
@@ -190,7 +201,6 @@ class Log(BaseModel):
 
     class Meta:
         db_table = 'log'
-
 
 
 class Concepts(BaseModel):

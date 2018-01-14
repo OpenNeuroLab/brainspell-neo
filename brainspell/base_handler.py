@@ -350,7 +350,7 @@ class AbstractEndpoint(metaclass=ABCMeta):
     NO_PROCESS_FUNCTION = "The class {0} does not override the \"process\" function. Please reimplement the class to conform to this specification."
     NO_PARAMETERS_SPECIFIED = "The class {0} does not specify its parameters. Please reimplement the class to conform to this specification."
 
-    def register(subclass):
+    def register(self,subclass):
         """
         Enforce the API specification described in BaseHandler.
         Called by the "brainspell" module on all API endpoints.

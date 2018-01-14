@@ -17,7 +17,7 @@ CREATE TABLE articles_updated(
    pmid VARCHAR(64),
    doi VARCHAR(128),
    neurosynthid VARCHAR(64),
-   metadata text
+   meshTags jsonb
 );
 
 CREATE TABLE experiments_updated(
@@ -53,9 +53,11 @@ CREATE TABLE votes(
   userid INTEGER,
   'name' VARCHAR(50),
   experimentID INTEGER,
+  articleID INTEGER,
   vote BOOLEAN,
+  'type' BOOLEAN,
   FOREIGN KEY (userid) REFERENCES users(userid),
-  PRIMARY KEY('userid','name','experimentID')
+  UNIQUE('userid','name','experimentID')
 );
 
 
@@ -74,3 +76,8 @@ CREATE INDEX coordinate_lookup ON locations_updated (experimentID);
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 --- Trigram based index
 CREATE INDEX article_lookup ON articles_updated USING gin (title gin_trgm_ops, abstract gin_trgm_ops);
+
+
+
+-- Our user Collection should be using the Postgres JSON type
+ALTER TABLE "users" ALTER COLUMN collections TYPE JSON USING collections::JSON;

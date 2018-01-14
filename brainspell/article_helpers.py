@@ -5,7 +5,7 @@ import urllib.request
 
 import Bio
 from Bio import Entrez, Medline
-from Bio.Entrez import efetch, esearch, parse, read
+from Bio.Entrez import efetch
 
 from models import *
 from search_helpers import get_article_object
@@ -13,6 +13,7 @@ from search_helpers import get_article_object
 Entrez.email = "neel@berkeley.edu"
 
 # BEGIN: article helper functions
+# TODO: update this file for model updates
 
 
 def update_authors(pmid, authors):
@@ -199,8 +200,8 @@ def add_pmid_article_to_database(article_id):
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
     article_info["experiments"] = ""
-    article["metadata"] = str({"meshHeadings": []})
-    article["reference"] = None
+    article_info["metadata"] = str({"meshHeadings": []})
+    article_info["reference"] = None
     identity = ""
     try:
         article_info["experiments"] = {

@@ -1,10 +1,9 @@
 # functions related to search
-
 import re
 from functools import reduce
 
 from models import *
-
+# TODO: update this file for model updates
 
 def random_search():
     """ Return five random articles from our database. """
@@ -40,7 +39,7 @@ def parse_helper(query):
     if all.search(query):
         columns.extend([Articles.abstract,
                         Articles.authors, Articles.doi,
-                        Articles.experiments, Articles.metadata,
+                        Articles.metadata,
                         Articles.neurosynthid, Articles.pmid,
                         Articles.reference, Articles.title])
     if mesh.search(query):

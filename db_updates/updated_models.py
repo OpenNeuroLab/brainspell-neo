@@ -7,6 +7,11 @@ import peewee
 from playhouse import signals
 from playhouse.postgres_ext import *
 
+"""
+Note naming conventions based on _updated tag are temporary
+and indicate updated tables
+"""
+
 # in case no DATABASE_URL is specified, default to Heroku
 url = urlparse(
     "postgres://yaddqlhbmweddl:SxBfLvKcO9Vj2b3tcFLYvLcv9m@ec2-54-243-47-46.compute-1.amazonaws.com:5432/d520svb6jevb35")
@@ -64,7 +69,8 @@ class Articles_updated(BaseModel):
     pmid = CharField(null=True, unique=True)
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
-    metadata = CharField(null=True) # TODO: Break apart further
+    mesh_tags = JSONField(null=True,db_column='meshTags') # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT}]
+    # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
     # Removed experiments = CharField(null=True)
 
     class Meta:
@@ -77,7 +83,7 @@ class Experiments_updated(BaseModel):
     mark_bad_table = CharField(null=True)
     article_id = ForeignKeyField(
         Articles_updated,
-        to_field='pmid',
+        to_field = 'pmid',
         db_column="articleId"
     )
     class Meta:
@@ -111,30 +117,57 @@ class Tags_updated(BaseModel):
         db_table = 'tags_updated'
         primary_key = CompositeKey("name","experiment_id")
 
+"""
+Votes updated represents user votes on experiment specific fields
 
-class Votes(BaseModel):
+Our usage currently supports two kinds of voting:
+    Experiment based voting
+        - This kind of voting requires a Composite Key to userid, name, and experimentID
+         - A vote on an experiment is uniquely identified by:
+            - The user voting: userid
+            - The tag the user votes on: name
+            - The experiment that contains the tag: experimentID
+    Article based voting
+        - This kind of voting requires a userid, name, and articleID rather than an experiment ID
+        - Because all experiments are contained within an Article we add an additional parameter for articles
+    There exists a uniqueness constraint to prevent one person from voting on the same Article tag or experiment tag multiple times
+        - Note that for this to work: if type == True, experiment_id must be NULL
+
+"""
+class Votes_updated(BaseModel):
     userid = peewee.ForeignKeyField(
         User,
         to_field='userid'
     )
-    # A vote on a key is uniqely identified by a name and experiment
+    # An experiment vote on a key is uniqely identified by a name and experimentID
     name = peewee.CharField(null=True)
-    experiment_id = peewee.IntegerField(null=True,db_column='experimentID')
+    experiment_id = peewee.IntegerField(null=True, db_column='experimentID')
+    # An article vote on a key is uniqely identified by a name and article_id
+    article_id = peewee.IntegerField(db_column='articleID') # Not null
+
     # A boolean value represents up or down: True = Upvote, False = Downvote
     vote = peewee.BooleanField(null=True)
+    # Type specifies what the vote actually indicates -> Experiment / Article
+    type  = peewee.BooleanField() # True implies Article, False implies Experiment (For space considerations)
+
 
     class Meta:
         db_table = 'votes'
-        primary_key = CompositeKey("userid","name","experiment_id")
+        constraints = [SQL("UNIQUE('name','experiment_id','article_id','userid'")]
+        primary_key = False
 
 
-""" End Article Table Update"""
+
+
+
+
+"""  End Article Table Update  """
 
 
 
 class User(BaseModel):
     userid = peewee.PrimaryKeyField()
-    password = CharField(db_column='Password', null=True)
+    password = CharField(null=True)
     emailaddress = CharField(null=True)
     username = CharField(null=True)
     collections = CharField(null=True)
@@ -169,4 +202,3 @@ class Concepts(BaseModel):
 
     class Meta:
         db_table = 'concepts'
-

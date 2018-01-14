@@ -6,7 +6,6 @@ from torngithub import json_decode, json_encode
 
 from models import *
 
-
 def get_github_username_from_api_key(api_key):
     """ Fetch the GitHub username corresponding to a given API key. """
 

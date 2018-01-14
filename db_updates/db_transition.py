@@ -22,20 +22,23 @@ def article_transition():
         add_remaining(article.pmid,article.experiments)
 
 def add_remaining(article_reference,experiments_string):
+    if not experiments_string:
+        return
     experiments = json.loads(experiments_string)
     for experiment in experiments:
-        q = Experiments_updated.select(fn.Max(Experiments_updated.experiment_id))
-        prev_max = next(q.execute())
-        prev_max = prev_max.experiment_id
-        updated_models.Experiments_updated.create(
-            experiment_id = prev_max + 1,
-            title = experiment['title'],
-            caption = experiment['caption'],
-            mark_bad_table = json.dumps(experiment['markBadTable']), # TODO: This field is still a JSON string
-            article_id = article_reference
-        )
-        add_tags(prev_max + 1,experiment['tags']) # Prev_max + 1 acts as experiment reference for foreign keys
-        add_locations(prev_max + 1, experiment['locations'])
+        if experiment:
+            q = updated_models.Experiments_updated.select(fn.Max(updated_models.Experiments_updated.experiment_id))
+            prev_max = next(q.execute())
+            prev_max = prev_max.experiment_id
+            updated_models.Experiments_updated.create(
+                experiment_id = prev_max + 1,
+                title = experiment['title'],
+                caption = experiment['caption'],
+                mark_bad_table = json.dumps(experiment['markBadTable']), # TODO: This field is still a JSON string
+                article_id = article_reference
+            )
+            add_tags(prev_max + 1,experiment['tags']) # Prev_max + 1 acts as experiment reference for foreign keys
+            add_locations(prev_max + 1, experiment['locations'])
 
 
 def add_tags(experiment_reference, tags):

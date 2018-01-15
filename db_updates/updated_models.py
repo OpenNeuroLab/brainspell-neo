@@ -2,7 +2,6 @@
 import os
 import time
 from urllib.parse import urlparse
-
 import peewee
 from playhouse import signals
 from playhouse.postgres_ext import *
@@ -72,7 +71,7 @@ class Articles_updated(BaseModel):
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
     # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT}]
-    mesh_tags = JSONField(null=True, db_column='meshTags')
+    mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
     # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
     # Removed experiments = CharField(null=True)
 
@@ -91,7 +90,10 @@ class Experiments_updated(BaseModel):
         to_field='pmid',
         db_column="articleId"
     )
-
+    num_subjects = peewee.IntegerField(null=True)
+    space = peewee.CharField(null=True)
+    # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
+    mesh_tags = BinaryJSONField(null=True,db_column='meshTags')
     class Meta:
         db_table = "experiments_updated"
 
@@ -107,26 +109,12 @@ class Locations_updated(BaseModel):
         db_column='experimentID'
     )
 
+
     class Meta:
         db_table = "locations_updated"
         primary_key = CompositeKey("x", "y", "z", "experiment_id")
 
 
-class Tags_updated(BaseModel):
-    name = peewee.CharField(null=True)
-    ontology = peewee.CharField(null=True)
-    # TODO: Evaluate Agree and disagree are being kept here for rapid reads,
-    # though this will cause slower writes
-    agree = peewee.IntegerField(null=True)
-    disagree = peewee.IntegerField(null=True)
-    experiment_id = peewee.ForeignKeyField(
-        Experiments_updated,
-        to_field='experiment_id'
-    )
-
-    class Meta:
-        db_table = 'tags_updated'
-        primary_key = CompositeKey("name", "experiment_id")
 
 
 """

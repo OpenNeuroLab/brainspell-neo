@@ -26,6 +26,9 @@ CREATE TABLE experiments_updated(
   caption text,
   markBadTable text,
   articleId VARCHAR(64),
+  numSubjects INTEGER,
+  'space' VARCHAR(10),
+  meshTags jsonb,
   FOREIGN KEY (articleId) REFERENCES articles_updated(pmid)
 );
 
@@ -73,9 +76,8 @@ CREATE INDEX experiment_lookup ON experiments_updated (articleId);
 CREATE INDEX coordinate_lookup ON locations_updated (experimentID);
 
 -- Gin (Inverted) Indices for Full Text Search Optimization
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
---- Trigram based index
-CREATE INDEX article_lookup ON articles_updated USING gin (title gin_trgm_ops, abstract gin_trgm_ops);
+CREATE INDEX abstract_text_search ON articles_updated USING gin(to_tsvector(abstract));
+
 
 
 

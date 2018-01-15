@@ -21,7 +21,7 @@ CREATE TABLE experiments_updated(
   experiment_id bigserial PRIMARY KEY,
   title text,
   caption text,
-  markBadTable text,
+  markBadTable jsonb,
   articleId VARCHAR(64),
   numSubjects INTEGER,
   "space" VARCHAR(10),
@@ -39,15 +39,7 @@ CREATE TABLE locations_updated(
   PRIMARY KEY(x,y,z,experimentID)
 );
 
-CREATE TABLE tags_updated(
-  "name" VARCHAR(50),
-  ontology text,
-  agree INTEGER,
-  disagree INTEGER,
-  experimentID INTEGER,
-  FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
-  PRIMARY KEY("name",experimentID)
-);
+
 
 CREATE TABLE votes(
   userid INTEGER,

@@ -70,7 +70,7 @@ class Articles_updated(BaseModel):
     pmid = CharField(null=True, unique=True)
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
-    # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT}]
+    # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT},{...},...]
     mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
     # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
     # Removed experiments = CharField(null=True)
@@ -80,11 +80,10 @@ class Articles_updated(BaseModel):
 
 
 class Experiments_updated(BaseModel):
-    experiment_id = peewee.PrimaryKeyField(
-        null=True)  # Null allows auto-generation
+    experiment_id = peewee.PrimaryKeyField(null=True)
     title = CharField(null=True)
-    caption = CharField(null=True, db_column="markBadTable")
-    mark_bad_table = CharField(null=True)
+    caption = CharField(null=True)
+    mark_bad_table = BinaryJSONField(null=True,db_column="markBadTable")
     article_id = ForeignKeyField(
         Articles_updated,
         to_field='pmid',

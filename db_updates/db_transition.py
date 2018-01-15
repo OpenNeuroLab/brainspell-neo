@@ -3,61 +3,118 @@ sys.path.append("../brainspell")
 import models
 import updated_models
 import json
+from peewee import *
 
 
 def article_transition():
-    q = models.Articles.select().execute()
+    q = models.Articles.select().execute() # load entire DB into memory
     for article in q:
-        updated_models.Articles_updated.create(
-            uniqueid=article.uniqueid,
-            timestamp=article.timestamp,
-            authors=article.authors,
-            title=article.title,
-            abstract=article.abstract,
-            reference=article.reference,
-            pmid=article.pmid,
-            doi=article.doi,
-            neurosynthid=article.neurosynthid,
-            metadata=article.metadata
-        )
-        add_remaining(article.pmid, article.experiments)
+        try:
+            space, subjects, mesh_heading_json = get_mesh_tags(article.metadata)
+            updated_models.Articles_updated.create(
+                uniqueid=article.uniqueid,
+                timestamp=article.timestamp,
+                authors=article.authors,
+                title=article.title,
+                abstract=article.abstract,
+                reference=article.reference,
+                pmid=article.pmid,
+                doi=article.doi,
+                neurosynthid=article.neurosynthid,
+                mesh_tags = mesh_heading_json
+            )
+            add_remaining(article.pmid, article.experiments,space,subjects)
+        except:
+            return "Execution broke on article uniqueid {0}".format(article.uniqueid)
 
 
-def add_remaining(article_reference, experiments_string):
+
+""" Example metadata """
+k = {
+        "space":"MNI",
+        "meshHeadings":[
+            {"name":"Adolescent","majorTopic":"N"},
+            {"name":"Adult","majorTopic":"N"},
+            {"name":"Brain Mapping","majorTopic":"N"},
+            {"name":"Deception","majorTopic":"Y","agree":1,"disagree":0},
+            {"name":"Dissociative Disorders","majorTopic":"N","agree":0,"disagree":1},
+            {"name":"Evoked Potentials","majorTopic":"N"},
+            {"name":"Gyrus Cinguli","majorTopic":"N","agree":1,"disagree":0},
+            {"name":"Humans","majorTopic":"N"},
+            {"name":"Lie Detection","majorTopic":"N"},
+            {"name":"Male","majorTopic":"N"},
+            {"name":"Prefrontal Cortex","majorTopic":"N","agree":1,"disagree":0}
+        ],
+        "nsubjects":["14"],
+        "stereo":{"Talairach":0,"MNI":1},
+        "comments":[{"comment":"Analyses were done with SPM2 using the MNI atlas as stereotaxic space","user":"roberto","time":"1388503998881"},{"comment":"The last row of the table is missing: xyz={10,56,24}","user":"roberto","time":"1388504110130"},{"comment":"Added the last row","user":"roberto","time":"1415888656606"}]
+    }
+
+
+def get_mesh_tags(metadata_string):
+    metadata = json.loads(metadata_string)
+    if metadata.get("space"):
+        space = metadata['space']
+    else:
+        space = None
+    if metadata.get('nsubjects') and len(metadata.get('nsubjects')) > 0:
+        subjects = int(metadata['nsubjects'][0])
+    else:
+        subjects = None
+    output = []
+    if metadata.get("meshHeadings"):
+        for concept in metadata["meshHeadings"]:
+            val = {}
+            val["name"] = concept['name']
+            if "agree" in concept:
+                val['agree'] = concept['agree']
+                val['disagree'] = concept['disagree']
+            else:
+                val['agree'] = 0
+                val['disagree'] = 0
+            output.append(val)
+    return (space,subjects,output)
+
+
+
+def add_remaining(article_reference, experiments_string,space,num_subjects):
     if not experiments_string:
         return
     experiments = json.loads(experiments_string)
     for experiment in experiments:
         if experiment:
             q = updated_models.Experiments_updated.select(
-                fn.Max(updated_models.Experiments_updated.experiment_id))
-            prev_max = next(q.execute())
-            prev_max = prev_max.experiment_id
+                fn.Max(updated_models.Experiments_updated.experiment_id)).execute()
+            if q.count == 0:
+                prev_max = -1
+            else:
+                prev_max = next(q).experiment_id
             updated_models.Experiments_updated.create(
                 experiment_id=prev_max + 1,
-                title=experiment['title'],
-                caption=experiment['caption'],
+                title=experiment.get('title'),
+                caption=experiment.get('caption'),
                 # TODO: This field is still a JSON string
-                mark_bad_table=json.dumps(experiment['markBadTable']),
-                article_id=article_reference
+                mark_bad_table=experiment.get('markBadTable'),
+                num_subjects = num_subjects,
+                space = space,
+                article_id=article_reference,
+                mesh_tags = get_experiment_mesh_tags(experiment['tags'])
             )
             # Prev_max + 1 acts as experiment reference for foreign keys
-            add_tags(prev_max + 1, experiment['tags'])
             add_locations(prev_max + 1, experiment['locations'])
 
-
-def add_tags(experiment_reference, tags):
+def get_experiment_mesh_tags(tags):
+    output = []
     if not tags:
-        return
+        return None
     for tag in tags:
-        if tag:
-            updated_models.Tags_updated.create(
-                name=tag['name'],
-                ontology=tag['ontology'],
-                agree=tag['agree'],
-                disagree=tag['disagree'],
-                experiment_id=experiment_reference
-            )
+        vals = {}
+        vals['name'] = tag.get("name")
+        if 'agree' in tag:
+            vals['agree'] = tag['agree']
+            vals['disagree'] = tag['disagree']
+        output.append(vals)
+    return output
 
 
 def add_locations(experiment_reference, locations_array):

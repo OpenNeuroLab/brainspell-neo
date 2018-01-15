@@ -7,10 +7,11 @@ from peewee import *
 
 
 def article_transition():
-    q = models.Articles.select().execute() # load entire DB into memory
+    q = models.Articles.select().execute()  # load entire DB into memory
     for article in q:
         try:
-            space, subjects, mesh_heading_json = get_mesh_tags(article.metadata)
+            space, subjects, mesh_heading_json = get_mesh_tags(
+                article.metadata)
             updated_models.Articles_updated.create(
                 uniqueid=article.uniqueid,
                 timestamp=article.timestamp,
@@ -21,34 +22,34 @@ def article_transition():
                 pmid=article.pmid,
                 doi=article.doi,
                 neurosynthid=article.neurosynthid,
-                mesh_tags = mesh_heading_json
+                mesh_tags=mesh_heading_json
             )
-            add_remaining(article.pmid, article.experiments,space,subjects)
-        except:
-            return "Execution broke on article uniqueid {0}".format(article.uniqueid)
-
+            add_remaining(article.pmid, article.experiments, space, subjects)
+        except BaseException:
+            return "Execution broke on article uniqueid {0}".format(
+                article.uniqueid)
 
 
 """ Example metadata """
 k = {
-        "space":"MNI",
-        "meshHeadings":[
-            {"name":"Adolescent","majorTopic":"N"},
-            {"name":"Adult","majorTopic":"N"},
-            {"name":"Brain Mapping","majorTopic":"N"},
-            {"name":"Deception","majorTopic":"Y","agree":1,"disagree":0},
-            {"name":"Dissociative Disorders","majorTopic":"N","agree":0,"disagree":1},
-            {"name":"Evoked Potentials","majorTopic":"N"},
-            {"name":"Gyrus Cinguli","majorTopic":"N","agree":1,"disagree":0},
-            {"name":"Humans","majorTopic":"N"},
-            {"name":"Lie Detection","majorTopic":"N"},
-            {"name":"Male","majorTopic":"N"},
-            {"name":"Prefrontal Cortex","majorTopic":"N","agree":1,"disagree":0}
-        ],
-        "nsubjects":["14"],
-        "stereo":{"Talairach":0,"MNI":1},
-        "comments":[{"comment":"Analyses were done with SPM2 using the MNI atlas as stereotaxic space","user":"roberto","time":"1388503998881"},{"comment":"The last row of the table is missing: xyz={10,56,24}","user":"roberto","time":"1388504110130"},{"comment":"Added the last row","user":"roberto","time":"1415888656606"}]
-    }
+    "space": "MNI", "meshHeadings": [
+        {
+            "name": "Adolescent", "majorTopic": "N"}, {
+                "name": "Adult", "majorTopic": "N"}, {
+                    "name": "Brain Mapping", "majorTopic": "N"}, {
+                        "name": "Deception", "majorTopic": "Y", "agree": 1, "disagree": 0}, {
+                            "name": "Dissociative Disorders", "majorTopic": "N", "agree": 0, "disagree": 1}, {
+                                "name": "Evoked Potentials", "majorTopic": "N"}, {
+                                    "name": "Gyrus Cinguli", "majorTopic": "N", "agree": 1, "disagree": 0}, {
+                                        "name": "Humans", "majorTopic": "N"}, {
+                                            "name": "Lie Detection", "majorTopic": "N"}, {
+                                                "name": "Male", "majorTopic": "N"}, {
+                                                    "name": "Prefrontal Cortex", "majorTopic": "N", "agree": 1, "disagree": 0}], "nsubjects": ["14"], "stereo": {
+                                                        "Talairach": 0, "MNI": 1}, "comments": [
+                                                            {
+                                                                "comment": "Analyses were done with SPM2 using the MNI atlas as stereotaxic space", "user": "roberto", "time": "1388503998881"}, {
+                                                                    "comment": "The last row of the table is missing: xyz={10,56,24}", "user": "roberto", "time": "1388504110130"}, {
+                                                                        "comment": "Added the last row", "user": "roberto", "time": "1415888656606"}]}
 
 
 def get_mesh_tags(metadata_string):
@@ -73,11 +74,10 @@ def get_mesh_tags(metadata_string):
                 val['agree'] = 0
                 val['disagree'] = 0
             output.append(val)
-    return (space,subjects,output)
+    return (space, subjects, output)
 
 
-
-def add_remaining(article_reference, experiments_string,space,num_subjects):
+def add_remaining(article_reference, experiments_string, space, num_subjects):
     if not experiments_string:
         return
     experiments = json.loads(experiments_string)
@@ -95,13 +95,14 @@ def add_remaining(article_reference, experiments_string,space,num_subjects):
                 caption=experiment.get('caption'),
                 # TODO: This field is still a JSON string
                 mark_bad_table=experiment.get('markBadTable'),
-                num_subjects = num_subjects,
-                space = space,
+                num_subjects=num_subjects,
+                space=space,
                 article_id=article_reference,
-                mesh_tags = get_experiment_mesh_tags(experiment['tags'])
+                mesh_tags=get_experiment_mesh_tags(experiment['tags'])
             )
             # Prev_max + 1 acts as experiment reference for foreign keys
             add_locations(prev_max + 1, experiment['locations'])
+
 
 def get_experiment_mesh_tags(tags):
     output = []

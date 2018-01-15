@@ -5,6 +5,7 @@ from functools import reduce
 from models import *
 # TODO: update this file for model updates
 
+
 def random_search():
     """ Return five random articles from our database. """
     search = Articles.select(

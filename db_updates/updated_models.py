@@ -83,7 +83,7 @@ class Experiments_updated(BaseModel):
     experiment_id = peewee.PrimaryKeyField(null=True)
     title = CharField(null=True)
     caption = CharField(null=True)
-    mark_bad_table = BinaryJSONField(null=True,db_column="markBadTable")
+    mark_bad_table = BinaryJSONField(null=True, db_column="markBadTable")
     article_id = ForeignKeyField(
         Articles_updated,
         to_field='pmid',
@@ -92,7 +92,8 @@ class Experiments_updated(BaseModel):
     num_subjects = peewee.IntegerField(null=True)
     space = peewee.CharField(null=True)
     # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
-    mesh_tags = BinaryJSONField(null=True,db_column='meshTags')
+    mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
+
     class Meta:
         db_table = "experiments_updated"
 
@@ -108,12 +109,9 @@ class Locations_updated(BaseModel):
         db_column='experimentID'
     )
 
-
     class Meta:
         db_table = "locations_updated"
         primary_key = CompositeKey("x", "y", "z", "experiment_id")
-
-
 
 
 """

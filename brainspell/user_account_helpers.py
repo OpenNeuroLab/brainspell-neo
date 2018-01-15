@@ -5,7 +5,9 @@ import hashlib
 from torngithub import json_decode
 
 from models import *
-# TODO: Updates to this file rely on removing json_encoding from the features using postgres Collection fields
+# TODO: Updates to this file rely on removing json_encoding from the
+# features using postgres Collection fields
+
 
 def get_github_username_from_api_key(api_key):
     """ Fetch the GitHub username corresponding to a given API key. """

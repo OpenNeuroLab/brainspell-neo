@@ -1,6 +1,3 @@
--- noinspection SqlNoDataSourceInspectionForFile
--- noinspection SqlDialectInspectionForFile
-
 DROP TABLE IF EXISTS articles_updated CASCADE;
 DROP TABLE IF EXISTS experiments_updated CASCADE ;
 DROP TABLE IF EXISTS locations_updated CASCADE ;
@@ -9,7 +6,7 @@ DROP TABLE IF EXISTS votes CASCADE;
 
 CREATE TABLE articles_updated(
   uniqueid bigserial PRIMARY KEY,
-  'timestamp' TIMESTAMP,
+  "timestamp" TIMESTAMP,
    authors text,
    title text,
    abstract text,
@@ -27,7 +24,7 @@ CREATE TABLE experiments_updated(
   markBadTable text,
   articleId VARCHAR(64),
   numSubjects INTEGER,
-  'space' VARCHAR(10),
+  "space" VARCHAR(10),
   meshTags jsonb,
   FOREIGN KEY (articleId) REFERENCES articles_updated(pmid)
 );
@@ -43,24 +40,24 @@ CREATE TABLE locations_updated(
 );
 
 CREATE TABLE tags_updated(
-  'name' VARCHAR(50),
+  "name" VARCHAR(50),
   ontology text,
   agree INTEGER,
   disagree INTEGER,
   experimentID INTEGER,
   FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
-  PRIMARY KEY('name',experimentID)
+  PRIMARY KEY("name",experimentID)
 );
 
 CREATE TABLE votes(
   userid INTEGER,
-  'name' VARCHAR(50),
+  "name" VARCHAR(50),
   experimentID INTEGER,
   articleID INTEGER,
   vote BOOLEAN,
-  'type' BOOLEAN,
+  "type" BOOLEAN,
   FOREIGN KEY (userid) REFERENCES users(userid),
-  UNIQUE('userid','name','experimentID')
+  UNIQUE("userid","name","experimentID")
 );
 
 

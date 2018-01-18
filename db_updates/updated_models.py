@@ -134,16 +134,16 @@ Our usage currently supports two kinds of voting:
 
 
 class Votes_updated(BaseModel):
-    userid = peewee.ForeignKeyField(
+    username = peewee.ForeignKeyField(
         User,
-        to_field='userid'
+        to_field='username'
     )
     # An experiment vote on a key is uniqely identified by a name and
     # experimentID
     name = peewee.CharField(null=True)
     experiment_id = peewee.IntegerField(null=True, db_column='experimentID')
     # An article vote on a key is uniqely identified by a name and article_id
-    article_id = peewee.IntegerField(db_column='articleID')  # Not null
+    article_id = peewee.IntegerField(db_column='articleID')  # Refernces PMID
 
     # A boolean value represents up or down: True = Upvote, False = Downvote
     vote = peewee.BooleanField(null=True)
@@ -165,7 +165,7 @@ class User(BaseModel):
     userid = peewee.PrimaryKeyField()
     password = CharField(null=True)
     emailaddress = CharField(null=True)
-    username = CharField(null=True)
+    username = CharField(null=True,unique=True)
     collections = CharField(null=True)
 
     class Meta:

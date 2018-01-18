@@ -40,7 +40,7 @@ def parse_helper(query):
     if all.search(query):
         columns.extend([Articles.abstract,
                         Articles.authors, Articles.doi,
-                        Articles.metadata,
+                        Articles.mesh_tags,
                         Articles.neurosynthid, Articles.pmid,
                         Articles.reference, Articles.title])
     if mesh.search(query):

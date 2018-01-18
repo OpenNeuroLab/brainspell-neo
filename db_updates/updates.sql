@@ -42,13 +42,13 @@ CREATE TABLE locations_updated(
 
 
 CREATE TABLE votes(
-  userid INTEGER,
+  username VARCHAR(50),
   "name" VARCHAR(50),
   experimentID INTEGER,
   articleID INTEGER,
   vote BOOLEAN,
   "type" BOOLEAN,
-  FOREIGN KEY (userid) REFERENCES users(userid),
+  FOREIGN KEY (userid) REFERENCES users(username),
   UNIQUE("userid","name","experimentID")
 );
 
@@ -58,6 +58,7 @@ CREATE TABLE votes(
 
                   -- Constraint Generation --
 ALTER TABLE articles_updated ADD CONSTRAINT uniqueness UNIQUE (pmid);
+ALTER TABLE users ADD CONSTRAINT uniqueness UNIQUE (username);
 
                   -- Index Generation --
 CREATE INDEX pmid_lookup ON articles_updated USING HASH (pmid);

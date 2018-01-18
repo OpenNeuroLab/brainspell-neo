@@ -68,22 +68,55 @@ def update_vote_in_struct(struct, tag_name, username, direction, label_name):
 
 def toggle_vote(pmid, topic, username, direction):
     """ Toggle a user's vote on an article tag. """
+    """ Updated to reflect new voting structures """
+    direction = True if direction == "up" else False
 
-    fullArticle = next(get_article_object(pmid))
+    """ Ideally this is how the vote updates should be handled,
+    however there are issues in setting the agree, disagree values of the
+    topic db field if the previous vote state was unknown
 
-    metadata = eval(fullArticle.metadata)
 
-    update_vote_in_struct(
-        metadata['meshHeadings'],
-        topic,
-        username,
-        direction,
-        "name")
+    query = Votes.insert(name=topic,username=username,
+                         article_id=pmid,vote=vote,type=True).on_conflict(
+        conflict_target = (Votes.name,Votes.username,Votes.article_id),
+        preserve=(Votes.name,Votes.username,Votes.article_id),
+        update={Votes.vote: direction}
+    ).returning(Votes)
 
-    query = Articles.update(
-        metadata=metadata).where(
-        Articles.pmid == pmid)
-    query.execute()
+
+    """
+    target = Votes.select().where((Votes.name==topic) &
+                                  (Votes.username == username) &
+                                  (Votes.article_id == pmid)).execute()
+    if target.count == 0:
+        Votes.insert(username=username,name=topic,article_id=pmid,vote=direction,type=True)
+        if direction: # Increase number of agreements
+            Articles.update()
+
+    else:
+        target = next(target)
+        if target.vote == direction: # Remove the vote (constitutes a double click)
+            Votes.delete().where((Votes.username==username) &
+                                 (Votes.name == topic) &
+                                 (Votes.article_id == pmid)).execute()
+            # Remove the vote from the agree/disagree fields of Articles Mesh tags
+            if direction: # If vote is an agreement, decrement the agreement field
+                Articles.update()
+
+        else:
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def vote_stereotaxic_space(pmid, space, username):

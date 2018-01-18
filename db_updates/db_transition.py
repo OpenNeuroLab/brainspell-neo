@@ -30,28 +30,6 @@ def article_transition():
                 article.uniqueid)
 
 
-""" Example metadata """
-k = {
-    "space": "MNI", "meshHeadings": [
-        {
-            "name": "Adolescent", "majorTopic": "N"}, {
-                "name": "Adult", "majorTopic": "N"}, {
-                    "name": "Brain Mapping", "majorTopic": "N"}, {
-                        "name": "Deception", "majorTopic": "Y", "agree": 1, "disagree": 0}, {
-                            "name": "Dissociative Disorders", "majorTopic": "N", "agree": 0, "disagree": 1}, {
-                                "name": "Evoked Potentials", "majorTopic": "N"}, {
-                                    "name": "Gyrus Cinguli", "majorTopic": "N", "agree": 1, "disagree": 0}, {
-                                        "name": "Humans", "majorTopic": "N"}, {
-                                            "name": "Lie Detection", "majorTopic": "N"}, {
-                                                "name": "Male", "majorTopic": "N"}, {
-                                                    "name": "Prefrontal Cortex", "majorTopic": "N", "agree": 1, "disagree": 0}], "nsubjects": ["14"], "stereo": {
-                                                        "Talairach": 0, "MNI": 1}, "comments": [
-                                                            {
-                                                                "comment": "Analyses were done with SPM2 using the MNI atlas as stereotaxic space", "user": "roberto", "time": "1388503998881"}, {
-                                                                    "comment": "The last row of the table is missing: xyz={10,56,24}", "user": "roberto", "time": "1388504110130"}, {
-                                                                        "comment": "Added the last row", "user": "roberto", "time": "1415888656606"}]}
-
-
 def get_mesh_tags(metadata_string):
     metadata = json.loads(metadata_string)
     if metadata.get("space"):

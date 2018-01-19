@@ -39,6 +39,17 @@ CREATE TABLE locations_updated(
   PRIMARY KEY(x,y,z,experimentID)
 );
 
+CREATE TABLE tags_updated(
+  tag_name VARCHAR(100),
+  agree INTEGER,
+  disagree INTEGER,
+  articleId VARCHAR(64),
+  experimentId INTEGER,
+  FOREIGN KEY (articleId) REFERENCES articles_updated(pmid),
+  FOREIGN KEY (experimentId) REFERENCES experiments_updated(experiment_id),
+  -- Note null experiment Reference if not defined
+  UNIQUE(tag_name,articleId,experimentId)
+);
 
 
 CREATE TABLE votes(
@@ -48,8 +59,8 @@ CREATE TABLE votes(
   articleID INTEGER,
   vote BOOLEAN,
   "type" BOOLEAN,
-  FOREIGN KEY (userid) REFERENCES users(username),
-  UNIQUE("userid","name","experimentID")
+  FOREIGN KEY (username) REFERENCES users(username),
+  UNIQUE("username","name","experimentID")
 );
 
 

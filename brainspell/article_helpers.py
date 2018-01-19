@@ -11,6 +11,9 @@ from models import *
 from search_helpers import get_article_object
 
 Entrez.email = "neel@berkeley.edu"
+import Votes
+import Tags
+
 
 # BEGIN: article helper functions
 # TODO: update this file for model updates
@@ -89,11 +92,24 @@ def toggle_vote(pmid, topic, username, direction):
                                   (Votes.username == username) &
                                   (Votes.article_id == pmid)).execute()
     if target.count == 0:
-        Votes.insert(username=username,name=topic,article_id=pmid,vote=direction,type=True)
+        Votes.insert(username=username,
+                     name=topic,
+                     article_id=pmid,
+                     vote=direction,
+                     type=True)
         if direction: # Increase number of agreements
-            Articles.update()
-
-    else:
+            Tags.update(agree = Tags.agree + 1)\
+                .where((Tags.tag_name == topic) &
+                       (Tags.article_id == pmid) &
+                       (Tags.experiment_id == None)
+                       ).execute()
+        else:
+            Tags.update(disagree = Tags.disagree + 1).\
+                where((Tags.tag_name == topic)
+                      & (Tags.article_id == pmid)
+                      & (Tags.experiment_id == None)
+                      ).execute()
+    elif target.count > 0:
         target = next(target)
         if target.vote == direction: # Remove the vote (constitutes a double click)
             Votes.delete().where((Votes.username==username) &
@@ -101,22 +117,32 @@ def toggle_vote(pmid, topic, username, direction):
                                  (Votes.article_id == pmid)).execute()
             # Remove the vote from the agree/disagree fields of Articles Mesh tags
             if direction: # If vote is an agreement, decrement the agreement field
-                Articles.update()
-
+                Tags.update(agree = Tags.agree - 1).where((Tags.tag_name == topic)
+                                                          & (Tags.article_id == pmid)
+                                                          & (Tags.experiment_id == None)
+                                                          ).execute()
+            else:
+                Tags.update(disagree = Tags.disagree - 1).where((Tags.tag_name == topic)
+                                                                & (Tags.article_id == pmid)
+                                                                & (Tags.experiment_id == None)
+                                                                ).execute()
         else:
-
-
-
-
-
-
-
-
-
-
-
-
-
+            # Toggle the vote
+            Votes.update(vote=direction).where((Votes.username==username) &
+                                 (Votes.name == topic) &
+                                 (Votes.article_id == pmid)).execute()
+            if direction: # This indicates that we went from downvoting to upvoting
+                Tags.update(agree=Tags.agree +1, disagree=Tags.disagree-1)\
+                    .where((Tags.tag_name == topic)
+                           & (Tags.article_id == pmid)
+                           & (Tags.experiment_id == None)
+                           ).execute()
+            else:
+                Tags.update(agree=Tags.agree - 1, disagree=Tags.disagree + 1)\
+                    .where((Tags.tag_name == topic)
+                           & (Tags.article_id == pmid)
+                           & (Tags.experiment_id == None)
+                           ).execute()
 
 
 def vote_stereotaxic_space(pmid, space, username):

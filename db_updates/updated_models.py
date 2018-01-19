@@ -58,8 +58,6 @@ class BaseModel(signals.Model):
 
 
 """ Updated models """
-
-
 class Articles_updated(BaseModel):
     uniqueid = peewee.PrimaryKeyField()
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
@@ -77,6 +75,25 @@ class Articles_updated(BaseModel):
 
     class Meta:
         db_table = 'articles_updated'
+
+class Tags_updated(BaseModel):
+    tag_name = CharField()
+    agree = IntegerField()
+    disagree = IntegerField()
+    article_id = peewee.ForeignKeyField(
+        Articles_updated,
+        to_field='pmid',
+        db_column='articleId'
+    )
+    experiment_id = peewee.ForeignKeyField(
+        Experiments_updated,
+        to_field='experiment_id',
+        db_column='experimentId',
+        null=True
+    )
+
+    class Meta:
+        db_table = 'tags_updated'
 
 
 class Experiments_updated(BaseModel):

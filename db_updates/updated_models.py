@@ -109,7 +109,7 @@ class Experiments_updated(BaseModel):
     num_subjects = peewee.IntegerField(null=True)
     space = peewee.CharField(null=True)
     # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
-    mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
+
 
     class Meta:
         db_table = "experiments_updated"

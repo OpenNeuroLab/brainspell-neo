@@ -11,8 +11,7 @@ from models import *
 from search_helpers import get_article_object
 
 Entrez.email = "neel@berkeley.edu"
-import Votes
-import Tags
+
 
 
 # BEGIN: article helper functions
@@ -146,6 +145,7 @@ def toggle_vote(pmid, topic, username, direction):
 
 
 def vote_stereotaxic_space(pmid, space, username):
+    # TODO: This method doesn't really make sense anymore now that space is associated with experiments
     """ Toggle a user's vote for the stereotaxic space of an article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -174,6 +174,7 @@ def vote_stereotaxic_space(pmid, space, username):
 
 
 def vote_number_of_subjects(pmid, subjects, username):
+    # TODO: This method doesn't really make sense anymore now that space is associated with experiments
     """ Place a vote for the number of subjects for this article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -203,35 +204,13 @@ def vote_number_of_subjects(pmid, subjects, username):
 
 def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
-
-    main_target = next(
-        Articles.select(
-            Articles.metadata).where(
-            Articles.pmid == pmid).execute())
-    target = eval(main_target.metadata)
-
-    if "user_tags" in target:
-        toggled = False
-
-        for user in target["user_tags"]:
-            # if the tag is already present, then delete it
-            if target["user_tags"][user]["tag_name"] == user_tag:
-                del target["user_tags"][user]
-                toggled = True
-                break
-
-        if not toggled:
-            target["user_tags"][username] = {
-                "tag_name": user_tag
-            }
-    else:
-        target["user_tags"] = {
-            username: {
-                "tag_name": user_tag
-            }
-        }
-    query = Articles.update(metadata=target).where(Articles.pmid == pmid)
-    query.execute()
+    # TODO: Do we want to maintain the username of the tag's creator?
+    Tags_updated.create(
+        tag_name = user_tag,
+        agree = 0,
+        disagree = 0,
+        article_id = pmid,
+    )
 
 
 def get_number_of_articles():

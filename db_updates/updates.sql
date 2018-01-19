@@ -25,7 +25,6 @@ CREATE TABLE experiments_updated(
   articleId VARCHAR(64),
   numSubjects INTEGER,
   "space" VARCHAR(10),
-  meshTags jsonb,
   FOREIGN KEY (articleId) REFERENCES articles_updated(pmid)
 );
 

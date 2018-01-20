@@ -10,8 +10,7 @@ def article_transition():
     q = models.Articles.select().execute()  # load entire DB into memory
     for article in q:
         try:
-            space, subjects, mesh_heading_json = get_mesh_tags(
-                article.metadata)
+            space, subjects = get_mesh_tags(article.pmid,article.metadata)
             updated_models.Articles_updated.create(
                 uniqueid=article.uniqueid,
                 timestamp=article.timestamp,
@@ -21,16 +20,15 @@ def article_transition():
                 reference=article.reference,
                 pmid=article.pmid,
                 doi=article.doi,
-                neurosynthid=article.neurosynthid,
-                mesh_tags=mesh_heading_json
+                neurosynthid=article.neurosynthid
             )
             add_remaining(article.pmid, article.experiments, space, subjects)
-        except BaseException:
+        except:
             return "Execution broke on article uniqueid {0}".format(
                 article.uniqueid)
 
 
-def get_mesh_tags(metadata_string):
+def get_mesh_tags(pmid,metadata_string):
     metadata = json.loads(metadata_string)
     if metadata.get("space"):
         space = metadata['space']
@@ -52,7 +50,16 @@ def get_mesh_tags(metadata_string):
                 val['agree'] = 0
                 val['disagree'] = 0
             output.append(val)
-    return (space, subjects, output)
+    # Generate Tags_updated table
+    for vote_field in output:
+        Tags.insert(
+            tag_name = vote_field['name'],
+            agree = vote_field['agree'],
+            disagree = vote_field['disagree'],
+            article_id = pmid
+        ).execute()
+
+    return (space, subjects)
 
 
 def add_remaining(article_reference, experiments_string, space, num_subjects):
@@ -71,29 +78,50 @@ def add_remaining(article_reference, experiments_string, space, num_subjects):
                 experiment_id=prev_max + 1,
                 title=experiment.get('title'),
                 caption=experiment.get('caption'),
-                # TODO: This field is still a JSON string
-                mark_bad_table=experiment.get('markBadTable'),
+                flagged=calc_maximum(experiment.get('markBadTable')),
                 num_subjects=num_subjects,
                 space=space,
                 article_id=article_reference,
-                mesh_tags=get_experiment_mesh_tags(experiment['tags'])
+
             )
+            update_experiment_mesh_tags(experiment['tags'],prev_max + 1,article_reference)
             # Prev_max + 1 acts as experiment reference for foreign keys
             add_locations(prev_max + 1, experiment['locations'])
 
+def calc_maximum(dict):
+    if not dict:
+        return False
+    if dict["bad"] > dict["ok"]:
+        return True
+    else:
+        return False
 
-def get_experiment_mesh_tags(tags):
-    output = []
+
+def update_experiment_mesh_tags(tags,experiment_reference,article_ref):
     if not tags:
-        return None
+        return
+    output = []
     for tag in tags:
         vals = {}
-        vals['name'] = tag.get("name")
-        if 'agree' in tag:
-            vals['agree'] = tag['agree']
-            vals['disagree'] = tag['disagree']
-        output.append(vals)
-    return output
+        if not tag.get("name"):
+            pass
+        else:
+            vals['name'] = tag.get("name")
+            if 'agree' in tag:
+                vals['agree'] = tag['agree']
+                vals['disagree'] = tag['disagree']
+            else:
+                vals['agree'] = 0
+                vals['disagree'] = 0
+            output.append(tag)
+    for value_dict in output:
+        Tags.insert(
+            tag_name = value_dict['name'],
+            agree = value_dict['agree'],
+            disagree = value_dict['disagree'],
+            article_id = article_ref,
+            experiment_id = experiment_reference
+        ).execute()
 
 
 def add_locations(experiment_reference, locations_array):

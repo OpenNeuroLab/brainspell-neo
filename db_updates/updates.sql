@@ -21,7 +21,7 @@ CREATE TABLE experiments_updated(
   experiment_id bigserial PRIMARY KEY,
   title text,
   caption text,
-  markBadTable jsonb,
+  flagged BOOLEAN,
   articleId VARCHAR(64),
   numSubjects INTEGER,
   "space" VARCHAR(10),
@@ -34,6 +34,7 @@ CREATE TABLE locations_updated(
   z INTEGER,
   zScore INTEGER,
   experimentID INTEGER,
+  location INTEGER,
   FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
   PRIMARY KEY(x,y,z,experimentID)
 );

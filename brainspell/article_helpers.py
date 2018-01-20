@@ -95,7 +95,7 @@ def toggle_vote(pmid, topic, username, direction):
                      name=topic,
                      article_id=pmid,
                      vote=direction,
-                     type=True)
+                     type=True).execute()
         if direction: # Increase number of agreements
             Tags.update(agree = Tags.agree + 1)\
                 .where((Tags.tag_name == topic) &
@@ -226,6 +226,7 @@ def add_pmid_article_to_database(article_id):
     Given a PMID, use external APIs to get the necessary article data
     in order to add the article to our database.
     """
+    # TODO: Update to reflect proper structure
 
     pmid = str(article_id)
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
@@ -237,8 +238,6 @@ def add_pmid_article_to_database(article_id):
     article_info["authors"] = ', '.join(records.get("AU"))
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
-    article_info["experiments"] = ""
-    article_info["metadata"] = str({"meshHeadings": []})
     article_info["reference"] = None
     identity = ""
     try:
@@ -283,6 +282,7 @@ def clean_bulk_add(contents):
     JSON file of article information). Clean the data, ensure that only
     complete entries are included, and add all of the entries to our database.
     """
+    # TODO: Update after final structure formalized
 
     clean_articles = []
     for article in contents:
@@ -341,6 +341,7 @@ def add_bulk(papers, limit=100):  # papers is the entire formatted data set
 
 def delete_row(pmid, exp, row):
     """ Delete a row of coordinates from an experiment. """
+    # TODO: This functionality will no longer work. Update to pass in article_id,exp_id, and coords
 
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
@@ -354,7 +355,7 @@ def delete_row(pmid, exp, row):
 
 def flag_table(pmid, exp):
     """ Flag a table as inaccurate. """
-
+    # TODO: Update to pass in experimentID rather than location
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -370,7 +371,7 @@ def flag_table(pmid, exp):
 
 def edit_table_title_caption(pmid, exp, title, caption):
     """ Edit the title and caption of a table. """
-
+    # TODO: Update to pass in ExperimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -383,7 +384,7 @@ def edit_table_title_caption(pmid, exp, title, caption):
 
 def split_table(pmid, exp, row):
     """ Split a coordinate table into two. """
-
+    # TODO: Update to pass in experimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[exp]
@@ -409,7 +410,7 @@ def add_coordinate_row(pmid, exp, coords, row_number=-1):
 
     Take a list of three or four coordinates.
     Take a row number. -1 will add to the end of the list. """
-
+    # TODO: Update to pass in experiment ID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -427,7 +428,7 @@ def update_coordinate_row(pmid, exp, coords, row_number):
     """ Add a coordinate row to the end of a table.
 
     Take a list of three or four coordinates. Take a row number. """
-
+    # TODO: Update to pass in ExperimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -444,17 +445,37 @@ def add_table_through_text_box(pmid, values):
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     values = values.replace(" ", "").split("\n")
-    secondTable = {"title": "", "caption": "", "locations": values,
-                   "id": (max([exp["id"] for exp in experiments]) + 1)}
-    experiments.insert(len(experiments), secondTable)
-    Articles.update(
-        experiments=experiments).where(
-        Articles.pmid == pmid).execute()
+    # Values = ["-26,54,14","52,18,12","10,16,32","10,56,24"]
+    experiment_id = Experiments.insert(
+        title="",
+        caption="",
+        flagged=False,
+        article_id=pmid,
+    ).execute()
+    count = 0
+    for elem in values:
+        target = [int(x) for x in elem.split(",")]
+        if len(target) == 3:
+            x,y,z,z_score = target
+        elif len(target) == 3:
+            x,y,z = target
+            z_score = None
+        if len(target) == 3 or len(target) == 4:
+            # Only insert if valud
+            Locations.insert(
+                x = x,
+                y = y,
+                z = z,
+                z_score = z_score,
+                location = count,
+                experiment_id = experiment_id
+            ).execute()
+
 
 
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     """ Update the vote on an experiment tag for a given user. """
-
+    # TODO: Pass in Experiment ID instead of table num
     article_obj = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()

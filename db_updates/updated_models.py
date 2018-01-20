@@ -69,7 +69,7 @@ class Articles_updated(BaseModel):
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
     # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT},{...},...]
-    mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
+    # Removing this field: mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
     # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
     # Removed experiments = CharField(null=True)
 
@@ -100,7 +100,7 @@ class Experiments_updated(BaseModel):
     experiment_id = peewee.PrimaryKeyField(null=True)
     title = CharField(null=True)
     caption = CharField(null=True)
-    mark_bad_table = BinaryJSONField(null=True, db_column="markBadTable")
+    flagged = BooleanField(null=True)
     article_id = ForeignKeyField(
         Articles_updated,
         to_field='pmid',
@@ -120,6 +120,7 @@ class Locations_updated(BaseModel):
     y = peewee.IntegerField()
     z = peewee.IntegerField()
     z_score = peewee.IntegerField(db_column='zScore', null=True)
+    location = peewee.IntegerField()
     experiment_id = peewee.ForeignKeyField(
         Experiments_updated,
         to_field='experiment_id',
@@ -187,6 +188,23 @@ class User(BaseModel):
 
     class Meta:
         db_table = 'users'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 """ Basically Obsolete Tables at this point """

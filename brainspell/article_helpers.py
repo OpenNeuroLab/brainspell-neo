@@ -13,7 +13,6 @@ from search_helpers import get_article_object
 Entrez.email = "neel@berkeley.edu"
 
 
-
 # BEGIN: article helper functions
 # TODO: update this file for model updates
 
@@ -87,7 +86,7 @@ def toggle_vote(pmid, topic, username, direction):
 
 
     """
-    target = Votes.select().where((Votes.name==topic) &
+    target = Votes.select().where((Votes.name == topic) &
                                   (Votes.username == username) &
                                   (Votes.article_id == pmid)).execute()
     if target.count == 0:
@@ -96,56 +95,65 @@ def toggle_vote(pmid, topic, username, direction):
                      article_id=pmid,
                      vote=direction,
                      type=True).execute()
-        if direction: # Increase number of agreements
-            Tags.update(agree = Tags.agree + 1)\
+        if direction:  # Increase number of agreements
+            Tags.update(agree=Tags.agree + 1)\
                 .where((Tags.tag_name == topic) &
                        (Tags.article_id == pmid) &
-                       (Tags.experiment_id == None)
+                       (Tags.experiment_id is None)
                        ).execute()
         else:
-            Tags.update(disagree = Tags.disagree + 1).\
+            Tags.update(disagree=Tags.disagree + 1).\
                 where((Tags.tag_name == topic)
                       & (Tags.article_id == pmid)
-                      & (Tags.experiment_id == None)
+                      & (Tags.experiment_id is None)
                       ).execute()
     elif target.count > 0:
         target = next(target)
-        if target.vote == direction: # Remove the vote (constitutes a double click)
-            Votes.delete().where((Votes.username==username) &
+        # Remove the vote (constitutes a double click)
+        if target.vote == direction:
+            Votes.delete().where((Votes.username == username) &
                                  (Votes.name == topic) &
                                  (Votes.article_id == pmid)).execute()
-            # Remove the vote from the agree/disagree fields of Articles Mesh tags
-            if direction: # If vote is an agreement, decrement the agreement field
-                Tags.update(agree = Tags.agree - 1).where((Tags.tag_name == topic)
-                                                          & (Tags.article_id == pmid)
-                                                          & (Tags.experiment_id == None)
-                                                          ).execute()
+            # Remove the vote from the agree/disagree fields of Articles Mesh
+            # tags
+            if direction:  # If vote is an agreement, decrement the agreement field
+                Tags.update(
+                    agree=Tags.agree -
+                    1).where(
+                    (Tags.tag_name == topic) & (
+                        Tags.article_id == pmid) & (
+                        Tags.experiment_id is None)).execute()
             else:
-                Tags.update(disagree = Tags.disagree - 1).where((Tags.tag_name == topic)
-                                                                & (Tags.article_id == pmid)
-                                                                & (Tags.experiment_id == None)
-                                                                ).execute()
+                Tags.update(
+                    disagree=Tags.disagree -
+                    1).where(
+                    (Tags.tag_name == topic) & (
+                        Tags.article_id == pmid) & (
+                        Tags.experiment_id is None)).execute()
         else:
             # Toggle the vote
-            Votes.update(vote=direction).where((Votes.username==username) &
-                                 (Votes.name == topic) &
-                                 (Votes.article_id == pmid)).execute()
-            if direction: # This indicates that we went from downvoting to upvoting
-                Tags.update(agree=Tags.agree +1, disagree=Tags.disagree-1)\
+            Votes.update(
+                vote=direction).where(
+                (Votes.username == username) & (
+                    Votes.name == topic) & (
+                    Votes.article_id == pmid)).execute()
+            if direction:  # This indicates that we went from downvoting to upvoting
+                Tags.update(agree=Tags.agree + 1, disagree=Tags.disagree - 1)\
                     .where((Tags.tag_name == topic)
                            & (Tags.article_id == pmid)
-                           & (Tags.experiment_id == None)
+                           & (Tags.experiment_id is None)
                            ).execute()
             else:
                 Tags.update(agree=Tags.agree - 1, disagree=Tags.disagree + 1)\
                     .where((Tags.tag_name == topic)
                            & (Tags.article_id == pmid)
-                           & (Tags.experiment_id == None)
+                           & (Tags.experiment_id is None)
                            ).execute()
 
 
 def vote_stereotaxic_space(pmid, space, username):
-    # TODO: This method doesn't really make sense anymore now that space is associated with experiments
+    # TODO: This method doesn't really make sense anymore now that space is
+    # associated with experiments
     """ Toggle a user's vote for the stereotaxic space of an article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -174,7 +182,8 @@ def vote_stereotaxic_space(pmid, space, username):
 
 
 def vote_number_of_subjects(pmid, subjects, username):
-    # TODO: This method doesn't really make sense anymore now that space is associated with experiments
+    # TODO: This method doesn't really make sense anymore now that space is
+    # associated with experiments
     """ Place a vote for the number of subjects for this article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -206,10 +215,10 @@ def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
     # TODO: Do we want to maintain the username of the tag's creator?
     Tags_updated.create(
-        tag_name = user_tag,
-        agree = 0,
-        disagree = 0,
-        article_id = pmid,
+        tag_name=user_tag,
+        agree=0,
+        disagree=0,
+        article_id=pmid,
     )
 
 
@@ -341,7 +350,8 @@ def add_bulk(papers, limit=100):  # papers is the entire formatted data set
 
 def delete_row(pmid, exp, row):
     """ Delete a row of coordinates from an experiment. """
-    # TODO: This functionality will no longer work. Update to pass in article_id,exp_id, and coords
+    # TODO: This functionality will no longer work. Update to pass in
+    # article_id,exp_id, and coords
 
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
@@ -456,21 +466,20 @@ def add_table_through_text_box(pmid, values):
     for elem in values:
         target = [int(x) for x in elem.split(",")]
         if len(target) == 3:
-            x,y,z,z_score = target
+            x, y, z, z_score = target
         elif len(target) == 3:
-            x,y,z = target
+            x, y, z = target
             z_score = None
         if len(target) == 3 or len(target) == 4:
             # Only insert if valud
             Locations.insert(
-                x = x,
-                y = y,
-                z = z,
-                z_score = z_score,
-                location = count,
-                experiment_id = experiment_id
+                x=x,
+                y=y,
+                z=z,
+                z_score=z_score,
+                location=count,
+                experiment_id=experiment_id
             ).execute()
-
 
 
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):

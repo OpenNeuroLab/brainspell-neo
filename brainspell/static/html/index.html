@@ -95,6 +95,34 @@
             box.innerHTML = "Your API key is: {{api_key}}";
             box.onclick = function() { };
         }
+         // Updates the search options in response to selected tag
+         $("#req").change(function() {
+             if ($("#req").val() == "x") {
+                 $("#searcher").hide();
+                 var field = `
+                    <input id='x' type="number" value='0' name="x" style="width:22.5%" placeholder="x-coordinate" class="form-control experiments">
+                    <input id='y' type="number" value='0' name="x" style="width:22.5%" placeholder="y-coordinate" class="form-control experiments">
+                    <input id='z' type="number" value='0' name="x" style="width:22.5%" placeholder="z-coordinate" class="form-control experiments">
+                    <input id='radius' type="number" value='0' name="x" style="width:22.5%" placeholder="radius" class="form-control experiments">
+                 `;
+                 $("#req").before(field);
+                 format_experiments();
+             } else {
+                 $("#searcher").show();
+                 $(".experiments").hide();
+             }
+         });
+        function format_experiments() {
+            $("#searcher").val("0,0,0,0");
+            $(".experiments").keyup(function () {
+                let x = $("#x").val() || 0;
+                let y = $("#y").val() || 0;
+                let z = $("#z").val() || 0;
+                let radius = $("#radius").val() || 0;
+                let formatted = `${x},${y},${z},${radius}`;
+                $("#searcher").val(formatted);
+            });
+        }
     </script>
 
 

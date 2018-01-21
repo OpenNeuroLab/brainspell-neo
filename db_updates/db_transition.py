@@ -52,7 +52,7 @@ def get_mesh_tags(pmid,metadata_string):
             output.append(val)
     # Generate Tags_updated table
     for vote_field in output:
-        Tags.insert(
+        updated_models.Tags_updated.insert(
             tag_name = vote_field['name'],
             agree = vote_field['agree'],
             disagree = vote_field['disagree'],
@@ -115,7 +115,7 @@ def update_experiment_mesh_tags(tags,experiment_reference,article_ref):
                 vals['disagree'] = 0
             output.append(tag)
     for value_dict in output:
-        Tags.insert(
+        updated_models.Tags_updated.insert(
             tag_name = value_dict['name'],
             agree = value_dict['agree'],
             disagree = value_dict['disagree'],

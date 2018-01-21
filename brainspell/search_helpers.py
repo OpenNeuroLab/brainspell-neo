@@ -40,7 +40,6 @@ def parse_helper(query):
     if all.search(query):
         columns.extend([Articles.abstract,
                         Articles.authors, Articles.doi,
-                        Articles.mesh_tags,
                         Articles.neurosynthid, Articles.pmid,
                         Articles.reference, Articles.title])
     if mesh.search(query):
@@ -64,7 +63,6 @@ def formatted_search(query, start, param=None, experiments=False):
     Return either the results of a search, or the experiments that
     correspond to the articles. (based on the "experiments" flag)
     """
-
     columns, term, formatted_query = parse_helper(query)
     query = formatted_query
     if columns:
@@ -81,8 +79,10 @@ def formatted_search(query, start, param=None, experiments=False):
             query) | Match(
             Articles.abstract,
             query)
+        # Experiment attributes are searched independently
         if param == "x":
-            match = Match(Articles.experiments, query)
+            search_term = find_experiments(query)
+            return search_term.execute()
         if param == "p":
             match = Match(Articles.pmid, query)
         if param == "r":
@@ -100,6 +100,21 @@ def formatted_search(query, start, param=None, experiments=False):
         return Articles.select(
             *fields).where(match).limit(numberResults).offset(start).execute()
 
+def find_experiments(query):
+    """
+    :param query: x,y,z,radius coordinates
+    :return: Peewee Structured Query
+    """
+    x,y,z,radius = [int(x) for x in query.split()]
+    search = Articles.select(Articles.pmid,
+                             Articles.title,
+                             Articles.authors)\
+        .join(Experiments).join(Locations).where(
+        (Locations.x > x - radius) & (Locations.x < x + radius) &
+        (Locations.y > y - radius) & (Locations.y < y + radius) &
+        (Locations.z > z - radius) & (Locations.z < z + radius)
+    )
+    return search
 
 def get_article_object(query):
     """ Get a single article PeeWee object. """
@@ -107,34 +122,3 @@ def get_article_object(query):
     search = Articles.select().where(Articles.pmid == query)
     return search.execute()
 
-
-def generate_circle(coordinate):  # Coordinate of form "-26,54,14"
-    """ Specify a range around a given coordinate to search the database. """
-
-    ordered = [int(x) for x in coordinate.split(",")][0:3]  # Ignore z-score
-    search_terms = []
-    for i in range(len(ordered)):
-        for j in range(-1, 2, 1):
-            val = list(ordered)
-            val[i] = val[i] + j
-            search_terms.append(",".join([str(x) for x in val]))
-    return search_terms
-
-
-def coactivation(coordinate):  # yields around 11,000 coordinates
-    """
-    Find coordinates associated with a range around a given coordinate.
-    """
-
-    coordinate_sets = []
-    search_circle = generate_circle(coordinate)
-    for item in search_circle:
-        val = Articles.select(Articles.experiments).where(
-            Match(Articles.experiments, item)
-        ).execute()
-        for item in val:
-            data_set = eval(item.experiments)
-            for location_sets in data_set:
-                if location_sets.get("locations"):
-                    coordinate_sets.append(location_sets["locations"])
-    return coordinate_sets

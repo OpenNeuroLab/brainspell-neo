@@ -58,6 +58,8 @@ class BaseModel(signals.Model):
 
 
 """ Updated models """
+
+
 class Articles_updated(BaseModel):
     uniqueid = peewee.PrimaryKeyField()
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
@@ -75,6 +77,7 @@ class Articles_updated(BaseModel):
 
     class Meta:
         db_table = 'articles_updated'
+
 
 class Tags_updated(BaseModel):
     tag_name = CharField()
@@ -109,7 +112,6 @@ class Experiments_updated(BaseModel):
     num_subjects = peewee.IntegerField(null=True)
     space = peewee.CharField(null=True)
     # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
-
 
     class Meta:
         db_table = "experiments_updated"
@@ -183,28 +185,11 @@ class User(BaseModel):
     userid = peewee.PrimaryKeyField()
     password = CharField(null=True)
     emailaddress = CharField(null=True)
-    username = CharField(null=True,unique=True)
+    username = CharField(null=True, unique=True)
     collections = CharField(null=True)
 
     class Meta:
         db_table = 'users'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 """ Basically Obsolete Tables at this point """

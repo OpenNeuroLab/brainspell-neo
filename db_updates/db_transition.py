@@ -10,7 +10,7 @@ def article_transition():
     q = models.Articles.select().execute()  # load entire DB into memory
     for article in q:
         try:
-            space, subjects = get_mesh_tags(article.pmid,article.metadata)
+            space, subjects = get_mesh_tags(article.pmid, article.metadata)
             updated_models.Articles_updated.create(
                 uniqueid=article.uniqueid,
                 timestamp=article.timestamp,
@@ -23,12 +23,12 @@ def article_transition():
                 neurosynthid=article.neurosynthid
             )
             add_remaining(article.pmid, article.experiments, space, subjects)
-        except:
+        except BaseException:
             return "Execution broke on article uniqueid {0}".format(
                 article.uniqueid)
 
 
-def get_mesh_tags(pmid,metadata_string):
+def get_mesh_tags(pmid, metadata_string):
     metadata = json.loads(metadata_string)
     if metadata.get("space"):
         space = metadata['space']
@@ -53,10 +53,10 @@ def get_mesh_tags(pmid,metadata_string):
     # Generate Tags_updated table
     for vote_field in output:
         updated_models.Tags_updated.insert(
-            tag_name = vote_field['name'],
-            agree = vote_field['agree'],
-            disagree = vote_field['disagree'],
-            article_id = pmid
+            tag_name=vote_field['name'],
+            agree=vote_field['agree'],
+            disagree=vote_field['disagree'],
+            article_id=pmid
         ).execute()
 
     return (space, subjects)
@@ -84,9 +84,11 @@ def add_remaining(article_reference, experiments_string, space, num_subjects):
                 article_id=article_reference,
 
             )
-            update_experiment_mesh_tags(experiment['tags'],prev_max + 1,article_reference)
+            update_experiment_mesh_tags(
+                experiment['tags'], prev_max + 1, article_reference)
             # Prev_max + 1 acts as experiment reference for foreign keys
             add_locations(prev_max + 1, experiment['locations'])
+
 
 def calc_maximum(dict):
     if not dict:
@@ -97,7 +99,7 @@ def calc_maximum(dict):
         return False
 
 
-def update_experiment_mesh_tags(tags,experiment_reference,article_ref):
+def update_experiment_mesh_tags(tags, experiment_reference, article_ref):
     if not tags:
         return
     output = []
@@ -116,11 +118,11 @@ def update_experiment_mesh_tags(tags,experiment_reference,article_ref):
             output.append(tag)
     for value_dict in output:
         updated_models.Tags_updated.insert(
-            tag_name = value_dict['name'],
-            agree = value_dict['agree'],
-            disagree = value_dict['disagree'],
-            article_id = article_ref,
-            experiment_id = experiment_reference
+            tag_name=value_dict['name'],
+            agree=value_dict['agree'],
+            disagree=value_dict['disagree'],
+            article_id=article_ref,
+            experiment_id=experiment_reference
         ).execute()
 
 

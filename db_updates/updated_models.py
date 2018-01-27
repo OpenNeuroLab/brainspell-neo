@@ -60,7 +60,7 @@ class BaseModel(signals.Model):
 """ Updated models """
 
 
-class Articles_updated(BaseModel):
+class Articles(BaseModel):
     uniqueid = peewee.PrimaryKeyField()
     timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
     authors = CharField(null=True)
@@ -76,36 +76,36 @@ class Articles_updated(BaseModel):
     # Removed experiments = CharField(null=True)
 
     class Meta:
-        db_table = 'articles_updated'
+        db_table = 'articles'
 
 
-class Tags_updated(BaseModel):
+class Tags(BaseModel):
     tag_name = CharField()
     agree = IntegerField()
     disagree = IntegerField()
     article_id = peewee.ForeignKeyField(
-        Articles_updated,
+        Articles,
         to_field='pmid',
         db_column='articleId'
     )
     experiment_id = peewee.ForeignKeyField(
-        Experiments_updated,
+        Experiments,
         to_field='experiment_id',
         db_column='experimentId',
         null=True
     )
 
     class Meta:
-        db_table = 'tags_updated'
+        db_table = 'tags'
 
 
-class Experiments_updated(BaseModel):
+class Experiments(BaseModel):
     experiment_id = peewee.PrimaryKeyField(null=True)
     title = CharField(null=True)
     caption = CharField(null=True)
     flagged = BooleanField(null=True)
     article_id = ForeignKeyField(
-        Articles_updated,
+        Articles,
         to_field='pmid',
         db_column="articleId"
     )
@@ -114,23 +114,23 @@ class Experiments_updated(BaseModel):
     # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
 
     class Meta:
-        db_table = "experiments_updated"
+        db_table = "experiments"
 
 
-class Locations_updated(BaseModel):
+class Locations(BaseModel):
     x = peewee.IntegerField()
     y = peewee.IntegerField()
     z = peewee.IntegerField()
     z_score = peewee.IntegerField(db_column='zScore', null=True)
     location = peewee.IntegerField()
     experiment_id = peewee.ForeignKeyField(
-        Experiments_updated,
+        Experiments,
         to_field='experiment_id',
         db_column='experimentID'
     )
 
     class Meta:
-        db_table = "locations_updated"
+        db_table = "locations"
         primary_key = CompositeKey("x", "y", "z", "experiment_id")
 
 
@@ -153,7 +153,7 @@ Our usage currently supports two kinds of voting:
 """
 
 
-class Votes_updated(BaseModel):
+class Votes(BaseModel):
     username = peewee.ForeignKeyField(
         User,
         to_field='username'

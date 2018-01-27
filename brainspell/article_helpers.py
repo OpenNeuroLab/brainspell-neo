@@ -109,7 +109,7 @@ def toggle_vote(pmid, topic, username, direction):
                       ).execute()
     elif target.count > 0:
         target = next(target)
-        # Remove the vote (constitutes a double click)
+        # Remove the vote (constitutes a double select)
         if target.vote == direction:
             Votes.delete().where((Votes.username == username) &
                                  (Votes.name == topic) &
@@ -214,7 +214,7 @@ def vote_number_of_subjects(pmid, subjects, username):
 def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
     # TODO: Do we want to maintain the username of the tag's creator?
-    Tags_updated.create(
+    Tags.create(
         tag_name=user_tag,
         agree=0,
         disagree=0,

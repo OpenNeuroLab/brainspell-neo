@@ -175,7 +175,7 @@ class ArticleEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         try:
-            article = next(get_article_object(args["pmid"]))
+            article = get_article_object(args["pmid"])
             response["timestamp"] = article.timestamp
             response["abstract"] = article.abstract
             response["authors"] = article.authors

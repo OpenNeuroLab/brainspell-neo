@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS articles_updated CASCADE;
-DROP TABLE IF EXISTS experiments_updated CASCADE ;
-DROP TABLE IF EXISTS locations_updated CASCADE ;
-DROP TABLE IF EXISTS tags_updated CASCADE;
+DROP TABLE IF EXISTS articles CASCADE;
+DROP TABLE IF EXISTS experiments CASCADE ;
+DROP TABLE IF EXISTS locations CASCADE ;
+DROP TABLE IF EXISTS tags CASCADE;
 DROP TABLE IF EXISTS votes CASCADE;
 
-CREATE TABLE articles_updated(
+CREATE TABLE articles(
   uniqueid bigserial PRIMARY KEY,
   "timestamp" TIMESTAMP,
    authors text,
@@ -17,7 +17,7 @@ CREATE TABLE articles_updated(
    meshTags jsonb
 );
 
-CREATE TABLE experiments_updated(
+CREATE TABLE experiments(
   experiment_id bigserial PRIMARY KEY,
   title text,
   caption text,
@@ -25,28 +25,28 @@ CREATE TABLE experiments_updated(
   articleId VARCHAR(64),
   numSubjects INTEGER,
   "space" VARCHAR(10),
-  FOREIGN KEY (articleId) REFERENCES articles_updated(pmid)
+  FOREIGN KEY (articleId) REFERENCES articles(pmid)
 );
 
-CREATE TABLE locations_updated(
+CREATE TABLE locations(
   x INTEGER,
   y INTEGER,
   z INTEGER,
   zScore INTEGER,
   experimentID INTEGER,
   location INTEGER,
-  FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
+  FOREIGN KEY (experimentID) REFERENCES experiments(experiment_id),
   PRIMARY KEY(x,y,z,experimentID)
 );
 
-CREATE TABLE tags_updated(
+CREATE TABLE tags(
   tag_name VARCHAR(100),
   agree INTEGER,
   disagree INTEGER,
   articleId VARCHAR(64),
   experimentId INTEGER,
-  FOREIGN KEY (articleId) REFERENCES articles_updated(pmid),
-  FOREIGN KEY (experimentId) REFERENCES experiments_updated(experiment_id),
+  FOREIGN KEY (articleId) REFERENCES articles(pmid),
+  FOREIGN KEY (experimentId) REFERENCES experiments(experiment_id),
   -- Note null experiment Reference if not defined
   UNIQUE(tag_name,articleId,experimentId)
 );
@@ -68,16 +68,16 @@ CREATE TABLE votes(
 
 
                   -- Constraint Generation --
-ALTER TABLE articles_updated ADD CONSTRAINT uniqueness UNIQUE (pmid);
+ALTER TABLE articles ADD CONSTRAINT uniqueness UNIQUE (pmid);
 ALTER TABLE users ADD CONSTRAINT uniqueness UNIQUE (username);
 
                   -- Index Generation --
-CREATE INDEX pmid_lookup ON articles_updated USING HASH (pmid);
-CREATE INDEX experiment_lookup ON experiments_updated (articleId);
-CREATE INDEX coordinate_lookup ON locations_updated (experimentID);
+CREATE INDEX pmid_lookup ON articles USING HASH (pmid);
+CREATE INDEX experiment_lookup ON experiments (articleId);
+CREATE INDEX coordinate_lookup ON locations (experimentID);
 
 -- Gin (Inverted) Indices for Full Text Search Optimization
-CREATE INDEX abstract_text_search ON articles_updated USING gin(to_tsvector(abstract));
+CREATE INDEX abstract_text_search ON articles USING gin(to_tsvector(abstract));
 
 
 

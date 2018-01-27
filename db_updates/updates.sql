@@ -13,8 +13,7 @@ CREATE TABLE articles(
    reference text,
    pmid VARCHAR(64),
    doi VARCHAR(128),
-   neurosynthid VARCHAR(64),
-   meshTags jsonb
+   neurosynthid VARCHAR(64)
 );
 
 CREATE TABLE experiments(

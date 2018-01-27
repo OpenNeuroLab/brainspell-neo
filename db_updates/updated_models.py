@@ -111,7 +111,6 @@ class Experiments(BaseModel):
     )
     num_subjects = peewee.IntegerField(null=True)
     space = peewee.CharField(null=True)
-    # Storing mesh fields as [{name:<value>,agree:INT,disagree:INT}]
 
     class Meta:
         db_table = "experiments"

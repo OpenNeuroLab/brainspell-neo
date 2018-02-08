@@ -1,10 +1,10 @@
-DROP TABLE IF EXISTS articles CASCADE;
-DROP TABLE IF EXISTS experiments CASCADE ;
-DROP TABLE IF EXISTS locations CASCADE ;
-DROP TABLE IF EXISTS tags CASCADE;
-DROP TABLE IF EXISTS votes CASCADE;
+DROP TABLE IF EXISTS articles_updated CASCADE;
+DROP TABLE IF EXISTS experiments_updated CASCADE ;
+DROP TABLE IF EXISTS locations_updated CASCADE ;
+DROP TABLE IF EXISTS tags_updated CASCADE;
+DROP TABLE IF EXISTS votes_updated CASCADE;
 
-CREATE TABLE articles(
+CREATE TABLE articles_updated(
   uniqueid bigserial PRIMARY KEY,
   "timestamp" TIMESTAMP,
    authors text,
@@ -16,7 +16,7 @@ CREATE TABLE articles(
    neurosynthid VARCHAR(64)
 );
 
-CREATE TABLE experiments(
+CREATE TABLE experiments_updated(
   experiment_id bigserial PRIMARY KEY,
   title text,
   caption text,
@@ -24,34 +24,34 @@ CREATE TABLE experiments(
   articleId VARCHAR(64),
   numSubjects INTEGER,
   "space" VARCHAR(10),
-  FOREIGN KEY (articleId) REFERENCES articles(pmid)
+  FOREIGN KEY (articleId) REFERENCES articles_updated(pmid)
 );
 
-CREATE TABLE locations(
+CREATE TABLE locations_updated(
   x INTEGER,
   y INTEGER,
   z INTEGER,
   zScore INTEGER,
   experimentID INTEGER,
   location INTEGER,
-  FOREIGN KEY (experimentID) REFERENCES experiments(experiment_id),
+  FOREIGN KEY (experimentID) REFERENCES experiments_updated(experiment_id),
   PRIMARY KEY(x,y,z,experimentID)
 );
 
-CREATE TABLE tags(
+CREATE TABLE tags_updated(
   tag_name VARCHAR(100),
   agree INTEGER,
   disagree INTEGER,
   articleId VARCHAR(64),
   experimentId INTEGER,
-  FOREIGN KEY (articleId) REFERENCES articles(pmid),
-  FOREIGN KEY (experimentId) REFERENCES experiments(experiment_id),
+  FOREIGN KEY (articleId) REFERENCES articles_updated(pmid),
+  FOREIGN KEY (experimentId) REFERENCES experiments_updated(experiment_id),
   -- Note null experiment Reference if not defined
   UNIQUE(tag_name,articleId,experimentId)
 );
 
 
-CREATE TABLE votes(
+CREATE TABLE votes_updated(
   username VARCHAR(50),
   "name" VARCHAR(50),
   experimentID INTEGER,
@@ -59,7 +59,7 @@ CREATE TABLE votes(
   vote BOOLEAN,
   "type" BOOLEAN,
   FOREIGN KEY (username) REFERENCES users(username),
-  UNIQUE("username","name","experimentID")
+  UNIQUE("username","name",experimentID)
 );
 
 
@@ -67,16 +67,16 @@ CREATE TABLE votes(
 
 
                   -- Constraint Generation --
-ALTER TABLE articles ADD CONSTRAINT uniqueness UNIQUE (pmid);
+ALTER TABLE articles_updated ADD CONSTRAINT uniqueness UNIQUE (pmid);
 ALTER TABLE users ADD CONSTRAINT uniqueness UNIQUE (username);
 
                   -- Index Generation --
-CREATE INDEX pmid_lookup ON articles USING HASH (pmid);
-CREATE INDEX experiment_lookup ON experiments (articleId);
-CREATE INDEX coordinate_lookup ON locations (experimentID);
+CREATE INDEX pmid_lookup ON articles_updated USING HASH (pmid);
+CREATE INDEX experiment_lookup ON experiments_updated (articleId);
+CREATE INDEX coordinate_lookup ON locations_updated (experimentID);
 
 -- Gin (Inverted) Indices for Full Text Search Optimization
-CREATE INDEX abstract_text_search ON articles USING gin(to_tsvector(abstract));
+CREATE INDEX abstract_text_search ON articles_updated USING gin(to_tsvector('english',abstract));
 
 
 

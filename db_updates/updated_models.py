@@ -49,7 +49,7 @@ class BaseModel(signals.Model):
         database_dict["PMID"] = PMID : (VarChar)
         database_dict["DOI"] = DOI : (VarChar)
         database_dict["NeuroSynthID"] = NeuroSynthID : (VarChar)
-        database_dict["Experiments"] = Experiments : (Text)
+        database_dict["Experiments_updated"] = Experiments_updated : (Text)
         database_dict["Metadata"] = Metadata : (Text)
     """
 
@@ -60,124 +60,60 @@ class BaseModel(signals.Model):
 """ Updated models """
 
 
-class Articles(BaseModel):
+class Articles_updated(BaseModel):
     uniqueid = peewee.PrimaryKeyField()
-    timestamp = DateTimeField(db_column='TIMESTAMP', null=True)
+    timestamp = DateTimeField(null=True)
     authors = CharField(null=True)
     title = CharField(null=True)
     abstract = CharField(null=True)
     reference = CharField(null=True)
-    pmid = CharField(null=True, unique=True)
+    pmid = CharField(unique=True)
     doi = CharField(null=True)
     neurosynthid = CharField(null=True)
     # Storing mesh fields as [{value:<value>,agree:INT,disagree:INT},{...},...]
-    # Removing this field: mesh_tags = BinaryJSONField(null=True, db_column='meshTags')
+    # Removing this field: mesh_Tags_updated = BinaryJSONField(null=True, db_column='meshTags_updated')
     # metadata = CharField(null=True) # Replacing Charfield with JSONFIELD above
-    # Removed experiments = CharField(null=True)
+    # Removed Experiments_updated = CharField(null=True)
 
     class Meta:
-        db_table = 'articles'
+        db_table = 'articles_updated'
 
-
-class Tags(BaseModel):
-    tag_name = CharField()
-    agree = IntegerField()
-    disagree = IntegerField()
-    article_id = peewee.ForeignKeyField(
-        Articles,
-        to_field='pmid',
-        db_column='articleId'
-    )
-    experiment_id = peewee.ForeignKeyField(
-        Experiments,
-        to_field='experiment_id',
-        db_column='experimentId',
-        null=True
-    )
-
-    class Meta:
-        db_table = 'tags'
-
-
-class Experiments(BaseModel):
-    experiment_id = peewee.PrimaryKeyField(null=True)
+class Experiments_updated(BaseModel):
+    experiment_id = peewee.PrimaryKeyField()
     title = CharField(null=True)
     caption = CharField(null=True)
     flagged = BooleanField(null=True)
     article_id = ForeignKeyField(
-        Articles,
+        Articles_updated,
         to_field='pmid',
-        db_column="articleId"
+        db_column='article_id'
     )
-    num_subjects = peewee.IntegerField(null=True)
+    numsubjects = peewee.IntegerField(null=True)
     space = peewee.CharField(null=True)
 
     class Meta:
-        db_table = "experiments"
+        db_table = "experiments_updated"
 
 
-class Locations(BaseModel):
-    x = peewee.IntegerField()
-    y = peewee.IntegerField()
-    z = peewee.IntegerField()
-    z_score = peewee.IntegerField(db_column='zScore', null=True)
-    location = peewee.IntegerField()
+class Tags_updated(BaseModel):
+    entry_id = peewee.PrimaryKeyField(null=True)
+    tag_name = CharField()
+    agree = IntegerField()
+    disagree = IntegerField()
+    article_id = peewee.ForeignKeyField(
+        Articles_updated,
+        to_field='pmid',
+        db_column='article_id'
+    )
     experiment_id = peewee.ForeignKeyField(
-        Experiments,
+        Experiments_updated,
         to_field='experiment_id',
-        db_column='experimentID'
+        db_column='experiment_id',
+        null=True
     )
 
     class Meta:
-        db_table = "locations"
-        primary_key = CompositeKey("x", "y", "z", "experiment_id")
-
-
-"""
-Votes updated represents user votes on experiment specific fields
-
-Our usage currently supports two kinds of voting:
-    Experiment based voting
-        - This kind of voting requires a Composite Key to userid, name, and experimentID
-         - A vote on an experiment is uniquely identified by:
-            - The user voting: userid
-            - The tag the user votes on: name
-            - The experiment that contains the tag: experimentID
-    Article based voting
-        - This kind of voting requires a userid, name, and articleID rather than an experiment ID
-        - Because all experiments are contained within an Article we add an additional parameter for articles
-    There exists a uniqueness constraint to prevent one person from voting on the same Article tag or experiment tag multiple times
-        - Note that for this to work: if type == True, experiment_id must be NULL
-
-"""
-
-
-class Votes(BaseModel):
-    username = peewee.ForeignKeyField(
-        User,
-        to_field='username'
-    )
-    # An experiment vote on a key is uniqely identified by a name and
-    # experimentID
-    name = peewee.CharField(null=True)
-    experiment_id = peewee.IntegerField(null=True, db_column='experimentID')
-    # An article vote on a key is uniqely identified by a name and article_id
-    article_id = peewee.IntegerField(db_column='articleID')  # Refernces PMID
-
-    # A boolean value represents up or down: True = Upvote, False = Downvote
-    vote = peewee.BooleanField(null=True)
-    # Type specifies what the vote actually indicates -> Experiment / Article
-    # True implies Article, False implies Experiment (For space considerations)
-    type = peewee.BooleanField()
-
-    class Meta:
-        db_table = 'votes'
-        constraints = [
-            SQL("UNIQUE('name','experiment_id','article_id','userid'")]
-        primary_key = False
-
-
-"""  End Article Table Update  """
+        db_table = 'tags_updated'
 
 
 class User(BaseModel):
@@ -189,6 +125,74 @@ class User(BaseModel):
 
     class Meta:
         db_table = 'users'
+
+
+class Locations_updated(BaseModel):
+    x = peewee.IntegerField()
+    y = peewee.IntegerField()
+    z = peewee.IntegerField()
+    z_score = peewee.IntegerField(null=True)
+    # Indicates position of row in table
+    location = peewee.IntegerField()
+    experiment_id = peewee.ForeignKeyField(
+        Experiments_updated,
+        to_field='experiment_id',
+        db_column='experiment_id'
+    )
+
+    class Meta:
+        db_table = "locations_updated"
+        primary_key = CompositeKey("x", "y", "z", "experiment_id")
+
+
+"""
+Votes_updated updated represents user Votes_updated on experiment specific fields
+
+Our usage currently supports two kinds of voting:
+    Experiment based voting
+        - This kind of voting requires a Composite Key to userid, name, and experimentID
+         - A vote on an experiment is uniquely identified by:
+            - The user voting: userid
+            - The tag the user Votes_updated on: name
+            - The experiment that contains the tag: experimentID
+    Article based voting
+        - This kind of voting requires a userid, name, and articleID rather than an experiment ID
+        - Because all Experiments_updated are contained within an Article we add an additional parameter for articles_updated
+    There exists a uniqueness constraint to prevent one person from voting on the same Article tag or experiment tag multiple times
+        - Note that for this to work: if type == True, experiment_id must be NULL
+
+"""
+
+
+class Votes_updated(BaseModel):
+    username = peewee.ForeignKeyField(
+        User,
+        to_field='username'
+    )
+    # An experiment vote on a key is uniqely identified by a name and
+    # experimentID
+    name = peewee.CharField(null=True)
+    experiment_id = peewee.IntegerField(null=True)
+    # An article vote on a key is uniqely identified by a name and article_id
+    article_id = peewee.IntegerField(db_column='articleID')  # Refernces PMID
+
+    # A boolean value represents up or down: True = Upvote, False = Downvote
+    vote = peewee.BooleanField(null=True)
+    # Type specifies what the vote actually indicates -> Experiment / Article
+    # True implies Article, False implies Experiment (For space considerations)
+    type = peewee.BooleanField()
+
+    class Meta:
+        db_table = 'votes_updated'
+        constraints = [
+            SQL("UNIQUE('name','experiment_id','article_id','userid'")]
+        primary_key = False
+
+
+"""  End Article Table Update  """
+
+
+
 
 
 """ Basically Obsolete Tables at this point """

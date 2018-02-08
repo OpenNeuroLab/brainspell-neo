@@ -4,13 +4,21 @@ import models
 import updated_models
 import json
 from peewee import *
+import psycopg2
 
 
-def article_transition():
+def article_transition(start = None):
     q = models.Articles.select().execute()  # load entire DB into memory
+    q = list(q)
+    if start: # Used in case of errors along the way
+        saved_index = 0
+        while q[saved_index].pmid != start:
+            saved_index += 1
+        q = q[saved_index:]
+
     for article in q:
+        # try:
         try:
-            space, subjects = get_mesh_tags(article.pmid, article.metadata)
             updated_models.Articles_updated.create(
                 uniqueid=article.uniqueid,
                 timestamp=article.timestamp,
@@ -22,42 +30,83 @@ def article_transition():
                 doi=article.doi,
                 neurosynthid=article.neurosynthid
             )
+            print("CREATED ENTRY {0}".format(article.pmid))
+            space, subjects = get_mesh_tags(article.pmid, article.metadata)
             add_remaining(article.pmid, article.experiments, space, subjects)
-        except BaseException:
-            return "Execution broke on article uniqueid {0}".format(
-                article.uniqueid)
+        except:
+            print("Duplicate Detected in Entries")
+            pass
+        # except:
+        #     print("I failed on {0}".format(article.uniqueid))
+        #     return "Execution broke on article uniqueid {0}".format(
+        #         article.uniqueid)
 
 
 def get_mesh_tags(pmid, metadata_string):
-    metadata = json.loads(metadata_string)
+    if not metadata_string:
+        return
+    try:
+        metadata = json.loads(metadata_string)
+    except: # Weirdly formatted CDATA Fields
+        metadata_string = metadata_string.replace("'","\"")    
+        metadata_string = metadata_string.replace("\n","") # newline characters sometimes exist in structure and need to be removed
+        metadata = json.loads(
+            metadata_string.replace("<!","").replace("CDATA","").replace(">","")
+        )
+
+
+    while (type(metadata) == list):
+        print("Metadata for {0} had length {1} and I used the elements in 1".format(pmid,len(metadata)))
+        metadata = metadata[0] # Unnecessarily nested structures
+
     if metadata.get("space"):
         space = metadata['space']
     else:
         space = None
     if metadata.get('nsubjects') and len(metadata.get('nsubjects')) > 0:
-        subjects = int(metadata['nsubjects'][0])
+        try:
+            subjects = int(metadata['nsubjects'][0])
+        except:
+            # Handles the case of literals like '10+15' somehow being here
+            try:
+                print("Literal attempting to Evaluate {0}".format(metadata['nsubjects'][0]))
+                subjects = eval(metadata['nsubjects'][0])
+            except:
+                subjects = None
+
     else:
         subjects = None
     output = []
     if metadata.get("meshHeadings"):
         for concept in metadata["meshHeadings"]:
             val = {}
-            val["name"] = concept['name']
-            if "agree" in concept:
-                val['agree'] = concept['agree']
-                val['disagree'] = concept['disagree']
-            else:
-                val['agree'] = 0
-                val['disagree'] = 0
-            output.append(val)
+            try:
+                val["name"] = concept['name']
+                if "agree" in concept:
+                    val['agree'] = concept['agree']
+                    val['disagree'] = concept['disagree']
+                else:
+                    val['agree'] = 0
+                    val['disagree'] = 0
+                output.append(val)
+            except:
+                pass 
+                # There are certain articles with 
+                # Extremely malformatted voting systems 
+                # Potentially due to changes in our internal representation. Since these are entirely test votes, I am ommitting these 
+                # These changes begin with PMID: 17449179
     # Generate Tags_updated table
     for vote_field in output:
-        updated_models.Tags_updated.insert(
-            tag_name=vote_field['name'],
-            agree=vote_field['agree'],
-            disagree=vote_field['disagree'],
-            article_id=pmid
-        ).execute()
+        try:
+            updated_models.Tags_updated.insert(
+                tag_name=vote_field['name'],
+                agree=vote_field['agree'],
+                disagree=vote_field['disagree'],
+                article_id=str(pmid)
+            ).execute()
+        except:
+            print("Duplicate Tag {0} Found for Article {1}".format(vote_field['name'],pmid))
+            pass
 
     return (space, subjects)
 
@@ -65,7 +114,13 @@ def get_mesh_tags(pmid, metadata_string):
 def add_remaining(article_reference, experiments_string, space, num_subjects):
     if not experiments_string:
         return
-    experiments = json.loads(experiments_string)
+    try:
+        experiments = json.loads(experiments_string)
+    except:
+        experiments_string = experiments_string.replace("'","\"") 
+        experiments = json.loads(experiments_string)
+    if not experiments:
+        return # Handles experiments = 'null' case
     for experiment in experiments:
         if experiment:
             q = updated_models.Experiments_updated.select(
@@ -73,7 +128,9 @@ def add_remaining(article_reference, experiments_string, space, num_subjects):
             if q.count == 0:
                 prev_max = -1
             else:
-                prev_max = next(q).experiment_id
+                prev_max = list(q)[0].experiment_id
+                if not prev_max:
+                    prev_max = 0
             updated_models.Experiments_updated.create(
                 experiment_id=prev_max + 1,
                 title=experiment.get('title'),
@@ -85,9 +142,9 @@ def add_remaining(article_reference, experiments_string, space, num_subjects):
 
             )
             update_experiment_mesh_tags(
-                experiment['tags'], prev_max + 1, article_reference)
+                experiment.get('tags'), prev_max + 1, article_reference)
             # Prev_max + 1 acts as experiment reference for foreign keys
-            add_locations(prev_max + 1, experiment['locations'])
+            add_locations(prev_max + 1, experiment.get('locations'))
 
 
 def calc_maximum(dict):
@@ -117,13 +174,18 @@ def update_experiment_mesh_tags(tags, experiment_reference, article_ref):
                 vals['disagree'] = 0
             output.append(tag)
     for value_dict in output:
-        updated_models.Tags_updated.insert(
-            tag_name=value_dict['name'],
-            agree=value_dict['agree'],
-            disagree=value_dict['disagree'],
-            article_id=article_ref,
-            experiment_id=experiment_reference
-        ).execute()
+        try:
+            updated_models.Tags_updated.insert(
+                tag_name=value_dict['name'],
+                agree=value_dict['agree'],
+                disagree=value_dict['disagree'],
+                article_id=article_ref,
+                experiment_id=experiment_reference
+            ).execute()
+        except:
+            print("Duplicate found for tag {0} in article {1} and experiment {2}".
+                  format(value_dict['name'],article_ref,experiment_reference))
+            pass
 
 
 def add_locations(experiment_reference, locations_array):
@@ -134,22 +196,31 @@ def add_locations(experiment_reference, locations_array):
             if location:
                 values = location.split(",")
                 if len(values) == 3:
-                    x, y, z = [int(x) for x in values]
-                    updated_models.Locations_updated.create(
-                        x=x,
-                        y=y,
-                        z=z,
-                        experiment_id=experiment_reference
-                    )
+                    try:
+                        x, y, z = [int(x) for x in values]
+                        updated_models.Locations_updated.create(
+                            x=x,
+                            y=y,
+                            z=z,
+                            experiment_id=experiment_reference
+                        )
+                    except:
+                        print("Duplicate found for location {0}".format(location))
+                        pass
                 elif len(values) == 4:
-                    x, y, z, z_score = [int(x) for x in values]
-                    updated_models.Locations_updated.create(
-                        x=x,
-                        y=y,
-                        z=z,
-                        z_score=z_score,
-                        experiment_id=experiment_reference
-                    )
+                    try:
+                        x, y, z, z_score = [int(x) for x in values]
+                        updated_models.Locations_updated.create(
+                            x=x,
+                            y=y,
+                            z=z,
+                            z_score=z_score,
+                            experiment_id=experiment_reference
+                        )
+                    except:
+                        print("Duplicate Found for Location {0}".format(location))
+                        pass
+
                 else:
                     print(
                         "Error inserting location {0} for Experiment {1}".format(
@@ -195,3 +266,9 @@ Experiment_string Example
 ]
 
 """
+if __name__ == "__main__":
+    article_transition('20884359')
+
+
+
+

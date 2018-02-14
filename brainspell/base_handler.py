@@ -356,11 +356,11 @@ class AbstractEndpoint(metaclass=ABCMeta):
         Called by the "brainspell" module on all API endpoints.
         """
 
-        assert subclass.endpoint_type, self.NO_ENDPOINT_TYPE.format(
+        assert subclass.endpoint_type, AbstractEndpoint.NO_ENDPOINT_TYPE.format(
             subclass.__name__)
-        assert subclass.process, self.NO_PROCESS_FUNCTION.format(
+        assert subclass.process, AbstractEndpoint.NO_PROCESS_FUNCTION.format(
             subclass.__name__)
-        assert subclass.parameters is not None, self.NO_PARAMETERS_SPECIFIED.format(
+        assert subclass.parameters is not None, AbstractEndpoint.NO_PARAMETERS_SPECIFIED.format(
             subclass.__name__)
 
         for p in subclass.parameters:

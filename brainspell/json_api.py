@@ -10,6 +10,7 @@ from user_account_helpers import *
 import requests
 import urllib.parse
 import os
+import hashlib
 
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
@@ -17,50 +18,6 @@ START_DESC = "The offset of the articles to show; e.g., start = 10 would return 
 assert "github_frontend_client_id" in os.environ \
     and "github_frontend_client_secret" in os.environ, \
     "You need to set the 'github_frontend_client_id' and 'github_frontend_client_secret' environment variables."
-
-
-class GithubOauthEndpointHandler(BaseHandler):
-    """ GitHub login authentication. """
-
-    parameters = {
-        "code": {
-            "type": str,
-            "description": "The code returned after GitHub OAuth."
-        }
-    }
-
-    endpoint_type = Endpoint.PULL_API
-
-    def process(self, response, args):
-        # TODO: Make asynchronous, since this is blocking.
-        # TODO: Make endpoint to get api_key from GitHub user ID.
-        # if we have a code, we have been authorized so we can log in
-        code = args["code"]
-
-        data = {
-            "client_id": os.environ["github_frontend_client_id"],
-            "client_secret": os.environ["github_frontend_client_secret"],
-            "code": code
-        }
-
-        host = "github.com"
-        port = 443
-        path = "/login/oauth/access_token"
-
-        result = requests.post(
-            "https://" + host + ":" + str(port) + path,
-            data
-        )
-
-        params = urllib.parse.parse_qs(result.text)
-
-        try:
-            response["token"] = params["access_token"][0]
-        except BaseException:
-            response["success"] = 0
-            response["description"] = "Authentication failed."
-
-        return response
 
 
 class ListEndpointsEndpointHandler(BaseHandler):
@@ -75,6 +32,57 @@ class ListEndpointsEndpointHandler(BaseHandler):
         endpoints = brainspell.getJSONEndpoints()
         response["endpoints"] = [name for name, cls in endpoints if name[len(
             name) - 1:] != "/" and name[len(name) - 4:] != "help"]
+        return response
+
+
+# BEGIN: Authentication endpoints
+
+class GithubOauthEndpointHandler(BaseHandler):
+    """ GitHub login authentication. Return the GitHub token and
+    Brainspell API key. """
+
+    parameters = {
+        "code": {
+            "type": str,
+            "description": "The code returned after GitHub OAuth."
+        }
+    }
+
+    endpoint_type = Endpoint.PULL_API
+
+    def process(self, response, args):
+        code = args["code"]
+
+        data = {
+            "client_id": os.environ["github_frontend_client_id"],
+            "client_secret": os.environ["github_frontend_client_secret"],
+            "code": code
+        }
+
+        # TODO: Make asynchronous, since this is blocking.
+        result = requests.post(
+            "https://github.com:443/login/oauth/access_token",
+            data
+        )
+
+        params = urllib.parse.parse_qs(result.text)
+
+        try:
+            response["github_token"] = params["access_token"][0]
+            user_data = requests.get(
+                "https://api.github.com/user",
+                headers={
+                    "Authorization": "token " +
+                    params["access_token"][0]})
+            user = user_data.json()
+            hasher = hashlib.sha1()
+            hasher.update(str(user["id"]).encode('utf-8'))
+            api_key = hasher.hexdigest()
+            response["api_key"] = api_key
+        except BaseException:
+            response["success"] = 0
+            response["description"] = "Authentication failed."
+
         return response
 
 

@@ -70,7 +70,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
                 self.set_secure_cookie("user", json_encode(user))
                 # idempotent operation to make sure GitHub user is in our
                 # database
-                register_github_user(json_encode(user))
+                register_github_user(user)
                 # generate a Brainspell API key
                 hasher = hashlib.sha1()
                 hasher.update(str(user["id"]).encode('utf-8'))

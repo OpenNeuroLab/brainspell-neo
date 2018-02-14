@@ -75,6 +75,9 @@ class GithubOauthEndpointHandler(BaseHandler):
                     "Authorization": "token " +
                     params["access_token"][0]})
             user = user_data.json()
+            # idempotent operation to make sure GitHub user is in our
+            # database
+            register_github_user(user)
             hasher = hashlib.sha1()
             hasher.update(str(user["id"]).encode('utf-8'))
             api_key = hasher.hexdigest()

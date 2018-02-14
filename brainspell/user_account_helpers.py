@@ -31,8 +31,6 @@ def get_user_object_from_api_key(api_key):
 def register_github_user(user_dict):
     """ Add a GitHub user to our database. """
 
-    user_dict = json_decode(user_dict)
-
     # if the user doesn't already exist
     if (User.select().where(User.username ==
                             user_dict["login"]).execute().count == 0):

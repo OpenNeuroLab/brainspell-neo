@@ -501,37 +501,43 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
                                                                        path="manifest.json"),
                         access_token=args["github_access_token"],
                         method="GET")
-                    content = content_data["body"]["content"]
-                    # get the SHA so we can update this file
-                    manifest_sha = content_data["body"]["sha"]
-                    # parse the manifest.json file for the collection
-                    collection_contents = json_decode(
-                        b64decode(content.encode('utf-8')).decode('utf-8'))
-                    article_set = set([c["pmid"] for c in collection_contents])
+                except BaseException as e:
+                    response["success"] = 0
+                    response["description"] = "The request failed. Make sure that the manifest.json file exists in your repository."
+                    response["exception"] = str(e)
+                    self.finish_async(response)
+                content = content_data["body"]["content"]
+                # get the SHA so we can update this file
+                manifest_sha = content_data["body"]["sha"]
+                # parse the manifest.json file for the collection
+                collection_contents = json_decode(
+                    b64decode(content.encode('utf-8')).decode('utf-8'))
+                article_set = set([c["pmid"] for c in collection_contents])
 
-                    for p in pmid_list:
-                        if p not in article_set:
-                            # create the entry to add to the GitHub repo
-                            article = list(get_article_object(p))[0]
-                            article_entry = {
-                                "pmid": p,
-                                "title": article.title,
-                                "reference": article.reference,
-                                "doi": article.doi,
-                                "notes": "Here are my notes on this article."
-                            }
-                            collection_contents.append(article_entry)
-                            article_set.add(p)
+                for p in pmid_list:
+                    if p not in article_set:
+                        # create the entry to add to the GitHub repo
+                        article = list(get_article_object(p))[0]
+                        article_entry = {
+                            "pmid": p,
+                            "title": article.title,
+                            "reference": article.reference,
+                            "doi": article.doi,
+                            "notes": "Here are my notes on this article."
+                        }
+                        collection_contents.append(article_entry)
+                        article_set.add(p)
 
-                    manifest_contents_encoded = b64encode(
-                        json_encode(collection_contents).encode("utf-8")).decode('utf-8')
+                manifest_contents_encoded = b64encode(
+                    json_encode(collection_contents).encode("utf-8")).decode('utf-8')
 
-                    update_manifest_body = {
-                        "message": "creating manifest.json file",
-                        "content": manifest_contents_encoded,
-                        "sha": manifest_sha
-                    }
+                update_manifest_body = {
+                    "message": "creating manifest.json file",
+                    "content": manifest_contents_encoded,
+                    "sha": manifest_sha
+                }
 
+                try:
                     update_manifest_ress = yield [torngithub.github_request(
                         self.get_auth_http_client(),
                         '/repos/{owner}/{repo}/contents/{path}'.format(owner=github_username,
@@ -540,13 +546,14 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
                         access_token=args["github_access_token"],
                         method="PUT",
                         body=update_manifest_body)]
-
-                    # actually add the article(s) if the request succeeds
-                    bulk_add_articles_to_brainspell_database_collection(
-                        name, pmid_list, args["key"], False)
-                except BaseException:
+                except BaseException as e:
                     response["success"] = 0
-                    response["description"] = "The request failed. Make sure that the manifest.json file exists in your repository."
+                    response["description"] = "The request failed. Make sure that you have write permissions for the manifest.json file in your repository."
+                    response["exception"] = str(e)
+
+                # actually add the article(s) if the request succeeds
+                bulk_add_articles_to_brainspell_database_collection(
+                    name, pmid_list, args["key"], False)
             else:
                 response["success"] = 0
                 response["description"] = "That article already exists in that collection."

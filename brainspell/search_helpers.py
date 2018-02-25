@@ -1,6 +1,9 @@
 # functions related to search
 import re
 from functools import reduce
+import sys
+sys.path.extend("../db_updates")
+# from updated_models import Experiments_updated as Experiments,Tags_updated as Tags,Locations_updated as Locations,Votes_updated as Votes
 
 from models import *
 # TODO: update this file for model updates

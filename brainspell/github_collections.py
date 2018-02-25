@@ -67,6 +67,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
 
             # if the user is valid
             if user:
+                print(user)
                 self.set_secure_cookie("user", json_encode(user))
                 # idempotent operation to make sure GitHub user is in our
                 # database

@@ -559,6 +559,7 @@ class AddRowEndpointHandler(BaseHandler):
         }
     }
 
+
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):

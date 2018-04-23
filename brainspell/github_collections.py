@@ -31,10 +31,64 @@ if "github_client_secret" not in os.environ:
 
 settings = {
     "github_client_id": os.environ["github_client_id"],
-    "github_client_secret": os.environ["github_client_secret"]
+    "github_client_secret": os.environ["github_client_secret"],
+    "localhost_client_id": os.environ["localhost_client_id"],
+    "localhost_client_secret": os.environ["localhost_client_secret"]
 }
 
 # BEGIN: GitHub repo handlers
+
+
+class GithubLocalhostLoginHandler(
+        tornado.web.RequestHandler,
+        torngithub.GithubMixin):
+    """ Handle GitHub OAuth and redirects to localhost credentials. """
+    route = "localhost-oauth"
+
+    @tornado.gen.coroutine
+    def get(self):
+        # Heroku does not accurately give self.request.protocol
+        if self.request.host[0:9] == "localhost":
+            protocol = "http"
+        else:
+            protocol = "https"
+
+        redirect_uri = url_concat(protocol
+                                  + "://" + self.request.host
+                                  + "/oauth",
+                                  {"redirect_uri":
+                                   self.get_argument('redirect_uri', '/')})
+
+        # if we have a code, we have been authorized so we can log in
+        if self.get_argument("code", False):
+            user = yield self.get_authenticated_user(
+                redirect_uri=redirect_uri,
+                client_id=settings["localhost_client_id"],
+                client_secret=settings["localhost_client_secret"],
+                code=self.get_argument("code")
+            )
+
+            # if the user is valid
+            if user:
+                self.set_secure_cookie("user", json_encode(user))
+                # idempotent operation to make sure GitHub user is in our
+                # database
+                register_github_user(user)
+                # generate a Brainspell API key
+                hasher = hashlib.sha1()
+                hasher.update(str(user["id"]).encode('utf-8'))
+                api_key = hasher.hexdigest()
+                self.set_secure_cookie("api_key", api_key)
+            else:
+                self.clear_cookie("user")
+            self.redirect(self.get_argument("redirect_uri", "/"))
+            return
+
+        # otherwise we need to request an authorization code
+        yield self.authorize_redirect(
+            redirect_uri=redirect_uri,
+            client_id=settings["localhost_client_id"],
+            extra_params={"scope": "repo"})
 
 
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):

@@ -32,15 +32,19 @@ if "github_client_secret" not in os.environ:
 settings = {
     "github_client_id": os.environ["github_client_id"],
     "github_client_secret": os.environ["github_client_secret"],
-    "localhost_client_id" : os.environ["localhost_client_id"],
+    "localhost_client_id": os.environ["localhost_client_id"],
     "localhost_client_secret": os.environ["localhost_client_secret"]
 }
 
 # BEGIN: GitHub repo handlers
 
-class GithubLocalhostLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
+
+class GithubLocalhostLoginHandler(
+        tornado.web.RequestHandler,
+        torngithub.GithubMixin):
     """ Handle GitHub OAuth and redirects to localhost credentials. """
     route = "localhost-oauth"
+
     @tornado.gen.coroutine
     def get(self):
         # Heroku does not accurately give self.request.protocol
@@ -85,8 +89,6 @@ class GithubLocalhostLoginHandler(tornado.web.RequestHandler, torngithub.GithubM
             redirect_uri=redirect_uri,
             client_id=settings["localhost_client_id"],
             extra_params={"scope": "repo"})
-
-
 
 
 class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):

@@ -41,6 +41,8 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
     """ Handle GitHub OAuth. """
 
     route = "oauth"
+    settings_key_id = "github_client_id"
+    settings_key_secret = "github_client_secret"
 
     @tornado.gen.coroutine
     def get(self):
@@ -60,8 +62,8 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
         if self.get_argument("code", False):
             user = yield self.get_authenticated_user(
                 redirect_uri=redirect_uri,
-                client_id=settings["github_client_id"],
-                client_secret=settings["github_client_secret"],
+                client_id=settings[self.settings_key_id],
+                client_secret=settings[self.settings_key_secret],
                 code=self.get_argument("code")
             )
 
@@ -84,7 +86,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
         # otherwise we need to request an authorization code
         yield self.authorize_redirect(
             redirect_uri=redirect_uri,
-            client_id=settings["github_client_id"],
+            client_id=settings[settings_key_id],
             extra_params={"scope": "repo"})
 
 

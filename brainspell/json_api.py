@@ -19,6 +19,10 @@ assert "github_frontend_client_id" in os.environ \
     and "github_frontend_client_secret" in os.environ, \
     "You need to set the 'github_frontend_client_id' and 'github_frontend_client_secret' environment variables."
 
+assert "github_frontend_dev_client_id" in os.environ \
+    and "github_frontend_dev_client_secret" in os.environ, \
+    "You need to set the 'github_frontend_dev_client_id' and 'github_frontend_dev_client_secret' environment variables."
+
 
 class ListEndpointsEndpointHandler(BaseHandler):
     """ Return a list of all JSON API endpoints.
@@ -37,7 +41,7 @@ class ListEndpointsEndpointHandler(BaseHandler):
 
 # BEGIN: Authentication endpoints
 
-class GithubOauthEndpointHandler(BaseHandler):
+class GithubOauthProductionEndpointHandler(BaseHandler):
     """ GitHub login authentication. Return the GitHub token and
     Brainspell API key. """
 
@@ -50,12 +54,15 @@ class GithubOauthEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
+    client_id_key = "github_frontend_client_id"
+    client_secret_key = "github_frontend_client_secret"
+
     def process(self, response, args):
         code = args["code"]
 
         data = {
-            "client_id": os.environ["github_frontend_client_id"],
-            "client_secret": os.environ["github_frontend_client_secret"],
+            "client_id": os.environ[self.client_id_key],
+            "client_secret": os.environ[self.client_secret_key],
             "code": code
         }
 
@@ -89,7 +96,15 @@ class GithubOauthEndpointHandler(BaseHandler):
         return response
 
 
+class GithubOauthDevelopmentEndpointHandler(
+        GithubOauthProductionEndpointHandler):
+    """ Endpoint for development OAuth. """
+
+    client_id_key = "github_frontend_dev_client_id"
+    client_secret_key = "github_frontend_dev_client_secret"
+
 # BEGIN: search API endpoints
+
 
 class QueryEndpointHandler(BaseHandler):
     """ Endpoint to handle search queries. Return 10 results at a time. """

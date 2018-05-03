@@ -86,7 +86,7 @@ class GithubLoginHandler(tornado.web.RequestHandler, torngithub.GithubMixin):
         # otherwise we need to request an authorization code
         yield self.authorize_redirect(
             redirect_uri=redirect_uri,
-            client_id=settings[settings_key_id],
+            client_id=settings[self.settings_key_id],
             extra_params={"scope": "repo"})
 
 

@@ -254,7 +254,7 @@ class ArticleEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         try:
-            article = next(get_article_object(args["pmid"]))
+            article = get_article_object(args["pmid"])
             response["timestamp"] = article.timestamp
             response["abstract"] = article.abstract
             response["authors"] = article.authors
@@ -637,6 +637,7 @@ class AddRowEndpointHandler(BaseHandler):
             "description": "The index that this row should be located at in the table. Defaults to the end of the table."
         }
     }
+
 
     endpoint_type = Endpoint.PUSH_API
 

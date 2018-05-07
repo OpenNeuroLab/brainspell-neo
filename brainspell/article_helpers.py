@@ -5,14 +5,16 @@ import urllib.request
 
 import Bio
 from Bio import Entrez, Medline
-from Bio.Entrez import efetch, esearch, parse, read
+from Bio.Entrez import efetch
 
 from models import *
 from search_helpers import get_article_object
 
 Entrez.email = "neel@berkeley.edu"
 
+
 # BEGIN: article helper functions
+# TODO: update this file for model updates
 
 
 def update_authors(pmid, authors):
@@ -67,25 +69,91 @@ def update_vote_in_struct(struct, tag_name, username, direction, label_name):
 
 def toggle_vote(pmid, topic, username, direction):
     """ Toggle a user's vote on an article tag. """
+    """ Updated to reflect new voting structures """
+    direction = True if direction == "up" else False
 
-    fullArticle = next(get_article_object(pmid))
+    """ Ideally this is how the vote updates should be handled,
+    however there are issues in setting the agree, disagree values of the
+    topic db field if the previous vote state was unknown
 
-    metadata = eval(fullArticle.metadata)
 
-    update_vote_in_struct(
-        metadata['meshHeadings'],
-        topic,
-        username,
-        direction,
-        "name")
+    query = Votes.insert(name=topic,username=username,
+                         article_id=pmid,vote=vote,type=True).on_conflict(
+        conflict_target = (Votes.name,Votes.username,Votes.article_id),
+        preserve=(Votes.name,Votes.username,Votes.article_id),
+        update={Votes.vote: direction}
+    ).returning(Votes)
 
-    query = Articles.update(
-        metadata=metadata).where(
-        Articles.pmid == pmid)
-    query.execute()
+
+    """
+    target = Votes.select().where((Votes.name == topic) &
+                                  (Votes.username == username) &
+                                  (Votes.article_id == pmid)).execute()
+    if target.count == 0:
+        Votes.insert(username=username,
+                     name=topic,
+                     article_id=pmid,
+                     vote=direction,
+                     type=True).execute()
+        if direction:  # Increase number of agreements
+            Tags.update(agree=Tags.agree + 1)\
+                .where((Tags.tag_name == topic) &
+                       (Tags.article_id == pmid) &
+                       (Tags.experiment_id is None)
+                       ).execute()
+        else:
+            Tags.update(disagree=Tags.disagree + 1).\
+                where((Tags.tag_name == topic)
+                      & (Tags.article_id == pmid)
+                      & (Tags.experiment_id is None)
+                      ).execute()
+    elif target.count > 0:
+        target = next(target)
+        # Remove the vote (constitutes a double select)
+        if target.vote == direction:
+            Votes.delete().where((Votes.username == username) &
+                                 (Votes.name == topic) &
+                                 (Votes.article_id == pmid)).execute()
+            # Remove the vote from the agree/disagree fields of Articles Mesh
+            # tags
+            if direction:  # If vote is an agreement, decrement the agreement field
+                Tags.update(
+                    agree=Tags.agree -
+                    1).where(
+                    (Tags.tag_name == topic) & (
+                        Tags.article_id == pmid) & (
+                        Tags.experiment_id is None)).execute()
+            else:
+                Tags.update(
+                    disagree=Tags.disagree -
+                    1).where(
+                    (Tags.tag_name == topic) & (
+                        Tags.article_id == pmid) & (
+                        Tags.experiment_id is None)).execute()
+        else:
+            # Toggle the vote
+            Votes.update(
+                vote=direction).where(
+                (Votes.username == username) & (
+                    Votes.name == topic) & (
+                    Votes.article_id == pmid)).execute()
+            if direction:  # This indicates that we went from downvoting to upvoting
+                Tags.update(agree=Tags.agree + 1, disagree=Tags.disagree - 1)\
+                    .where((Tags.tag_name == topic)
+                           & (Tags.article_id == pmid)
+                           & (Tags.experiment_id is None)
+                           ).execute()
+            else:
+                Tags.update(agree=Tags.agree - 1, disagree=Tags.disagree + 1)\
+                    .where((Tags.tag_name == topic)
+                           & (Tags.article_id == pmid)
+                           & (Tags.experiment_id is None)
+                           ).execute()
 
 
 def vote_stereotaxic_space(pmid, space, username):
+    # TODO: This method doesn't really make sense anymore now that space is
+    # associated with experiments
     """ Toggle a user's vote for the stereotaxic space of an article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -114,6 +182,8 @@ def vote_stereotaxic_space(pmid, space, username):
 
 
 def vote_number_of_subjects(pmid, subjects, username):
+    # TODO: This method doesn't really make sense anymore now that space is
+    # associated with experiments
     """ Place a vote for the number of subjects for this article. """
 
     fullArticle = next(get_article_object(pmid))
@@ -143,35 +213,13 @@ def vote_number_of_subjects(pmid, subjects, username):
 
 def toggle_user_tag(user_tag, pmid, username):
     """ Toggle a custom user tag to the database. """
-
-    main_target = next(
-        Articles.select(
-            Articles.metadata).where(
-            Articles.pmid == pmid).execute())
-    target = eval(main_target.metadata)
-
-    if "user_tags" in target:
-        toggled = False
-
-        for user in target["user_tags"]:
-            # if the tag is already present, then delete it
-            if target["user_tags"][user]["tag_name"] == user_tag:
-                del target["user_tags"][user]
-                toggled = True
-                break
-
-        if not toggled:
-            target["user_tags"][username] = {
-                "tag_name": user_tag
-            }
-    else:
-        target["user_tags"] = {
-            username: {
-                "tag_name": user_tag
-            }
-        }
-    query = Articles.update(metadata=target).where(Articles.pmid == pmid)
-    query.execute()
+    # TODO: Do we want to maintain the username of the tag's creator?
+    Tags.create(
+        tag_name=user_tag,
+        agree=0,
+        disagree=0,
+        article_id=pmid,
+    )
 
 
 def get_number_of_articles():
@@ -187,6 +235,7 @@ def add_pmid_article_to_database(article_id):
     Given a PMID, use external APIs to get the necessary article data
     in order to add the article to our database.
     """
+    # TODO: Update to reflect proper structure
 
     pmid = str(article_id)
     handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
@@ -198,9 +247,7 @@ def add_pmid_article_to_database(article_id):
     article_info["authors"] = ', '.join(records.get("AU"))
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
-    article_info["experiments"] = ""
-    article["metadata"] = str({"meshHeadings": []})
-    article["reference"] = None
+    article_info["reference"] = None
     identity = ""
     try:
         article_info["experiments"] = {
@@ -244,6 +291,7 @@ def clean_bulk_add(contents):
     JSON file of article information). Clean the data, ensure that only
     complete entries are included, and add all of the entries to our database.
     """
+    # TODO: Update after final structure formalized
 
     clean_articles = []
     for article in contents:
@@ -302,6 +350,8 @@ def add_bulk(papers, limit=100):  # papers is the entire formatted data set
 
 def delete_row(pmid, exp, row):
     """ Delete a row of coordinates from an experiment. """
+    # TODO: This functionality will no longer work. Update to pass in
+    # article_id,exp_id, and coords
 
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
@@ -315,7 +365,7 @@ def delete_row(pmid, exp, row):
 
 def flag_table(pmid, exp):
     """ Flag a table as inaccurate. """
-
+    # TODO: Update to pass in experimentID rather than location
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -331,7 +381,7 @@ def flag_table(pmid, exp):
 
 def edit_table_title_caption(pmid, exp, title, caption):
     """ Edit the title and caption of a table. """
-
+    # TODO: Update to pass in ExperimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -344,7 +394,7 @@ def edit_table_title_caption(pmid, exp, title, caption):
 
 def split_table(pmid, exp, row):
     """ Split a coordinate table into two. """
-
+    # TODO: Update to pass in experimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[exp]
@@ -370,7 +420,7 @@ def add_coordinate_row(pmid, exp, coords, row_number=-1):
 
     Take a list of three or four coordinates.
     Take a row number. -1 will add to the end of the list. """
-
+    # TODO: Update to pass in experiment ID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -388,7 +438,7 @@ def update_coordinate_row(pmid, exp, coords, row_number):
     """ Add a coordinate row to the end of a table.
 
     Take a list of three or four coordinates. Take a row number. """
-
+    # TODO: Update to pass in ExperimentID
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     elem = experiments[int(exp)]
@@ -405,17 +455,36 @@ def add_table_through_text_box(pmid, values):
     target = next(get_article_object(pmid))
     experiments = eval(target.experiments)
     values = values.replace(" ", "").split("\n")
-    secondTable = {"title": "", "caption": "", "locations": values,
-                   "id": (max([exp["id"] for exp in experiments]) + 1)}
-    experiments.insert(len(experiments), secondTable)
-    Articles.update(
-        experiments=experiments).where(
-        Articles.pmid == pmid).execute()
+    # Values = ["-26,54,14","52,18,12","10,16,32","10,56,24"]
+    experiment_id = Experiments.insert(
+        title="",
+        caption="",
+        flagged=False,
+        article_id=pmid,
+    ).execute()
+    count = 0
+    for elem in values:
+        target = [int(x) for x in elem.split(",")]
+        if len(target) == 3:
+            x, y, z, z_score = target
+        elif len(target) == 3:
+            x, y, z = target
+            z_score = None
+        if len(target) == 3 or len(target) == 4:
+            # Only insert if valud
+            Locations.insert(
+                x=x,
+                y=y,
+                z=z,
+                z_score=z_score,
+                location=count,
+                experiment_id=experiment_id
+            ).execute()
 
 
 def update_table_vote(tag_name, direction, table_num, pmid, column, username):
     """ Update the vote on an experiment tag for a given user. """
-
+    # TODO: Pass in Experiment ID instead of table num
     article_obj = Articles.select(
         Articles.experiments).where(
         Articles.pmid == pmid).execute()

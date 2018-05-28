@@ -676,7 +676,8 @@ class GetOaPdfEndpointHandler(BaseHandler):
     @tornado.gen.coroutine
     def process(self, response, args):
         doi = args['doi']
-        unpaywallURL = 'https://api.unpaywall.org/v2/{doi}?email=keshavan@berkeley.edu'.format(doi=doi)
+        unpaywallURL = 'https://api.unpaywall.org/v2/{doi}?email=keshavan@berkeley.edu'.format(
+            doi=doi)
         req = requests.get(unpaywallURL)
         data = req.json()
         if data['best_oa_location']:

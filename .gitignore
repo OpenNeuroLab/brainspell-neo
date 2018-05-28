@@ -1,0 +1,7 @@
+.DS_STORE
+__pycache__/
+.cache/
+potential-configuration.psd
+current-configuration.png
+curl
+jupyter_notebooks/

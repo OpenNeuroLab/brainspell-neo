@@ -11,6 +11,8 @@ import requests
 import urllib.parse
 import os
 import hashlib
+from tornado.concurrent import run_on_executor
+import tornado.gen
 
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
@@ -652,3 +654,43 @@ class AddRowEndpointHandler(BaseHandler):
             response["success"] = 0
             response["description"] = "Wrong number of coordinates."
         return response
+
+
+class GetOaPdfEndpointHandler(BaseHandler):
+    """ Get the PDF corresponding to a DOI. """
+
+    parameters = {
+        "doi": {
+            "type": str
+        }
+    }
+
+    endpoint_type = Endpoint.PULL_API
+    asynchronous = True
+
+    @run_on_executor
+    def get_pdf_bytes(self, url):
+        response = requests.get(url).content
+        return response
+
+    @tornado.gen.coroutine
+    def process(self, response, args):
+        doi = args['doi']
+        unpaywallURL = 'https://api.unpaywall.org/v2/{doi}?email=keshavan@berkeley.edu'.format(doi=doi)
+        req = requests.get(unpaywallURL)
+        data = req.json()
+        if data['best_oa_location']:
+            try:
+                # get pdf
+                pdf_url = data['best_oa_location']['url_for_pdf']
+                pdf_bytes = yield self.get_pdf_bytes(pdf_url)
+                self.set_header("Content-Type", "application/pdf")
+                self.write(pdf_bytes)
+                self.finish()
+            except Exception as e:
+                response['success'] = 0
+                response['error'] = str(e)
+                self.finish_async(response)
+        else:
+            response['success'] = 0
+            self.finish_async(response)

@@ -18,6 +18,7 @@ def convert(name):
 
 
 # map the hyphenated names to the corresponding classes (endpoints)
+# TODO: Update this for new collections API.
 endpoints = {}
 for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
     func = eval("json_api." + endpoint)

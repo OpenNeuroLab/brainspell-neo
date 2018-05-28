@@ -117,6 +117,10 @@ class BaseHandler(tornado.web.RequestHandler):
         ...
         self.finish_async(response)
 
+    API versioning:
+    By default, do not change the api_version variable unless there would be namespace conflicts, or if
+    you're making different assumptions than api_version 1 (e.g., you're assuming the database looks a certain way).
+
     Web interface handlers should:
     1) be named [*]Handler,
     2) use the "render_with_user_info" function (rather than self.render), and
@@ -140,6 +144,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     asynchronous = False
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+
+    api_version = 1
 
     def get_safe_arguments(self, arguments_dict, accessor):
         """ Enforce type safety; do not verify API key. """

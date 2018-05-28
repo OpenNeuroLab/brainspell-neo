@@ -45,7 +45,7 @@ def getJSONEndpoints():
         + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
             for f in dir(github_collections) if "EndpointHandler" in f]:
         if func.api_version != 1:
-            name += "v" + str(func.api_version) + "/"
+            name = "v" + str(func.api_version) + "/" + name
         endpoints.append((r"/json/" + name, func))
         endpoints.append((r"/json/" + name + "/", func))
         endpoints.append((r"/json/" + name + "/help", func))

@@ -105,6 +105,247 @@ class GithubOauthDevelopmentEndpointHandler(
     client_id_key = "github_frontend_dev_client_id"
     client_secret_key = "github_frontend_dev_client_secret"
 
+
+# BEGIN: Collections v2 endpoints
+
+class CreateCollectionEndpointHandler(BaseHandler):
+    """ Create a repository and the necessary files for a new collection. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."},
+        "description": {
+            "type": str},
+        "inclusion_criteria": {
+            "type": json.loads,
+            "description": "A JSON-serialized list of inclusion criteria.",
+            "default": "[]"},
+        "exclusion_criteria": {
+            "type": json.loads,
+            "description": "A JSON-serialized list of exclusion criteria.",
+            "default": "[]"},
+        "tags": {
+            "type": json.loads,
+            "description": "JSON-serialized list of tags.",
+            "default": "[]"},
+        "search_strings": {
+            "type": json.loads,
+            "default": "[]"},
+        "github_token": {
+            "type": str}}
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Create a repository with a metadata file.
+        raise NotImplementedError
+        return response
+
+
+class GetCollectionInfoEndpointHandler(BaseHandler):
+    """ Get the PMIDs and metadata associated with a collection. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Get the metadata file from the GitHub repository for this collection.
+        raise NotImplementedError
+        return response
+
+
+class AddToCollectionInfoEndpointHandler(BaseHandler):
+    """ Add the given PMIDs to a collection. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmids": {
+            "type": json.loads,
+            "description": "A JSON-serialized list of PMIDs to add to this collection.",
+            "default": "[]"
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Create an empty file for each PMID, and add to the metadata file.
+        # TODO (eventually): Add PMIDs to the database if they're not already
+        # present.
+        raise NotImplementedError
+        return response
+
+
+class ExcludeFromCollectionEndpointHandler(BaseHandler):
+    """ Exclude an experiment or all experiments for a PMID from the collection. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmid": {
+            "type": int
+        },
+        "experiment": {
+            "type": int,
+            "description": "Include if removing just one experiment.",
+            "default": -1
+        },
+        "exclusion_criterion": {
+            "type": str
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Add the excluded experiment to the file for this PMID.
+        raise NotImplementedError
+        return response
+
+
+class GetUserCollectionsEndpointHandler(BaseHandler):
+    """ Get the Brainspell collections owned by this user. """
+
+    parameters = {
+        "github_token": {
+            "type": str
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Get all repositories owned by this user, and return the names that start with
+        # brainspell-neo-collection.
+        raise NotImplementedError
+        return response
+
+
+class EditArticleEndpointHandler(BaseHandler):
+    """ Edit information for this article, either collection-specific or global. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of a collection, as seen and defined by the user.",
+            "default": ""
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmid": {
+            "type": str
+        },
+        "edit_contents": {
+            "type": json.loads,
+            "description": "Data that should be changed in the user's collections and Brainspell's version."
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # See what fields are included in the edit_contents dictionary, and update each provided
+        # field in the appropriate place, whether on GitHub or otherwise.
+        raise NotImplementedError
+        return response
+
+
+class GetArticleFromCollectionEndpointHandler(BaseHandler):
+    """ Get the collection-specific information for this article. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmid": {
+            "type": str
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Get the PMID file from the GitHub repository for this collection.
+        raise NotImplementedError
+        return response
+
+
+class AddKeyValuePairEndpointHandler(BaseHandler):
+    """ Add a key-value pair for an experiment. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of this collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmid": {
+            "type": int
+        },
+        "experiment": {
+            "type": int
+        },
+        "k": {
+            "type": str,
+            "description": "The key for the key-value pair being added to this experiment."
+        },
+        "v": {
+            "type": str,
+            "description": "The value for the key-value pair being added to this experiment."
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # Edit the PMID file from the GitHub repository for this collection.
+        raise NotImplementedError
+        return response
+
 # BEGIN: search API endpoints
 
 

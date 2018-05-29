@@ -5,3 +5,5 @@ potential-configuration.psd
 current-configuration.png
 curl
 jupyter_notebooks/
+*.xml
+.idea/

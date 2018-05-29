@@ -13,6 +13,7 @@ import os
 import hashlib
 from tornado.concurrent import run_on_executor
 import tornado.gen
+from base64 import b64decode, b64encode
 
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
@@ -138,10 +139,87 @@ class CreateCollectionEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
+    def validate(self, j):
+        # Validate a list of strings. If reused, move to another file.
+        if not isinstance(j, list):
+            return False
+        for s in j:
+            if not isinstance(s, str):
+                return False
+        return True
+
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
-        # Create a repository with a metadata file.
-        raise NotImplementedError
+        # Validate the JSON arguments.
+        v1 = self.validate(args["inclusion_criteria"])
+        v2 = self.validate(args["exclusion_criteria"])
+        v3 = self.validate(args["tags"])
+        v4 = self.validate(args["search_strings"])
+
+        if not (v1 and v2 and v3 and v4):
+            response["success"] = 0
+            response["description"] = "One of the JSON inputs was invalid."
+            return response
+
+        # Create the repository.
+
+        repo_data = {
+            "name": get_repo_name_from_collection(args["collection_name"]),
+            "description": args["description"],
+        }
+
+        result = requests.post(
+            "https://api.github.com/user/repos", json.dumps(repo_data),
+            headers={
+                "Authorization": "token " + args["github_token"]
+            })
+
+        if result.status_code != 201:
+            response["success"] = 0
+            response["description"] = "Creating the repository failed."
+
+            return response
+
+        # Create the metadata.json file.
+
+        username = get_github_username_from_api_key(args["key"])
+
+        collections_metadata = json.dumps({
+            "description": args["description"],
+            "pmids": [],
+            "exclusion_criteria": args["exclusion_criteria"],
+            "inclusion_criteria": args["inclusion_criteria"],
+            "tags": args["tags"],
+            "search_strings": args["search_strings"]
+        })
+
+        metadata_data = {"message": "Add metadata.json", "content": b64encode(
+            collections_metadata.encode('utf-8')).decode('utf-8')}
+
+        print(
+            "https://api.github.com/repos/" +
+            username +
+            "/" +
+            get_repo_name_from_collection(
+                args["collection_name"]) +
+            "/contents/metadata.json")
+        add_metadata = requests.put(
+            "https://api.github.com/repos/" +
+            username +
+            "/" +
+            get_repo_name_from_collection(
+                args["collection_name"]) +
+            "/contents/metadata.json",
+            json.dumps(metadata_data),
+            headers={
+                "Authorization": "token " +
+                args["github_token"]})
+
+        if add_metadata.status_code != 201:
+            print(add_metadata.json())
+            response["success"] = 0
+            response["description"] = "Creating the metadata.json file failed."
+            return response
+
         return response
 
 

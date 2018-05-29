@@ -7,6 +7,15 @@ from torngithub import json_decode, json_encode
 from models import *
 
 
+def get_repo_name_from_collection(name):
+    """ Convert a collection name to a repository name for GitHub. """
+    return "brainspell-neo-collection-" + name
+
+
+def get_collection_from_repo_name(name):
+    return name[len("brainspell-neo-collection-"):]
+
+
 def get_github_username_from_api_key(api_key):
     """ Fetch the GitHub username corresponding to a given API key. """
 

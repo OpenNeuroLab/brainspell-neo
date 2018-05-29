@@ -425,7 +425,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         actual_content = decode_from_github(article_values.json()['content'])
 
-        collection_article = json.loads(actual_content)
+        collection_article = actual_content
 
         sha = article_values.json()['sha']
 

@@ -435,6 +435,8 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         else:
             # Excluding an entire PMID
+            if args['experiment_id'] not in collection_article['experiments']:
+                collection_article['experiments'][args['experiment_id']] = {}
             collection_article['experiments'][args['experiment_id']]['excluded_flag'] = True
             collection_article['experiments'][args['experiment_id']]['exclusion_reason'] = args['exclusion_criterion']
 
@@ -646,8 +648,59 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
     def process(self, response, args):
         # TODO: Make necessary GitHub requests.
         # Edit the PMID file from the GitHub repository for this collection.
-        raise NotImplementedError
+        collection_name = get_repo_name_from_collection(args['collection_name'])
+        user = get_github_username_from_api_key(args['key'])
+
+        article_values = requests.get(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
+            headers={
+                "Authorization": "token " +
+                args["github_token"]}
+        )
+        if article_values.status_code != 200:
+            response['success'] = 0
+            response['description'] = "Could not access {0}.json".format(args['pmid'])
+            return response
+        article_content = json.loads(
+            b64decode(article_values.json()["content"]).decode('utf-8'))
+
+        sha = article_values.json()['sha']
+        # Initialize structures
+        if not article_content.get('experiments'):
+            article_content['experiments'] = {}
+        if args['experiment_id'] not in article_content['experiments']:
+            article_content['experiments'][args['experiment_id']] = {}
+        if "key_value_pairs" not in article_content['experiments'][args['experiment_id']]:
+            article_content['experiments'][args['experiment_id']]['key_value_pairs'] = {}
+        article_content['experiments'][args['experiment_id']]['key_value_pairs'][args['k']] = args['v']
+        # Key value pairs being added specify experiment is not excluded (see Katie)
+        article_content['experiments'][args['experiment_id']]['excluded_flag'] = False
+
+        data = {
+            "message": "Update {0}.json".format(args['pmid']),
+            "content": b64encode(
+                json.dumps(article_content).encode('utf-8')).decode('utf-8'),
+            "sha": sha}
+        # Update the contents of the JSON file with new key value pairs
+
+        key_value_update = requests.put(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
+                .format(user,collection_name,args['pmid']),
+            json.dumps(data),
+            headers={
+                "Authorization": "token " +
+                                 args["github_token"]})
+
+        if key_value_update.status_code != 200:
+            response['success'] = 0
+            response['description'] = "Could not write to {0}.json".format(args['pmid'])
+            return response
+
+
+        response['success'] = 1
         return response
+
+
 
 # BEGIN: search API endpoints
 

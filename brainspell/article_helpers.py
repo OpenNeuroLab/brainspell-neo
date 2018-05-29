@@ -199,8 +199,8 @@ def add_pmid_article_to_database(article_id):
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
     article_info["experiments"] = ""
-    article["metadata"] = str({"meshHeadings": []})
-    article["reference"] = None
+    article_info["metadata"] = str({"meshHeadings": []})
+    article_info["reference"] = None
     identity = ""
     try:
         article_info["experiments"] = {
@@ -440,3 +440,9 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
         experiments=article_obj).where(
         Articles.pmid == pmid)
     query.execute()
+
+def replace_experiments(pmid,experiments):
+    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
+
+def replace_metadata(pmid,metadata):
+    Articles.update(metadata = metadata).where(Articles.pmid == pmid).execute()

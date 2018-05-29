@@ -532,14 +532,10 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         return response
 
 
-class EditArticleEndpointHandler(BaseHandler):
+class EditGlobalArticleEndpointHandler(BaseHandler):
     """ Edit information for this article, either collection-specific or global. """
 
     parameters = {
-        "collection_name": {
-            "type": str,
-            "description": "The name of a collection, as seen and defined by the user."
-        },
         "github_token": {
             "type": str
         },
@@ -560,31 +556,134 @@ class EditArticleEndpointHandler(BaseHandler):
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
 
-        global_editable_fields = ["title","stereotaxic_space","number_of_subjects", "descriptors",
+        # 1. Fetch the information from our own database and from GitHub
+
+        # 2. Split up Anisha's input so it's in the same format.
+        # (experiments, metadata, whatever user information)
+
+        # 3. Recursively iterate through the keys in Anisha's argument, check
+        # whether each is present in the dictionaries in part (1), and update
+        # if it is.
+
+        # 4. Push to our database.
+
+
+        global_editable_fields = {"title","stereotaxic_space","number_of_subjects", "descriptors",
                                   "experiment_effect_type",
                                   "experiment_contrast","experiment_title","experiment_caption",
-                                  "experiment_coordinates"]
-        local_editable_fields = ["experiment_include","experiment_reason_for_inclusion"]
+                                  "experiment_coordinates"}
+        local_editable_fields = {"experiment_include","experiment_reason_for_inclusion"}
 
-        # First extract all of the globally needed changes and update them in the database
-        global_updates = {}
-        for field in args['edit_contents']:
-            if field in global_editable_fields:
-                global_updates[field] = args['edit_contents'][field]
-        if len(global_updates) > 0:
-            # Make database updates here
-            article = get_article_object(args['pmid'])
-            pass
+        # Not in database = coordinate_space, effect_tyoe, contrast, key-value pairs
 
+        # Begin database updates
+        article = list(get_article_object(args['pmid']))[0]
+        contents = args['edit_contents']
 
-        local_updates = {}
-        for field in args['edit_contents']:
-            if field in local_editable_fields:
-                local_updates[field] = args['edit_contents'][field]
-        if len(local_updates) > 0:
-            pass
+        metadata = json.loads(article.metadata)
+        metadata['space'] = contents['space']
+        metadata['nsubjects'] = contents['nsubjects'] # TODO: nsubjects from args is an integer (note database may not correspond)
+        metadata['effect_type'] = contents['effect_type'] # Ensure this is being sent
+        metadata['contrast'] = contents['contrast']
+
+        experiments = json.loads(article.experiments)
+        mapping = {}
+        for i in range(len(experiments)):
+            mapping[experiments[i]['id']] = i
+        for exp in contents['experiments']:
+            index = mapping[exp['id']]
+            experiments[index]['caption'] = exp['caption']
+            experiments[index]['locations'] = exp['locations']
+            experiments[index]['tags'] = exp['descriptors']
+            experiments[index]['contrast'] = exp['contrast']
+            experiments[index]['space'] = exp['space']
+            experiments[index]['effect'] = exp['effect']
+
+        replace_experiments(args['pmid'],json.dumps(experiments))
+        replace_metadata(args['pmid'],json.dumps(metadata))
 
         return response
+
+        # key_value_pairs = contents['key_value_pairs']
+
+
+class EditLocalArticleEndpointHandler(BaseHandler):
+    """ Edit information for this article, either collection-specific or global. """
+
+    parameters = {
+        "collection_name": {
+            "type": str,
+            "description": "The name of a collection, as seen and defined by the user."
+        },
+        "github_token": {
+            "type": str
+        },
+        "pmid": {
+            "type": int
+        },
+        "key_value_pairs": {
+            "type": json.loads,
+            "description": "Data that should be changed in the user's collections and Brainspell's version."
+        }
+    }
+
+    api_version = 2
+    endpoint_type = Endpoint.PUSH_API
+
+    def process(self, response, args):
+        # TODO: Make necessary GitHub requests.
+        # See what fields are included in the edit_contents dictionary, and update each provided
+        # field in the appropriate place, whether on GitHub or otherwise.
+
+        # 1. Fetch the information from our own database and from GitHub
+
+        # 2. Split up Anisha's input so it's in the same format.
+        # (experiments, metadata, whatever user information)
+
+        # 3. Recursively iterate through the keys in Anisha's argument, check
+        # whether each is present in the dictionaries in part (1), and update
+        # if it is.
+
+        # 4. Push to our database.
+
+        global_editable_fields = {"title", "stereotaxic_space", "number_of_subjects", "descriptors",
+                                  "experiment_effect_type",
+                                  "experiment_contrast", "experiment_title", "experiment_caption",
+                                  "experiment_coordinates"}
+        local_editable_fields = {"experiment_include", "experiment_reason_for_inclusion"}
+
+        # Not in database = coordinate_space, effect_tyoe, contrast, key-value pairs
+
+        # Begin database updates
+        article = list(get_article_object(args['pmid']))[0]
+        contents = args['edit_contents']
+
+        metadata = json.loads(article.metadata)
+        metadata['space'] = contents['space']
+        metadata['nsubjects'] = contents[
+            'nsubjects']  # TODO: nsubjects from args is an integer (note database may not correspond)
+        metadata['effect_type'] = contents['effect_type']  # Ensure this is being sent
+        metadata['contrast'] = contents['contrast']
+
+        experiments = json.loads(article.experiments)
+        mapping = {}
+        for i in range(len(experiments)):
+            mapping[experiments[i]['id']] = i
+        for exp in contents['experiments']:
+            index = mapping[exp['id']]
+            experiments[index]['caption'] = exp['caption']
+            experiments[index]['locations'] = exp['locations']
+            experiments[index]['tags'] = exp['descriptors']
+            experiments[index]['contrast'] = exp['contrast']
+            experiments[index]['space'] = exp['space']
+            experiments[index]['effect'] = exp['effect']
+
+        replace_experiments(args['pmid'], json.dumps(experiments))
+        replace_metadata(args['pmid'], json.dumps(metadata))
+
+        return response
+
+        # key_value_pairs = contents['key_value_pairs']
 
 
 class GetArticleFromCollectionEndpointHandler(BaseHandler):

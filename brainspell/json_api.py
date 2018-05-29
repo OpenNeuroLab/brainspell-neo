@@ -615,16 +615,10 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, collection_name, args['pmid']), args["github_token"])
 
-        if article_values.status_code != 200:
-            response['success'] = 0
-            response['description'] = "Could not access {0}.json".format(
-                args['pmid'])
-            return response
         # Update the Individual Article page for the corresponding PMID
-        article_content = json.loads(
-            b64decode(article_values.json()["content"]).decode('utf-8'))
+        article_content = decode_from_github(article_values["content"])
 
-        sha = article_values.json()['sha']
+        sha = article_values['sha']
         # Initialize structures
 
         # Execute experiment specific key-value updates
@@ -660,8 +654,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
-            "content": b64encode(
-                json.dumps(article_content).encode('utf-8')).decode('utf-8'),
+            "content": encode_for_github(article_content),
             "sha": sha}
         # Update the contents of the JSON file with new key value pairs
 

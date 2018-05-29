@@ -406,28 +406,28 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # Add the excluded experiment to the file for this PMID.
-        collection_name = get_repo_name_from_collection(args['collection_name'])
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
         article_values = requests.get(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
-            headers={
-                "Authorization": "token " +
-                args["github_token"]}
-        )
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args['pmid']), headers={
+                "Authorization": "token " + args["github_token"]})
         if article_values.status_code != 200:
             response["success"] = 0
-            response['description'] = "Couldn't access {0}".format("https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user, collection_name,args['pmid']))
+            response['description'] = "Couldn't access {0}".format(
+                "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                    user, collection_name, args['pmid']))
             return response
 
-        actual_content = b64decode(article_values.json()['content']).decode('utf-8')
+        actual_content = b64decode(
+            article_values.json()['content']).decode('utf-8')
 
         collection_article = json.loads(actual_content)
 
         sha = article_values.json()['sha']
-
 
         if args['experiment_id'] == -1:
             # excluding an entire PMID
@@ -438,9 +438,10 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
             # Excluding an entire PMID
             if args['experiment_id'] not in collection_article['experiments']:
                 collection_article['experiments'][args['experiment_id']] = {}
-            collection_article['experiments'][args['experiment_id']]['excluded_flag'] = True
-            collection_article['experiments'][args['experiment_id']]['exclusion_reason'] = args['exclusion_criterion']
-
+            collection_article['experiments'][args['experiment_id']
+                                              ]['excluded_flag'] = True
+            collection_article['experiments'][args['experiment_id']
+                                              ]['exclusion_reason'] = args['exclusion_criterion']
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
@@ -448,22 +449,19 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
                 json.dumps(collection_article).encode('utf-8')).decode('utf-8'),
             "sha": sha}
         # Now set the content of the file to the updated collection_article
-        add_pmid = requests.put(
+        update_article = requests.put(
             "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
-                .format(user,collection_name,args['pmid']),
+            .format(user, collection_name, args['pmid']),
             json.dumps(data),
             headers={
                 "Authorization": "token " +
                                  args["github_token"]})
 
-        if add_pmid.status_code != 200:
-            print("STATUS {0}".format(add_pmid.status_code))
+        if update_article.status_code != 200:
             response["success"] = 0
-            response["description"] = "Creating the {0}.json file failed.".format(
+            response["description"] = "Updating the {0}.json file failed.".format(
                 args['pmid'])
-            return response
 
-        response['success'] = 1
         return response
 
 
@@ -473,6 +471,11 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
     parameters = {
         "github_token": {
             "type": str
+        },
+        "contributors": {
+            "type": int,
+            "default": 0,
+            "description": "1 if you want contributors information for each repo, 0 otherwise."
         }
     }
 
@@ -485,6 +488,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
 
         user = get_github_username_from_api_key(args['key'])
         brainspell_repos = []
+        contributors_info = {}
         page_number = 1
         more_repos = True
 
@@ -511,9 +515,18 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                 if repo["name"][:len("brainspell-neo-collection-")
                                 ] == "brainspell-neo-collection-":
                     brainspell_repos.append((repo["name"], repo["url"]))
+                    if args["contributors"] != 0:
+                        contributors_req = requests.get(
+                            repo["contributors_url"], headers={
+                                "Authorization": "token " + args["github_token"]})
+                        contributors_info[repo["name"]] = [{
+                            "login": c["login"],
+                            "avatar_url": c["avatar_url"]
+                        } for c in contributors_req.json()]
+
             page_number += 1
 
-        names_and_pmids = {}
+        user_collections = []
 
         for name, url in brainspell_repos:
             repo_req = requests.get(url + "/contents/metadata.json", headers={
@@ -525,10 +538,34 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
             repo_meta = json.loads(
                 b64decode(
                     repo_req.json()["content"]).decode('utf-8'))
-            names_and_pmids[get_collection_from_repo_name(
-                name)] = repo_meta["pmids"]
 
-        response["collections"] = names_and_pmids
+            # Convert PeeWee article object to dict
+            def parse_article_object(article_object):
+                return {
+                    "title": article_object.title,
+                    "reference": article_object.reference,
+                    "pmid": article_object.pmid
+                }
+
+            article_dicts = []
+
+            for p in repo_meta["pmids"]:
+                try:
+                    obj = next(get_article_object(p))
+                    article_dicts.append(parse_article_object(obj))
+                except BaseException:
+                    if "failed_to_fetch" not in response:
+                        response["failed_to_fetch"] = []
+                    response["failed_to_fetch"].append(p)
+
+            user_collections.append({
+                "name": name,
+                "description": repo_meta["description"],
+                "contents": article_dicts,
+                "contributors": contributors_info[name]
+            })
+
+        response["collections"] = user_collections
         return response
 
 
@@ -560,13 +597,22 @@ class EditArticleEndpointHandler(BaseHandler):
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
 
-        global_editable_fields = ["title","stereotaxic_space","number_of_subjects", "descriptors",
-                                  "experiment_effect_type",
-                                  "experiment_contrast","experiment_title","experiment_caption",
-                                  "experiment_coordinates"]
-        local_editable_fields = ["experiment_include","experiment_reason_for_inclusion"]
+        global_editable_fields = [
+            "title",
+            "stereotaxic_space",
+            "number_of_subjects",
+            "descriptors",
+            "experiment_effect_type",
+            "experiment_contrast",
+            "experiment_title",
+            "experiment_caption",
+            "experiment_coordinates"]
+        local_editable_fields = [
+            "experiment_include",
+            "experiment_reason_for_inclusion"]
 
-        # First extract all of the globally needed changes and update them in the database
+        # First extract all of the globally needed changes and update them in
+        # the database
         global_updates = {}
         for field in args['edit_contents']:
             if field in global_editable_fields:
@@ -575,7 +621,6 @@ class EditArticleEndpointHandler(BaseHandler):
             # Make database updates here
             article = get_article_object(args['pmid'])
             pass
-
 
         local_updates = {}
         for field in args['edit_contents']:
@@ -659,20 +704,19 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # Edit the PMID file from the GitHub repository for this collection.
-        collection_name = get_repo_name_from_collection(args['collection_name'])
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
         article_values = requests.get(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
-            headers={
-                "Authorization": "token " +
-                args["github_token"]}
-        )
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args['pmid']), headers={
+                "Authorization": "token " + args["github_token"]})
         if article_values.status_code != 200:
             response['success'] = 0
-            response['description'] = "Could not access {0}.json".format(args['pmid'])
+            response['description'] = "Could not access {0}.json".format(
+                args['pmid'])
             return response
         article_content = json.loads(
             b64decode(article_values.json()["content"]).decode('utf-8'))
@@ -684,10 +728,13 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
         if args['experiment_id'] not in article_content['experiments']:
             article_content['experiments'][args['experiment_id']] = {}
         if "key_value_pairs" not in article_content['experiments'][args['experiment_id']]:
-            article_content['experiments'][args['experiment_id']]['key_value_pairs'] = {}
-        article_content['experiments'][args['experiment_id']]['key_value_pairs'][args['k']] = args['v']
-        # Key value pairs being added specify experiment is not excluded (see Katie)
-        article_content['experiments'][args['experiment_id']]['excluded_flag'] = False
+            article_content['experiments'][args['experiment_id']
+                                           ]['key_value_pairs'] = {}
+        article_content['experiments'][args['experiment_id']
+                                       ]['key_value_pairs'][args['k']] = args['v']
+        # Key value pairs being added imply experiment is not excluded (@Katie)
+        article_content['experiments'][args['experiment_id']
+                                       ]['excluded_flag'] = False
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
@@ -698,7 +745,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
 
         key_value_update = requests.put(
             "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
-                .format(user,collection_name,args['pmid']),
+            .format(user, collection_name, args['pmid']),
             json.dumps(data),
             headers={
                 "Authorization": "token " +
@@ -706,13 +753,10 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
 
         if key_value_update.status_code != 200:
             response['success'] = 0
-            response['description'] = "Could not write to {0}.json".format(args['pmid'])
-            return response
+            response['description'] = "Could not write to {0}.json".format(
+                args['pmid'])
 
-
-        response['success'] = 1
         return response
-
 
 
 # BEGIN: search API endpoints

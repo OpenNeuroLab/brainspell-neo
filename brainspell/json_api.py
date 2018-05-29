@@ -796,7 +796,7 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
                 args["pmid"])
             return response
 
-        response["article_info"] = decode_for_github(
+        response["article_info"] = decode_from_github(
             collection_values.json()["content"])
 
         return response

@@ -296,7 +296,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         username = get_github_username_from_api_key(args["key"])
         pmid_data = {"message": "Add metadata.json", "content": b64encode(
-            "{{}}".encode('utf-8')).decode('utf-8')}
+            "{}".encode('utf-8')).decode('utf-8')}
 
         # Get PMIDs that are already added.
         get_metadata = requests.get(
@@ -483,7 +483,7 @@ class EditArticleEndpointHandler(BaseHandler):
             "type": str
         },
         "pmid": {
-            "type": str
+            "type": int
         },
         "edit_contents": {
             "type": json.loads,

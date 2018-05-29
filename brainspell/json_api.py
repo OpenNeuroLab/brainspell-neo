@@ -476,8 +476,7 @@ class EditArticleEndpointHandler(BaseHandler):
     parameters = {
         "collection_name": {
             "type": str,
-            "description": "The name of a collection, as seen and defined by the user.",
-            "default": ""
+            "description": "The name of a collection, as seen and defined by the user."
         },
         "github_token": {
             "type": str

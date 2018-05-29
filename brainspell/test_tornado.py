@@ -50,6 +50,15 @@ TODO: need to make tests for:
 """
 
 
+def test_no_manual_encoding():
+    """ Enforce no usage of b64encode or b64decode in json_api. Should
+    use helper functions in user_account_helpers.py instead. """
+
+    with open("json_api.py", "r") as f:
+        c = f.read()
+        assert "b64encode" not in c and "b64decode" not in c, "You used b64encode or b64decode in json_api. Use the helper functions in user_account_helpers instead."
+
+
 def test_abstraction_layer():
     """
     Enforce a data access object abstraction layer.

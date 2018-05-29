@@ -13,7 +13,6 @@ import os
 import hashlib
 from tornado.concurrent import run_on_executor
 import tornado.gen
-from base64 import b64decode, b64encode
 
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
@@ -140,7 +139,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def validate(self, j):
-        # Validate a list of strings. If reused, move to another file.
+        # Validate a list of strings.
         if not isinstance(j, list):
             return False
         for s in j:
@@ -191,17 +190,17 @@ class CreateCollectionEndpointHandler(BaseHandler):
 
         username = get_github_username_from_api_key(args["key"])
 
-        collection_metadata = json.dumps({
+        collection_metadata = {
             "description": args["description"],
             "pmids": [],
             "exclusion_criteria": args["exclusion_criteria"],
             "inclusion_criteria": args["inclusion_criteria"],
             "tags": args["tags"],
             "search_strings": args["search_strings"]
-        })
+        }
 
-        metadata_data = {"message": "Add metadata.json", "content": b64encode(
-            collection_metadata.encode('utf-8')).decode('utf-8')}
+        metadata_data = {"message": "Add metadata.json",
+                         "content": encode_for_github(collection_metadata)}
 
         add_metadata = requests.put(
             "https://api.github.com/repos/" +
@@ -256,8 +255,8 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
             response['description'] = "Couldn't access metadata.json."
             return response
 
-        response["collection_info"] = json.loads(
-            b64decode(collection_values.json()["content"]).decode('utf-8'))
+        response["collection_info"] = decode_from_github(
+            collection_values.json()["content"])
 
         return response
 
@@ -303,8 +302,10 @@ class AddToCollectionEndpointHandler(BaseHandler):
             return response
 
         username = get_github_username_from_api_key(args["key"])
-        pmid_data = {"message": "Add metadata.json", "content": b64encode(
-            "{}".encode('utf-8')).decode('utf-8')}
+        pmid_data = {
+            "message": "Add metadata.json",
+            "content": encode_for_github(
+                {})}
 
         # Get PMIDs that are already added.
         get_metadata = requests.get(
@@ -318,8 +319,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 "Authorization": "token " +
                 args["github_token"]})
 
-        collection_metadata = json.loads(
-            b64decode(get_metadata.json()["content"]).decode('utf-8'))
+        collection_metadata = decode_from_github(
+            get_metadata.json()["content"])
 
         current_pmids = set(collection_metadata["pmids"])
 
@@ -355,8 +356,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         metadata_data = {
             "message": "Update metadata.json",
-            "content": b64encode(
-                json.dumps(collection_metadata).encode('utf-8')).decode('utf-8'),
+            "content": encode_for_github(collection_metadata),
             "sha": get_metadata.json()["sha"]}
 
         add_metadata = requests.put(
@@ -423,8 +423,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
                     user, collection_name, args['pmid']))
             return response
 
-        actual_content = b64decode(
-            article_values.json()['content']).decode('utf-8')
+        actual_content = decode_from_github(article_values.json()['content'])
 
         collection_article = json.loads(actual_content)
 
@@ -446,8 +445,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
-            "content": b64encode(
-                json.dumps(collection_article).encode('utf-8')).decode('utf-8'),
+            "content": encode_for_github(collection_article),
             "sha": sha}
         # Now set the content of the file to the updated collection_article
         update_article = requests.put(
@@ -536,9 +534,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                 response["success"] = 0
                 response["description"] = "Couldn't get metadata.json for collection: " + name
                 return response
-            repo_meta = json.loads(
-                b64decode(
-                    repo_req.json()["content"]).decode('utf-8'))
+            repo_meta = decode_from_github(repo_req.json()["content"])
 
             # Convert PeeWee article object to dict
             def parse_article_object(article_object):
@@ -605,14 +601,22 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         # 4. Push to our database.
 
+        global_editable_fields = {
+            "title",
+            "stereotaxic_space",
+            "number_of_subjects",
+            "descriptors",
+            "experiment_effect_type",
+            "experiment_contrast",
+            "experiment_title",
+            "experiment_caption",
+            "experiment_coordinates"}
+        local_editable_fields = {
+            "experiment_include",
+            "experiment_reason_for_inclusion"}
 
-        global_editable_fields = {"title","stereotaxic_space","number_of_subjects", "descriptors",
-                                  "experiment_effect_type",
-                                  "experiment_contrast","experiment_title","experiment_caption",
-                                  "experiment_coordinates"}
-        local_editable_fields = {"experiment_include","experiment_reason_for_inclusion"}
-
-        # Not in database = coordinate_space, effect_tyoe, contrast, key-value pairs
+        # Not in database = coordinate_space, effect_tyoe, contrast, key-value
+        # pairs
 
         # Begin database updates
         article = list(get_article_object(args['pmid']))[0]
@@ -620,8 +624,11 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         metadata = json.loads(article.metadata)
         metadata['space'] = contents['space']
-        metadata['nsubjects'] = contents['nsubjects'] # TODO: nsubjects from args is an integer (note database may not correspond)
-        metadata['effect_type'] = contents['effect_type'] # Ensure this is being sent
+        # TODO: nsubjects from args is an integer (note database may not
+        # correspond)
+        metadata['nsubjects'] = contents['nsubjects']
+        # Ensure this is being sent
+        metadata['effect_type'] = contents['effect_type']
         metadata['contrast'] = contents['contrast']
 
         experiments = json.loads(article.experiments)
@@ -637,8 +644,8 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             experiments[index]['space'] = exp['space']
             experiments[index]['effect'] = exp['effect']
 
-        replace_experiments(args['pmid'],json.dumps(experiments))
-        replace_metadata(args['pmid'],json.dumps(metadata))
+        replace_experiments(args['pmid'], json.dumps(experiments))
+        replace_metadata(args['pmid'], json.dumps(metadata))
 
         return response
 
@@ -757,7 +764,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         return response
 
 
-
 class GetArticleFromCollectionEndpointHandler(BaseHandler):
     """ Get the collection-specific information for this article. """
 
@@ -793,8 +799,8 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
                 args["pmid"])
             return response
 
-        response["article_info"] = json.loads(
-            b64decode(collection_values.json()["content"]).decode('utf-8'))
+        response["article_info"] = decode_for_github(
+            collection_values.json()["content"])
 
         return response
 
@@ -844,8 +850,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
             response['description'] = "Could not access {0}.json".format(
                 args['pmid'])
             return response
-        article_content = json.loads(
-            b64decode(article_values.json()["content"]).decode('utf-8'))
+        article_content = decode_from_github(article_values.json()["content"])
 
         sha = article_values.json()['sha']
         # Initialize structures
@@ -864,8 +869,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
-            "content": b64encode(
-                json.dumps(article_content).encode('utf-8')).decode('utf-8'),
+            "content": encode_for_github(article_content),
             "sha": sha}
         # Update the contents of the JSON file with new key value pairs
 

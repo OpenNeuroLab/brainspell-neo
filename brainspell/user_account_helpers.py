@@ -2,9 +2,21 @@
 
 import hashlib
 
-from torngithub import json_decode, json_encode
-
 from models import *
+
+from base64 import b64decode, b64encode
+import json
+
+
+def encode_for_github(d):
+    """ Encode with base64 and utf-8. Take a dictionary. """
+    return b64encode(json.dumps(d).encode("utf-8")).decode("utf-8")
+
+
+def decode_from_github(s):
+    """ Reverse the encode_dict_for_github function.
+    Return a dictionary. """
+    return json.loads(b64decode(s).decode("utf-8"))
 
 
 def get_repo_name_from_collection(name):
@@ -13,6 +25,7 @@ def get_repo_name_from_collection(name):
 
 
 def get_collection_from_repo_name(name):
+    """ Convert a repo name to the user-specified collection name. """
     return name[len("brainspell-neo-collection-"):]
 
 
@@ -82,7 +95,7 @@ def add_collection_to_brainspell_database(
             user_collections[collection_name]["pmids"] = []
             if not cold_run:
                 q = User.update(
-                    collections=json_encode(user_collections)).where(
+                    collections=json.dumps(user_collections)).where(
                     User.username == user.username)
                 q.execute()
             return True
@@ -103,7 +116,7 @@ def bulk_add_articles_to_brainspell_database_collection(
         user = list(user)[0]
         if user.collections:
             # assumes collections are well-formed JSON
-            target = json_decode(user.collections)
+            target = json.loads(user.collections)
             if collection not in target:
                 target[collection] = {
                     "description": "None",
@@ -117,7 +130,7 @@ def bulk_add_articles_to_brainspell_database_collection(
             target[collection]["pmids"] = list(pmid_set)
             if not cold_run:
                 q = User.update(
-                    collections=json_encode(target)).where(
+                    collections=json.dumps(target)).where(
                     User.password == api_key)
                 q.execute()
             return True
@@ -134,7 +147,7 @@ def remove_all_brainspell_database_collections(api_key):
 
     if valid_api_key(api_key):
         q = User.update(
-            collections=json_encode({})).where(
+            collections=json.dumps({})).where(
             User.password == api_key)
         q.execute()
 
@@ -150,7 +163,7 @@ def get_brainspell_collections_from_api_key(api_key):
     if valid_api_key(api_key):
         user = list(get_user_object_from_api_key(api_key))[0]
         if user.collections:
-            return json_decode(user.collections)
+            return json.loads(user.collections)
     return response
 
 
@@ -177,7 +190,7 @@ def add_article_to_brainspell_database_collection(
         user = list(user)[0]
         if user.collections:
             # assumes collections are well-formed JSON
-            target = json_decode(user.collections)
+            target = json.loads(user.collections)
             if collection not in target:
                 target[collection] = {
                     "description": "None",
@@ -191,7 +204,7 @@ def add_article_to_brainspell_database_collection(
                 target[collection]["pmids"] = list(pmids_list)
                 if not cold_run:
                     q = User.update(
-                        collections=json_encode(target)).where(
+                        collections=json.dumps(target)).where(
                         User.password == api_key)
                     q.execute()
                 return True
@@ -215,7 +228,7 @@ def remove_article_from_brainspell_database_collection(
         user = list(user)[0]
         if user.collections:
             # assumes collections are well-formed JSON
-            target = json_decode(user.collections)
+            target = json.loads(user.collections)
             if collection in target:
                 pmids_list = list(
                     map(lambda x: str(x), target[collection]["pmids"]))
@@ -224,7 +237,7 @@ def remove_article_from_brainspell_database_collection(
                     target[collection]["pmids"] = pmids_list
                     if not cold_run:
                         q = User.update(
-                            collections=json_encode(target)).where(
+                            collections=json.dumps(target)).where(
                             User.password == api_key)
                         q.execute()
                     return True

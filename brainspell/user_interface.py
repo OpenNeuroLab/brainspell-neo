@@ -186,6 +186,8 @@ class SwaggerHandler(BaseHandler):
                                for f in dir(json_api) if "EndpointHandler" in f] \
                 + [(convert(f.replace("EndpointHandler", "")), eval("github_collections." + f))
                     for f in dir(github_collections) if "EndpointHandler" in f]:
+                if func.api_version != 1:
+                    name = "v" + str(func.api_version) + "/" + name
 
                 # add parameters from each endpoint
                 parameters_object = []

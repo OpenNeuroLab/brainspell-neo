@@ -600,14 +600,22 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         # 4. Push to our database.
 
+        global_editable_fields = {
+            "title",
+            "stereotaxic_space",
+            "number_of_subjects",
+            "descriptors",
+            "experiment_effect_type",
+            "experiment_contrast",
+            "experiment_title",
+            "experiment_caption",
+            "experiment_coordinates"}
+        local_editable_fields = {
+            "experiment_include",
+            "experiment_reason_for_inclusion"}
 
-        global_editable_fields = {"title","stereotaxic_space","number_of_subjects", "descriptors",
-                                  "experiment_effect_type",
-                                  "experiment_contrast","experiment_title","experiment_caption",
-                                  "experiment_coordinates"}
-        local_editable_fields = {"experiment_include","experiment_reason_for_inclusion"}
-
-        # Not in database = coordinate_space, effect_tyoe, contrast, key-value pairs
+        # Not in database = coordinate_space, effect_tyoe, contrast, key-value
+        # pairs
 
         # Begin database updates
         article = list(get_article_object(args['pmid']))[0]
@@ -615,8 +623,11 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         metadata = json.loads(article.metadata)
         metadata['space'] = contents['space']
-        metadata['nsubjects'] = contents['nsubjects'] # TODO: nsubjects from args is an integer (note database may not correspond)
-        metadata['effect_type'] = contents['effect_type'] # Ensure this is being sent
+        # TODO: nsubjects from args is an integer (note database may not
+        # correspond)
+        metadata['nsubjects'] = contents['nsubjects']
+        # Ensure this is being sent
+        metadata['effect_type'] = contents['effect_type']
         metadata['contrast'] = contents['contrast']
 
         experiments = json.loads(article.experiments)
@@ -632,8 +643,8 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             experiments[index]['space'] = exp['space']
             experiments[index]['effect'] = exp['effect']
 
-        replace_experiments(args['pmid'],json.dumps(experiments))
-        replace_metadata(args['pmid'],json.dumps(metadata))
+        replace_experiments(args['pmid'], json.dumps(experiments))
+        replace_metadata(args['pmid'], json.dumps(metadata))
 
         return response
 
@@ -668,7 +679,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
         raise NotImplementedError
-
 
 
 class GetArticleFromCollectionEndpointHandler(BaseHandler):

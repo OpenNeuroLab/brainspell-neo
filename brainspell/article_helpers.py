@@ -441,8 +441,12 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
         Articles.pmid == pmid)
     query.execute()
 
-def replace_experiments(pmid,experiments):
-    Articles.update(experiments = experiments).where(Articles.pmid == pmid).execute()
 
-def replace_metadata(pmid,metadata):
-    Articles.update(metadata = metadata).where(Articles.pmid == pmid).execute()
+def replace_experiments(pmid, experiments):
+    Articles.update(
+        experiments=experiments).where(
+        Articles.pmid == pmid).execute()
+
+
+def replace_metadata(pmid, metadata):
+    Articles.update(metadata=metadata).where(Articles.pmid == pmid).execute()

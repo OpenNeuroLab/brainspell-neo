@@ -425,29 +425,48 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         collection_article = json.loads(actual_content)
 
+        sha = article_values.json()['sha']
 
 
-
-
-
-        if args['experiment'] == -1:
+        if args['experiment_id'] == -1:
             # excluding an entire PMID
             collection_article['excluded_flag'] = True
             collection_article['exclusion_reason'] = args['exclusion_criterion']
 
         else:
             # Excluding an entire PMID
-            collection_article['experiments'][args['experiment']]['excluded_flag'] = True
-            collection_article['experiments'][args['experiment']]['exclusion_reason'] = args['exclusion_criterion']
+            collection_article['experiments'][args['experiment_id']]['excluded_flag'] = True
+            collection_article['experiments'][args['experiment_id']]['exclusion_reason'] = args['exclusion_criterion']
 
+
+        data = {
+            "message": "Update {0}.json".format(args['pmid']),
+            "content": b64encode(
+                json.dumps(collection_article).encode('utf-8')).decode('utf-8'),
+            "sha": sha}
         # Now set the content of the file to the updated collection_article
         add_pmid = requests.put(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
+                .format(user,collection_name,args['pmid']),
+            json.dumps(data),
             headers={
                 "Authorization": "token " +
                                  args["github_token"]})
 
-        if add_pmid.status_code != 201:
+        # add_pmid = requests.put(
+        #     "https://api.github.com/repos/" +
+        #     username +
+        #     "/" +
+        #     get_repo_name_from_collection(
+        #         args["collection_name"]) +
+        #     "/contents/" + str(p) + ".json",
+        #     json.dumps(pmid_data),
+        #     headers={
+        #         "Authorization": "token " +
+        #                          args["github_token"]})
+
+        if add_pmid.status_code != 200:
+            print("STATUS {0}".format(add_pmid.status_code))
             response["success"] = 0
             response["description"] = "Creating the {0}.json file failed.".format(
                 args['pmid'])

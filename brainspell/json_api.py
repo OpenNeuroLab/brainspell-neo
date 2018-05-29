@@ -232,23 +232,25 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-
-        # TODO: Make necessary GitHub requests.
         # Get the metadata file from the GitHub repository for this collection.
-        collection_name = get_repo_name_from_collection(args['collection_name'])
+
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
         collection_values = requests.get(
-            "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user,collection_name),
+            "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user, collection_name),
             headers={
                 "Authorization": "token " +
                 args["github_token"]}
         )
         if collection_values.status_code != 200:
             response["success"] = 0
-            response['description'] = "Couldn't access metadata.json"
+            response['description'] = "Couldn't access metadata.json."
             return response
 
-        response['collection_info'] = json.dumps(collection_values.json())
+        response["collection_info"] = json.loads(
+            b64decode(collection_values.json()["content"]).decode('utf-8'))
+
         return response
 
 
@@ -265,8 +267,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         },
         "pmids": {
             "type": json.loads,
-            "description": "A JSON-serialized list of PMIDs to add to this collection.",
-            "default": "[]"
+            "description": "A JSON-serialized list of PMIDs to add to this collection."
         }
     }
 
@@ -384,7 +385,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
         "pmid": {
             "type": int
         },
-        "experiment": {
+        "experiment_id": {
             "type": int,
             "description": "Include if removing just one experiment.",
             "default": -1
@@ -457,7 +458,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
 
 class GetUserCollectionsEndpointHandler(BaseHandler):
-    """ Get the Brainspell collections owned by this user. """
+    """ Get the Brainspell collections owned by this user, including the PMIDs that are included. """
 
     parameters = {
         "github_token": {
@@ -469,10 +470,55 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # Get all repositories owned by this user, and return the names that start with
         # brainspell-neo-collection.
-        raise NotImplementedError
+
+        user = get_github_username_from_api_key(args['key'])
+        brainspell_repos = []
+        page_number = 1
+        more_repos = True
+
+        while more_repos:
+            repos = requests.get(
+                "https://api.github.com/user/repos?per_page=100&page={0}".format(page_number),
+                data=json.dumps(
+                    {
+                        "affiliation": "owner"}),
+                headers={
+                    "Authorization": "token " +
+                    args["github_token"]})
+            if repos.status_code != 200:
+                response["success"] = 0
+                response['description'] = "Couldn't get user's repositories."
+                return response
+
+            repos_list = repos.json()
+
+            if len(repos_list) == 0:
+                more_repos = False
+
+            for repo in repos_list:
+                if repo["name"][:len("brainspell-neo-collection-")
+                                ] == "brainspell-neo-collection-":
+                    brainspell_repos.append((repo["name"], repo["url"]))
+            page_number += 1
+
+        names_and_pmids = {}
+
+        for name, url in brainspell_repos:
+            repo_req = requests.get(url + "/contents/metadata.json", headers={
+                "Authorization": "token " + args["github_token"]})
+            if repo_req.status_code != 200:
+                response["success"] = 0
+                response["description"] = "Couldn't get metadata.json for collection: " + name
+                return response
+            repo_meta = json.loads(
+                b64decode(
+                    repo_req.json()["content"]).decode('utf-8'))
+            names_and_pmids[get_collection_from_repo_name(
+                name)] = repo_meta["pmids"]
+
+        response["collections"] = names_and_pmids
         return response
 
 
@@ -530,6 +576,22 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
     def process(self, response, args):
         # Get the PMID file from the GitHub repository for this collection.
 
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
+        user = get_github_username_from_api_key(args['key'])
+        collection_values = requests.get(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args["pmid"]), headers={
+                "Authorization": "token " + args["github_token"]})
+        if collection_values.status_code != 200:
+            response["success"] = 0
+            response['description'] = "Couldn't access {0}.json".format(
+                args["pmid"])
+            return response
+
+        response["article_info"] = json.loads(
+            b64decode(collection_values.json()["content"]).decode('utf-8'))
+
         return response
 
 
@@ -547,7 +609,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
         "pmid": {
             "type": int
         },
-        "experiment": {
+        "experiment_id": {
             "type": int
         },
         "k": {

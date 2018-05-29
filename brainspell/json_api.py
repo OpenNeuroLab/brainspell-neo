@@ -154,7 +154,14 @@ class CreateCollectionEndpointHandler(BaseHandler):
         v2 = self.validate(args["exclusion_criteria"])
         v3 = self.validate(args["tags"])
         v4 = self.validate(args["search_strings"])
-
+        if not v1:
+            print("Inclusion failed")
+        if not v2:
+            print("exclusion failed")
+        if not v3:
+            print("tags failed")
+        if not v4:
+            print("search strings")
         if not (v1 and v2 and v3 and v4):
             response["success"] = 0
             response["description"] = "One of the JSON inputs was invalid."
@@ -566,6 +573,7 @@ class EditArticleEndpointHandler(BaseHandler):
                 global_updates[field] = args['edit_contents'][field]
         if len(global_updates) > 0:
             # Make database updates here
+            article = get_article_object(args['pmid'])
             pass
 
 
@@ -575,10 +583,6 @@ class EditArticleEndpointHandler(BaseHandler):
                 local_updates[field] = args['edit_contents'][field]
         if len(local_updates) > 0:
             pass
-
-
-
-
 
         return response
 

@@ -119,6 +119,7 @@ def get_user_repos(http_client, access_token):
     """ Get a user's repos. """
 
     data = []
+    print("ACCESS_TOKEN IS {0}".format(access_token))
 
     # get the results in groups of 100
     first_page = yield torngithub.github_request(

@@ -260,13 +260,13 @@ class AddToCollectionEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def validate(self, pmids):
-        if type(pmids) != list:
+        if not isinstance(pmids, list):
             return False
         for p in pmids:
             # Make sure that each PMID is a valid integer.
             try:
                 v = int(p)
-            except:
+            except BaseException:
                 return False
         return True
 
@@ -281,7 +281,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         username = get_github_username_from_api_key(args["key"])
         pmid_data = {"message": "Add metadata.json", "content": b64encode(
-            "[]".encode('utf-8')).decode('utf-8')}
+            "{{}}".encode('utf-8')).decode('utf-8')}
 
         # Get PMIDs that are already added.
         get_metadata = requests.get(
@@ -295,7 +295,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 "Authorization": "token " +
                 args["github_token"]})
 
-        collection_metadata = json.loads(b64decode(get_metadata.json()["content"]).decode('utf-8'))
+        collection_metadata = json.loads(
+            b64decode(get_metadata.json()["content"]).decode('utf-8'))
 
         current_pmids = set(collection_metadata["pmids"])
 
@@ -319,17 +320,20 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
                 if add_pmid.status_code != 201:
                     response["success"] = 0
-                    response["description"] = "Creating the {0}.json file failed.".format(p)
+                    response["description"] = "Creating the {0}.json file failed.".format(
+                        p)
                     return response
                 current_pmids.add(p)
 
         if not added_pmid:
             return response
-            
+
         collection_metadata["pmids"] = list(current_pmids)
 
-        metadata_data = {"message": "Update metadata.json", "content": b64encode(
-            json.dumps(collection_metadata).encode('utf-8')).decode('utf-8'),
+        metadata_data = {
+            "message": "Update metadata.json",
+            "content": b64encode(
+                json.dumps(collection_metadata).encode('utf-8')).decode('utf-8'),
             "sha": get_metadata.json()["sha"]}
 
         add_metadata = requests.put(
@@ -458,9 +462,8 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # Get the PMID file from the GitHub repository for this collection.
-        raise NotImplementedError
+
         return response
 
 

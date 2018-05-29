@@ -183,7 +183,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
 
         username = get_github_username_from_api_key(args["key"])
 
-        collections_metadata = json.dumps({
+        collection_metadata = json.dumps({
             "description": args["description"],
             "pmids": [],
             "exclusion_criteria": args["exclusion_criteria"],
@@ -193,15 +193,8 @@ class CreateCollectionEndpointHandler(BaseHandler):
         })
 
         metadata_data = {"message": "Add metadata.json", "content": b64encode(
-            collections_metadata.encode('utf-8')).decode('utf-8')}
+            collection_metadata.encode('utf-8')).decode('utf-8')}
 
-        print(
-            "https://api.github.com/repos/" +
-            username +
-            "/" +
-            get_repo_name_from_collection(
-                args["collection_name"]) +
-            "/contents/metadata.json")
         add_metadata = requests.put(
             "https://api.github.com/repos/" +
             username +
@@ -215,7 +208,6 @@ class CreateCollectionEndpointHandler(BaseHandler):
                 args["github_token"]})
 
         if add_metadata.status_code != 201:
-            print(add_metadata.json())
             response["success"] = 0
             response["description"] = "Creating the metadata.json file failed."
             return response
@@ -246,7 +238,7 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
         return response
 
 
-class AddToCollectionInfoEndpointHandler(BaseHandler):
+class AddToCollectionEndpointHandler(BaseHandler):
     """ Add the given PMIDs to a collection. """
 
     parameters = {
@@ -267,12 +259,96 @@ class AddToCollectionInfoEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
+    def validate(self, pmids):
+        if type(pmids) != list:
+            return False
+        for p in pmids:
+            # Make sure that each PMID is a valid integer.
+            try:
+                v = int(p)
+            except:
+                return False
+        return True
+
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # Create an empty file for each PMID, and add to the metadata file.
-        # TODO (eventually): Add PMIDs to the database if they're not already
+        # TODO: Add PMIDs to the database if they're not already
         # present.
-        raise NotImplementedError
+        if not self.validate(args["pmids"]):
+            response["success"] = 0
+            response["description"] = "List of PMIDs is invalid."
+            return response
+
+        username = get_github_username_from_api_key(args["key"])
+        pmid_data = {"message": "Add metadata.json", "content": b64encode(
+            "[]".encode('utf-8')).decode('utf-8')}
+
+        # Get PMIDs that are already added.
+        get_metadata = requests.get(
+            "https://api.github.com/repos/" +
+            username +
+            "/" +
+            get_repo_name_from_collection(
+                args["collection_name"]) +
+            "/contents/metadata.json",
+            headers={
+                "Authorization": "token " +
+                args["github_token"]})
+
+        collection_metadata = json.loads(b64decode(get_metadata.json()["content"]).decode('utf-8'))
+
+        current_pmids = set(collection_metadata["pmids"])
+
+        added_pmid = False
+
+        for p_raw in args["pmids"]:
+            p = int(p_raw)
+            if p not in current_pmids:
+                added_pmid = True
+                add_pmid = requests.put(
+                    "https://api.github.com/repos/" +
+                    username +
+                    "/" +
+                    get_repo_name_from_collection(
+                        args["collection_name"]) +
+                    "/contents/" + str(p) + ".json",
+                    json.dumps(pmid_data),
+                    headers={
+                        "Authorization": "token " +
+                        args["github_token"]})
+
+                if add_pmid.status_code != 201:
+                    response["success"] = 0
+                    response["description"] = "Creating the {0}.json file failed.".format(p)
+                    return response
+                current_pmids.add(p)
+
+        if not added_pmid:
+            return response
+            
+        collection_metadata["pmids"] = list(current_pmids)
+
+        metadata_data = {"message": "Update metadata.json", "content": b64encode(
+            json.dumps(collection_metadata).encode('utf-8')).decode('utf-8'),
+            "sha": get_metadata.json()["sha"]}
+
+        add_metadata = requests.put(
+            "https://api.github.com/repos/" +
+            username +
+            "/" +
+            get_repo_name_from_collection(
+                args["collection_name"]) +
+            "/contents/metadata.json",
+            json.dumps(metadata_data),
+            headers={
+                "Authorization": "token " +
+                args["github_token"]})
+
+        if add_metadata.status_code != 200:
+            response["success"] = 0
+            response["description"] = "Updating the metadata.json file failed."
+            return response
+
         return response
 
 

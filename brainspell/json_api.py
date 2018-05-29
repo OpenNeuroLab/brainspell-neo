@@ -245,7 +245,7 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
         )
         if collection_values.status_code != 200:
             response["success"] = 0
-            response['description'] = "Couldn't access metadata.json"
+            response['description'] = "Couldn't access metadata.json."
             return response
 
         response["collection_info"] = json.loads(
@@ -385,7 +385,7 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
         "pmid": {
             "type": int
         },
-        "experiment": {
+        "experiment_id": {
             "type": int,
             "description": "Include if removing just one experiment.",
             "default": -1
@@ -512,7 +512,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
         "pmid": {
             "type": int
         },
-        "experiment": {
+        "experiment_id": {
             "type": int
         },
         "k": {

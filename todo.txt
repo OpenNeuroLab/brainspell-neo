@@ -1,5 +1,0 @@
-- get a full number on the number of articles in search
-- establish style guides that we will adhere to going forward
-Python style guide (PEP8): https://www.python.org/dev/peps/pep-0008/
-Javascript style guide (we will need to rewrite a good portion of the code): https://github.com/airbnb/javascript
-Sample CSS style guide (I don't really like this one particularly, but it's a starting point): https://github.com/airbnb/css

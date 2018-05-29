@@ -363,17 +363,10 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
         user = get_github_username_from_api_key(args['key'])
 
         article_values = self.github_request(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
-                user, collection_name, args['pmid']), headers={
-                "Authorization": "token " + args["github_token"]})
+            GET, "repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args['pmid']), args["github_token"])
 
-
-<< << << < HEAD
         collection_article = decode_from_github(article_values['content'])
-== == == =
-        collection_article = actual_content
->>>>>> > 193b87f87b3f28e928272bd0affaade5ebe6f5e5
-
         sha = article_values['sha']
 
         if args['experiment_id'] == -1:
@@ -434,8 +427,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
 
         while more_repos:
             repos_list = self.github_request(GET,
-                                             "user/repos?per_page=100&page={0}".format(
-                                                 page_number),
+                                             "user/repos?per_page=100&page={0}".format(page_number),
                                              args["github_token"],
                                              {"affiliation": "owner"})
 
@@ -619,10 +611,9 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = requests.get(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
-                user, collection_name, args['pmid']), headers={
-                "Authorization": "token " + args["github_token"]})
+        article_values = self.github_request(
+            GET, "repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args['pmid']), args["github_token"])
 
         if article_values.status_code != 200:
             response['success'] = 0
@@ -674,18 +665,9 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             "sha": sha}
         # Update the contents of the JSON file with new key value pairs
 
-        key_value_update = requests.put(
-            "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
-            .format(user, collection_name, args['pmid']),
-            json.dumps(data),
-            headers={
-                "Authorization": "token " +
-                                 args["github_token"]})
-
-        if key_value_update.status_code != 200:
-            response['success'] = 0
-            response['description'] = "Could not write to {0}.json".format(
-                args['pmid'])
+        key_value_update = self.github_request(
+            PUT, "repos/{0}/{1}/contents/{2}.json" .format(
+                user, collection_name, args['pmid']), args["github_token"], data)
 
         return response
 
@@ -720,13 +702,7 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
                 user, collection_name, args["pmid"]), args["github_token"])
 
         response["article_info"] = decode_from_github(
-<< << << < HEAD
             collection_values["content"])
-
-
-== == == =
-            collection_values.json()["content"])
->> >>>> > 193b87f87b3f28e928272bd0affaade5ebe6f5e5
 
         return response
 
@@ -734,7 +710,7 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
 class AddKeyValuePairEndpointHandler(BaseHandler):
     """ Add a key-value pair for an experiment. """
 
-    parameters={
+    parameters = {
         "collection_name": {
             "type": str,
             "description": "The name of this collection, as seen and defined by the user."

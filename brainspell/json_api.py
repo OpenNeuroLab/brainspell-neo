@@ -400,7 +400,59 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
     def process(self, response, args):
         # TODO: Make necessary GitHub requests.
         # Add the excluded experiment to the file for this PMID.
-        raise NotImplementedError
+        collection_name = get_repo_name_from_collection(args['collection_name'])
+        user = get_github_username_from_api_key(args['key'])
+
+        article_values = requests.get(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
+            headers={
+                "Authorization": "token " +
+                args["github_token"]}
+        )
+        # collection_values = requests.get(
+        #     "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user, collection_name),
+        #     headers={
+        #         "Authorization": "token " +
+        #                          args["github_token"]}
+        # )
+        if article_values.status_code != 200:
+            response["success"] = 0
+            response['description'] = "Couldn't access {0}".format("https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user, collection_name,args['pmid']))
+            return response
+
+        actual_content = b64decode(article_values.json()['content']).decode('utf-8')
+
+        collection_article = json.loads(actual_content)
+
+
+
+
+
+
+        if args['experiment'] == -1:
+            # excluding an entire PMID
+            collection_article['excluded_flag'] = True
+            collection_article['exclusion_reason'] = args['exclusion_criterion']
+
+        else:
+            # Excluding an entire PMID
+            collection_article['experiments'][args['experiment']]['excluded_flag'] = True
+            collection_article['experiments'][args['experiment']]['exclusion_reason'] = args['exclusion_criterion']
+
+        # Now set the content of the file to the updated collection_article
+        add_pmid = requests.put(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user,collection_name,args['pmid']),
+            headers={
+                "Authorization": "token " +
+                                 args["github_token"]})
+
+        if add_pmid.status_code != 201:
+            response["success"] = 0
+            response["description"] = "Creating the {0}.json file failed.".format(
+                args['pmid'])
+            return response
+
+        response['success'] = 1
         return response
 
 

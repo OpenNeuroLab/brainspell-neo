@@ -232,13 +232,13 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-
-        # TODO: Make necessary GitHub requests.
         # Get the metadata file from the GitHub repository for this collection.
-        collection_name = get_repo_name_from_collection(args['collection_name'])
+
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
         collection_values = requests.get(
-            "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user,collection_name),
+            "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user, collection_name),
             headers={
                 "Authorization": "token " +
                 args["github_token"]}
@@ -248,7 +248,9 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
             response['description'] = "Couldn't access metadata.json"
             return response
 
-        response['collection_info'] = json.dumps(collection_values.json())
+        response["collection_info"] = json.loads(
+            b64decode(collection_values.json()["content"]).decode('utf-8'))
+
         return response
 
 
@@ -265,8 +267,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         },
         "pmids": {
             "type": json.loads,
-            "description": "A JSON-serialized list of PMIDs to add to this collection.",
-            "default": "[]"
+            "description": "A JSON-serialized list of PMIDs to add to this collection."
         }
     }
 
@@ -477,6 +478,22 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         # Get the PMID file from the GitHub repository for this collection.
+
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
+        user = get_github_username_from_api_key(args['key'])
+        collection_values = requests.get(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args["pmid"]), headers={
+                "Authorization": "token " + args["github_token"]})
+        if collection_values.status_code != 200:
+            response["success"] = 0
+            response['description'] = "Couldn't access {0}.json".format(
+                args["pmid"])
+            return response
+
+        response["article_info"] = json.loads(
+            b64decode(collection_values.json()["content"]).decode('utf-8'))
 
         return response
 

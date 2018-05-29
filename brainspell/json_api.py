@@ -410,12 +410,6 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
                 "Authorization": "token " +
                 args["github_token"]}
         )
-        # collection_values = requests.get(
-        #     "https://api.github.com/repos/{0}/{1}/contents/metadata.json".format(user, collection_name),
-        #     headers={
-        #         "Authorization": "token " +
-        #                          args["github_token"]}
-        # )
         if article_values.status_code != 200:
             response["success"] = 0
             response['description'] = "Couldn't access {0}".format("https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(user, collection_name,args['pmid']))
@@ -454,18 +448,6 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
             headers={
                 "Authorization": "token " +
                                  args["github_token"]})
-
-        # add_pmid = requests.put(
-        #     "https://api.github.com/repos/" +
-        #     username +
-        #     "/" +
-        #     get_repo_name_from_collection(
-        #         args["collection_name"]) +
-        #     "/contents/" + str(p) + ".json",
-        #     json.dumps(pmid_data),
-        #     headers={
-        #         "Authorization": "token " +
-        #                          args["github_token"]})
 
         if add_pmid.status_code != 200:
             print("STATUS {0}".format(add_pmid.status_code))
@@ -570,7 +552,34 @@ class EditArticleEndpointHandler(BaseHandler):
         # TODO: Make necessary GitHub requests.
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
-        raise NotImplementedError
+
+        global_editable_fields = ["title","stereotaxic_space","number_of_subjects", "descriptors",
+                                  "experiment_effect_type",
+                                  "experiment_contrast","experiment_title","experiment_caption",
+                                  "experiment_coordinates"]
+        local_editable_fields = ["experiment_include","experiment_reason_for_inclusion"]
+
+        # First extract all of the globally needed changes and update them in the database
+        global_updates = {}
+        for field in args['edit_contents']:
+            if field in global_editable_fields:
+                global_updates[field] = args['edit_contents'][field]
+        if len(global_updates) > 0:
+            # Make database updates here
+            pass
+
+
+        local_updates = {}
+        for field in args['edit_contents']:
+            if field in local_editable_fields:
+                local_updates[field] = args['edit_contents'][field]
+        if len(local_updates) > 0:
+            pass
+
+
+
+
+
         return response
 
 

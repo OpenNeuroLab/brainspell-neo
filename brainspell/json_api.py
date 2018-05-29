@@ -674,7 +674,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         "exclusion_reasons": {
             "type": json.loads,
             "description": "Map<experiment_id,Reason for excluding an experiment or PMID>",
-            "default":"{}"
+            "default": "{}"
         },
 
     }
@@ -695,7 +695,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 user, collection_name, args['pmid']), headers={
                 "Authorization": "token " + args["github_token"]})
 
-
         if article_values.status_code != 200:
             response['success'] = 0
             response['description'] = "Could not access {0}.json".format(
@@ -709,7 +708,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         # Initialize structures
 
         # Execute experiment specific key-value updates
-        for exp_id,kv in args['key_value_pairs'].items():
+        for exp_id, kv in args['key_value_pairs'].items():
             if exp_id > 0:
 
                 if not article_content.get('experiments'):
@@ -719,14 +718,14 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 if "key_value_pairs" not in article_content['experiments'][exp_id]:
                     article_content['experiments'][exp_id]['key_value_pairs'] = {}
                 article_content['experiments'][exp_id]['key_value_pairs'] = kv
-                # Key value pairs being added imply experiment is not excluded (@Katie)
+                # Key value pairs being added imply experiment is not excluded
+                # (@Katie)
                 article_content['experiments'][exp_id]['excluded_flag'] = False
 
             else:
-                pass # Key value pairs must be associated with an experiment
+                pass  # Key value pairs must be associated with an experiment
 
-
-        for exp_id,exclusion_criteria in args['exclusion_reasons'].items():
+        for exp_id, exclusion_criteria in args['exclusion_reasons'].items():
             if exp_id > 0:
                 if not article_content.get("experiments"):
                     article_content['experiments'] = {}
@@ -739,7 +738,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             else:
                 article_content['excluded_flag'] = True
 
-
         data = {
             "message": "Update {0}.json".format(args['pmid']),
             "content": b64encode(
@@ -749,7 +747,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
 
         key_value_update = requests.put(
             "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
-                .format(user, collection_name, args['pmid']),
+            .format(user, collection_name, args['pmid']),
             json.dumps(data),
             headers={
                 "Authorization": "token " +
@@ -759,7 +757,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             response['success'] = 0
             response['description'] = "Could not write to {0}.json".format(
                 args['pmid'])
-
 
         return response
 

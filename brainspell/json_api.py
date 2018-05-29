@@ -146,6 +146,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
         return True
 
     def process(self, response, args):
+        # TODO: If invalid PMID is found, parse it and add to database
         # Validate the JSON arguments.
         v1 = self.validate(args["inclusion_criteria"])
         v2 = self.validate(args["exclusion_criteria"])
@@ -366,7 +367,12 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
                 user, collection_name, args['pmid']), headers={
                 "Authorization": "token " + args["github_token"]})
 
+
+<< << << < HEAD
         collection_article = decode_from_github(article_values['content'])
+== == == =
+        collection_article = actual_content
+>>>>>> > 193b87f87b3f28e928272bd0affaade5ebe6f5e5
 
         sha = article_values['sha']
 
@@ -428,7 +434,8 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
 
         while more_repos:
             repos_list = self.github_request(GET,
-                                             "user/repos?per_page=100&page={0}".format(page_number),
+                                             "user/repos?per_page=100&page={0}".format(
+                                                 page_number),
                                              args["github_token"],
                                              {"affiliation": "owner"})
 
@@ -590,8 +597,15 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         },
         "key_value_pairs": {
             "type": json.loads,
-            "description": "Data that should be changed in the user's collections and Brainspell's version."
-        }
+            "description": "Map<experiment_id,Map<key,value>>",
+            "default": "{}"
+        },
+        "exclusion_reasons": {
+            "type": json.loads,
+            "description": "Map<experiment_id,Reason for excluding an experiment or PMID>",
+            "default": "{}"
+        },
+
     }
 
     api_version = 2
@@ -601,7 +615,79 @@ class EditLocalArticleEndpointHandler(BaseHandler):
         # TODO: Make necessary GitHub requests.
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
-        raise NotImplementedError
+        collection_name = get_repo_name_from_collection(
+            args['collection_name'])
+        user = get_github_username_from_api_key(args['key'])
+
+        article_values = requests.get(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json".format(
+                user, collection_name, args['pmid']), headers={
+                "Authorization": "token " + args["github_token"]})
+
+        if article_values.status_code != 200:
+            response['success'] = 0
+            response['description'] = "Could not access {0}.json".format(
+                args['pmid'])
+            return response
+        # Update the Individual Article page for the corresponding PMID
+        article_content = json.loads(
+            b64decode(article_values.json()["content"]).decode('utf-8'))
+
+        sha = article_values.json()['sha']
+        # Initialize structures
+
+        # Execute experiment specific key-value updates
+        for exp_id, kv in args['key_value_pairs'].items():
+            if exp_id > 0:
+
+                if not article_content.get('experiments'):
+                    article_content['experiments'] = {}
+                if exp_id not in article_content['experiments']:
+                    article_content['experiments'][exp_id] = {}
+                if "key_value_pairs" not in article_content['experiments'][exp_id]:
+                    article_content['experiments'][exp_id]['key_value_pairs'] = {}
+                article_content['experiments'][exp_id]['key_value_pairs'] = kv
+                # Key value pairs being added imply experiment is not excluded
+                # (@Katie)
+                article_content['experiments'][exp_id]['excluded_flag'] = False
+
+            else:
+                pass  # Key value pairs must be associated with an experiment
+
+        for exp_id, exclusion_criteria in args['exclusion_reasons'].items():
+            if exp_id > 0:
+                if not article_content.get("experiments"):
+                    article_content['experiments'] = {}
+
+                if exp_id not in article_content['experiments']:
+                    article_content['experiments'][exp_id] = {}
+
+                article_content['experiments'][exp_id]['excluded_flag'] = True
+
+            else:
+                article_content['excluded_flag'] = True
+
+        data = {
+            "message": "Update {0}.json".format(args['pmid']),
+            "content": b64encode(
+                json.dumps(article_content).encode('utf-8')).decode('utf-8'),
+            "sha": sha}
+        # Update the contents of the JSON file with new key value pairs
+
+        key_value_update = requests.put(
+            "https://api.github.com/repos/{0}/{1}/contents/{2}.json"
+            .format(user, collection_name, args['pmid']),
+            json.dumps(data),
+            headers={
+                "Authorization": "token " +
+                                 args["github_token"]})
+
+        if key_value_update.status_code != 200:
+            response['success'] = 0
+            response['description'] = "Could not write to {0}.json".format(
+                args['pmid'])
+
+        return response
 
 
 class GetArticleFromCollectionEndpointHandler(BaseHandler):
@@ -634,7 +720,13 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
                 user, collection_name, args["pmid"]), args["github_token"])
 
         response["article_info"] = decode_from_github(
+<< << << < HEAD
             collection_values["content"])
+
+
+== == == =
+            collection_values.json()["content"])
+>> >>>> > 193b87f87b3f28e928272bd0affaade5ebe6f5e5
 
         return response
 
@@ -642,7 +734,7 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
 class AddKeyValuePairEndpointHandler(BaseHandler):
     """ Add a key-value pair for an experiment. """
 
-    parameters = {
+    parameters={
         "collection_name": {
             "type": str,
             "description": "The name of this collection, as seen and defined by the user."

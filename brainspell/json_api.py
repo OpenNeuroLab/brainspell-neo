@@ -551,13 +551,11 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         contents = args['edit_contents']
 
         metadata = json.loads(article.metadata)
-        metadata['space'] = contents['space']
+
         # TODO: nsubjects from args is an integer (note database may not
         # correspond)
         metadata['nsubjects'] = contents['nsubjects']
         # Ensure this is being sent
-        metadata['effect_type'] = contents['effect_type']
-        metadata['contrast'] = contents['contrast']
 
         experiments = json.loads(article.experiments)
         mapping = {}
@@ -571,6 +569,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             experiments[index]['contrast'] = exp['contrast']
             experiments[index]['space'] = exp['space']
             experiments[index]['effect'] = exp['effect']
+
 
         replace_experiments(args['pmid'], json.dumps(experiments))
         replace_metadata(args['pmid'], json.dumps(metadata))

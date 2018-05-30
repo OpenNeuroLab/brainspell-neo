@@ -25,7 +25,7 @@ def decode_from_github(s):
 
 def get_repo_name_from_collection(name):
     """ Convert a collection name to a repository name for GitHub. """
-    return "brainspell-neo-collection-" + name
+    return "brainspell-neo-collection-" + name.replace(" ", "-")
 
 
 def get_collection_from_repo_name(name):
@@ -228,27 +228,28 @@ def remove_article_from_brainspell_database_collection(
     Similar implementation to add_article_to_brainspell_database_collection. """
 
     user = get_user_object_from_api_key(api_key)
-    if user.count > 0:
-        user = list(user)[0]
-        if user.collections:
-            # assumes collections are well-formed JSON
-            target = json.loads(user.collections)
-            if collection in target:
-                pmids_list = list(
-                    map(lambda x: str(x), target[collection]["pmids"]))
-                if str(pmid) in pmids_list:
-                    pmids_list.remove(str(pmid))
-                    target[collection]["pmids"] = pmids_list
-                    if not cold_run:
-                        q = User.update(
-                            collections=json.dumps(target)).where(
-                            User.password == api_key)
-                        q.execute()
-                    return True
-                else:
-                    return False  # article not in collection
-            else:
-                return False  # collection doesn't exist
-        else:
-            return False  # user has no collections; violates assumptions
-    return False  # user does not exist
+    if user.count == 0:
+        return False
+
+    user = list(user)[0]
+    if not user.collections:
+        return False
+
+    # assumes collections are well-formed JSON
+    target = json.loads(user.collections)
+    if collection not in target:
+        return False
+
+    pmids_list = list(
+        map(lambda x: str(x), target[collection]["pmids"]))
+    if str(pmid) not in pmids_list:
+        return False
+
+    pmids_list.remove(str(pmid))
+    target[collection]["pmids"] = pmids_list
+    if not cold_run:
+        q = User.update(
+            collections=json.dumps(target)).where(
+            User.password == api_key)
+        q.execute()
+    return True

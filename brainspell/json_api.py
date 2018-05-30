@@ -13,6 +13,8 @@ import os
 import hashlib
 from tornado.concurrent import run_on_executor
 
+import itertools
+
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
 PUT = requests.put
@@ -260,7 +262,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
     def add_new_pmids(self, search_pmids, unmapped_pmids):
         failures = []
-        all_pmids = self.flatten(list(search_pmids.values())) + unmapped_pmids
+        all_pmids = itertools.chain(*search_pmids.values()) + unmapped_pmids
         for pmid in all_pmids:
             if check_existence(pmid).count == 0:
                 check = add_pmid_article_to_database(pmid)

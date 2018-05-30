@@ -629,12 +629,12 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             mapping[experiments[i]['id']] = i
         for exp in contents['experiments']:
             index = mapping[exp['id']]
-            experiments[index]['caption'] = exp['caption']
-            experiments[index]['locations'] = exp['locations']
-            experiments[index]['tags'] = exp['descriptors']
-            experiments[index]['contrast'] = exp['contrast']
-            experiments[index]['space'] = exp['space']
-            experiments[index]['effect'] = exp['effect']
+            experiments[index]['caption'] = exp.get("caption", "")
+            experiments[index]['locations'] = exp.get("locations", [])
+            experiments[index]['tags'] = exp.get("descriptors", [])
+            experiments[index]['contrast'] = exp.get("contrast", "")
+            experiments[index]['space'] = exp.get("space", "")
+            experiments[index]['effect'] = exp.get("effect", "")
 
         replace_experiments(args['pmid'], json.dumps(experiments))
         replace_metadata(args['pmid'], json.dumps(metadata))

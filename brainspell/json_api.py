@@ -402,7 +402,7 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
             "type": str
         },
         "exclude": {
-            "type":bool
+            "type": int
         }
     }
 
@@ -725,7 +725,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 article_content['experiments'][exp_id]['key_value_pairs'] = kv
                 # Key value pairs being added imply experiment is not excluded
                 # (@Katie)
-                article_content['experiments'][exp_id]['excluded_flag'] = False
+                article_content['experiments'][exp_id]['excluded_flag'] = 0
 
             else:
                 pass  # Key value pairs must be associated with an experiment
@@ -738,10 +738,10 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 if exp_id not in article_content['experiments']:
                     article_content['experiments'][exp_id] = {}
 
-                article_content['experiments'][exp_id]['excluded_flag'] = True
+                article_content['experiments'][exp_id]['excluded_flag'] = 1
 
             else:
-                article_content['excluded_flag'] = True
+                article_content['excluded_flag'] = 1
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
@@ -867,7 +867,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
                                        ]['key_value_pairs'][args['k']] = args['v']
         # Key value pairs being added imply experiment is not excluded (@Katie)
         article_content['experiments'][args['experiment_id']
-                                       ]['excluded_flag'] = False
+                                       ]['excluded_flag'] = 0
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),

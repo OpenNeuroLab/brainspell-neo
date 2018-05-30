@@ -81,6 +81,10 @@ class BaseHandler(tornado.web.RequestHandler):
     mutate the "response" dictionary as necessary and return it (unless
     it is an asynchronous endpoint, described below).
 
+    If you want to return an arbitrary output, set the
+    handle_finishing boolean to True, and call self.write and self.finish
+    manually.
+
     "args" is a dictionary with parameter values, such that the keys
     are those specified in the "parameters" dictionary.
 
@@ -99,26 +103,20 @@ class BaseHandler(tornado.web.RequestHandler):
 
     Asynchronous endpoints:
     If your endpoint is going to block the main thread for a reasonable
-    period of time, please make it asynchronous. It's as easy as setting
-    the "asynchronous" boolean, decorating your "process" function with
-    @tornado.gen.coroutine, and calling self.finish_async when your
-    function finishes execution (MANDATORY). Then, any blocking code
-    should be decorated with @run_on_executor.
+    period of time, please make it asynchronous. It's as easy as putting the blocking
+    code in its own function, decorating it with run_on_executor, and treating
+    it as a generator.
 
     from tornado.concurrent import run_on_executor
-
-    asynchronous :: True | False
 
     @run_on_executor
     def blocker(self):
         # blocking code here
         ...
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         blocked_result = yield self.blocker()
         ...
-        self.finish_async(response)
 
     API versioning:
     By default, do not change the api_version variable unless there would be namespace conflicts, or if
@@ -145,10 +143,15 @@ class BaseHandler(tornado.web.RequestHandler):
 
     route = None
 
-    asynchronous = False
+    handle_finishing = False
     executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 
     api_version = 1
+
+    def initialize(self):
+        """ Add the coroutine decorator to all process functions. """
+        if self.process:
+            self.process = tornado.gen.coroutine(self.process)
 
     def get_safe_arguments(self, arguments_dict, accessor):
         """ Enforce type safety; do not verify API key. """
@@ -188,7 +191,6 @@ class BaseHandler(tornado.web.RequestHandler):
         }
 
     @tornado.gen.coroutine
-    @tornado.web.asynchronous
     def get(self):
         """
         Provide a guarantee for a valid API key on PUSH endpoints,
@@ -236,11 +238,11 @@ class BaseHandler(tornado.web.RequestHandler):
                 if self.endpoint_type == Endpoint.PULL_API or (
                         self.endpoint_type == Endpoint.PUSH_API and argsDict["args"]["key"] != ""):
                     response = {"success": 1}
-                    if not self.asynchronous:
-                        response = self.process(response, argsDict["args"])
+                    if not self.handle_finishing:
+                        response = yield self.process(response, argsDict["args"])
                         self.finish_async(response)
                     else:
-                        self.process(response, argsDict["args"])
+                        yield self.process(response, argsDict["args"])
                 else:
                     self.set_status(401)  # unauthorized
                     self.finish_async(
@@ -371,7 +373,7 @@ class BaseHandler(tornado.web.RequestHandler):
             headers={
                 "Authorization": "token " + token
             })
-        if result.status_code != 200 and result.status_code != 201:
+        if result.status_code < 200 or result.status_code > 299:
             msg = "Failure with GitHub request: {0}".format(route)
             self.finish_async({
                 "success": 0,

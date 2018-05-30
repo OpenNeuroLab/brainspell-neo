@@ -9,7 +9,6 @@ import os
 from base64 import b64decode, b64encode
 
 import tornado
-import tornado.gen
 import tornado.web
 import torngithub
 from tornado.concurrent import run_on_executor
@@ -119,7 +118,6 @@ def get_user_repos(http_client, access_token):
     """ Get a user's repos. """
 
     data = []
-    print("ACCESS_TOKEN IS {0}".format(access_token))
 
     # get the results in groups of 100
     first_page = yield torngithub.github_request(
@@ -159,9 +157,8 @@ class CollectionsEndpointHandler(BaseHandler, torngithub.GithubMixin):
     }
 
     endpoint_type = Endpoint.PUSH_API
-    asynchronous = True
+    handle_finishing = True
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         collections_list = []
 
@@ -328,9 +325,8 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
     }
 
     endpoint_type = Endpoint.PUSH_API
-    asynchronous = True
+    handle_finishing = True
 
-    @tornado.gen.coroutine
     def __create_repo_on_github__(
             self,
             name,
@@ -360,7 +356,6 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
         return create_repo_ress
 
-    @tornado.gen.coroutine
     def __create_manifest_file__(
             self,
             name,
@@ -392,7 +387,6 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
 
         return create_manifest_ress
 
-    @tornado.gen.coroutine
     def create_collection_on_github(
             self,
             name,
@@ -408,7 +402,6 @@ class CreateCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
         self.__create_repo_on_github__(
             name, description, access_token, callback=create_manifest_file)
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         name = args["name"]
         description = args["description"]
@@ -465,9 +458,8 @@ class AddToCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
     }
 
     endpoint_type = Endpoint.PUSH_API
-    asynchronous = True
+    handle_finishing = True
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         name = args["name"]
 
@@ -598,9 +590,8 @@ class RemoveFromCollectionEndpointHandler(BaseHandler, torngithub.GithubMixin):
     }
 
     endpoint_type = Endpoint.PUSH_API
-    asynchronous = True
+    handle_finishing = True
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         collection = args["name"]
         pmid = args["pmid"]

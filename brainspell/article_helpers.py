@@ -191,8 +191,8 @@ def add_pmid_article_to_database(article_id):
     pmid = str(article_id)
     try:
         handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
-    except:
-        return False # Could not access correct pubmed ID
+    except BaseException:
+        return False  # Could not access correct pubmed ID
 
     records = list(Medline.parse(handle))
     records = records[0]
@@ -453,9 +453,12 @@ def replace_experiments(pmid, experiments):
 
 
 def replace_metadata(pmid, metadata):
-    Articles.update(metadata=metadata).where(Articles.pmid == str(pmid)).execute()
+    Articles.update(metadata=metadata).where(
+        Articles.pmid == str(pmid)).execute()
+
 
 def check_existence(pmid):
     """Evaluates whether a PMID exists in our database """
-    return Articles.select(Articles.pmid).where(Articles.pmid == str(pmid)).execute()
-
+    return Articles.select(
+        Articles.pmid).where(
+        Articles.pmid == str(pmid)).execute()

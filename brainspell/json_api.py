@@ -12,7 +12,6 @@ import urllib.parse
 import os
 import hashlib
 from tornado.concurrent import run_on_executor
-import tornado.gen
 
 REQ_DESC = "The fields to search through. 'x' is experiments, 'p' is PMID, 'r' is reference, and 't' is title + authors + abstract."
 START_DESC = "The offset of the articles to show; e.g., start = 10 would return results 11 - 20."
@@ -253,7 +252,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "content": encode_for_github(
             {})}
 
-    def add_new_pmids(self,search_pmids,unmapped_pmids):
+    def add_new_pmids(self, search_pmids, unmapped_pmids):
         failures = []
         all_pmids = list(search_pmids.values()) + unmapped_pmids
         for pmid in all_pmids:
@@ -261,8 +260,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 if not add_pmid_article_to_database(pmid):
                     failures.append(pmid)
         return failures
-
-
 
     def validate(self, pmids):
         if not isinstance(pmids, list):
@@ -315,7 +312,9 @@ class AddToCollectionEndpointHandler(BaseHandler):
             response["success"] = 0
             response["description"] = "Dictionary mapping search strings to PMIDs is invalid."
             return response
-        failures = self.add_new_pmids(args['search_to_pmids'],args['unmapped_pmids'])
+        failures = self.add_new_pmids(
+            args['search_to_pmids'],
+            args['unmapped_pmids'])
         if len(failures) > 0:
             response['failures'] = json.dumps(failures)
 
@@ -329,8 +328,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         collection_metadata = decode_from_github(
             get_metadata["content"])
-
-
 
         current_pmids = set(collection_metadata["unmapped_pmids"])
         for k in collection_metadata["search_to_pmids"]:
@@ -515,6 +512,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                 return {
                     "title": article_object.title,
                     "reference": article_object.reference,
+                    "authors": article_object.authors,
                     "pmid": article_object.pmid
                 }
 
@@ -1392,14 +1390,13 @@ class GetOaPdfEndpointHandler(BaseHandler):
     }
 
     endpoint_type = Endpoint.PULL_API
-    asynchronous = True
+    handle_finishing = True
 
     @run_on_executor
     def get_pdf_bytes(self, url):
         response = requests.get(url).content
         return response
 
-    @tornado.gen.coroutine
     def process(self, response, args):
         doi = args['doi']
         unpaywallURL = 'https://api.unpaywall.org/v2/{doi}?email=keshavan@berkeley.edu'.format(

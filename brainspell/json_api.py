@@ -252,13 +252,19 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "message": "Add metadata.json",
         "content": encode_for_github(
             {})}
+    def flatten(self,lst):
+        output = []
+        for item in lst:
+            output.extend(item)
+        return output
 
     def add_new_pmids(self,search_pmids,unmapped_pmids):
         failures = []
-        all_pmids = list(search_pmids.values()) + unmapped_pmids
+        all_pmids = self.flatten(list(search_pmids.values())) + unmapped_pmids
         for pmid in all_pmids:
             if check_existence(pmid).count == 0:
-                if not add_pmid_article_to_database(pmid):
+                check = add_pmid_article_to_database(pmid)
+                if not check:
                     failures.append(pmid)
         return failures
 

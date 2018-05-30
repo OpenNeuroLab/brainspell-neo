@@ -82,7 +82,7 @@ class GithubOauthProductionEndpointHandler(BaseHandler):
 
         try:
             response["github_token"] = params["access_token"][0]
-            user = self.github_request(GET, "user", params["access_token"][0])
+            user = yield self.github_request(GET, "user", params["access_token"][0])
             # idempotent operation to make sure GitHub user is in our
             # database
             register_github_user(user)
@@ -144,7 +144,6 @@ class CreateCollectionEndpointHandler(BaseHandler):
         return True
 
     def process(self, response, args):
-        # TODO: If invalid PMID is found, parse it and add to database
         # Validate the JSON arguments.
         v1 = self.validate(args["inclusion_criteria"])
         v2 = self.validate(args["exclusion_criteria"])
@@ -161,7 +160,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
             "description": args["description"],
         }
 
-        self.github_request(
+        yield self.github_request(
             POST,
             "user/repos",
             args["github_token"],
@@ -183,11 +182,11 @@ class CreateCollectionEndpointHandler(BaseHandler):
         metadata_data = {"message": "Add metadata.json",
                          "content": encode_for_github(collection_metadata)}
 
-        self.github_request(PUT,
-                            "repos/{0}/{1}/contents/metadata.json".format(username,
-                                                                          get_repo_name_from_collection(args["collection_name"])),
-                            args["github_token"],
-                            metadata_data)
+        yield self.github_request(PUT,
+                                  "repos/{0}/{1}/contents/metadata.json".format(username,
+                                                                                get_repo_name_from_collection(args["collection_name"])),
+                                  args["github_token"],
+                                  metadata_data)
 
         return response
 
@@ -214,7 +213,7 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
-        collection_values = self.github_request(
+        collection_values = yield self.github_request(
             GET, "repos/{0}/{1}/contents/metadata.json".format(
                 user, collection_name), args["github_token"])
 
@@ -253,12 +252,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "message": "Add metadata.json",
         "content": encode_for_github(
             {})}
-
-    def flatten(self, lst):
-        output = []
-        for item in lst:
-            output.extend(item)
-        return output
 
     def add_new_pmids(self, search_pmids, unmapped_pmids):
         failures = []
@@ -301,14 +294,14 @@ class AddToCollectionEndpointHandler(BaseHandler):
         for p_raw in pmids:
             p = int(p_raw)
             if p not in already_created:
-                self.github_request(PUT,
-                                    "repos/{0}/{1}/contents/{2}.json".format(
-                                        username,
-                                        get_repo_name_from_collection(
-                                            collection),
-                                        p),
-                                    token,
-                                    self.pmid_data)
+                yield self.github_request(PUT,
+                                          "repos/{0}/{1}/contents/{2}.json".format(
+                                              username,
+                                              get_repo_name_from_collection(
+                                                  collection),
+                                              p),
+                                          token,
+                                          self.pmid_data)
                 already_created.add(p)
 
     def process(self, response, args):
@@ -330,7 +323,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         username = get_github_username_from_api_key(args["key"])
 
         # Get PMIDs that are already added.
-        get_metadata = self.github_request(
+        get_metadata = yield self.github_request(
             GET, "repos/{0}/{1}/contents/metadata.json".format(
                 username, get_repo_name_from_collection(
                     args["collection_name"])), args["github_token"])
@@ -370,13 +363,13 @@ class AddToCollectionEndpointHandler(BaseHandler):
             "content": encode_for_github(collection_metadata),
             "sha": get_metadata["sha"]}
 
-        self.github_request(PUT,
-                            "repos/{0}/{1}/contents/metadata.json".format(
-                                username,
-                                get_repo_name_from_collection(
-                                    args["collection_name"])),
-                            args["github_token"],
-                            metadata_data)
+        yield self.github_request(PUT,
+                                  "repos/{0}/{1}/contents/metadata.json".format(
+                                      username,
+                                      get_repo_name_from_collection(
+                                          args["collection_name"])),
+                                  args["github_token"],
+                                  metadata_data)
 
         return response
 
@@ -417,7 +410,7 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = self.github_request(
+        article_values = yield self.github_request(
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, collection_name, args['pmid']), args["github_token"])
 
@@ -445,12 +438,12 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
             "content": encode_for_github(collection_article),
             "sha": sha}
         # Now set the content of the file to the updated collection_article
-        update_article = self.github_request(PUT,
-                                             "repos/{0}/{1}/contents/{2}.json".format(user,
-                                                                                      collection_name,
-                                                                                      args['pmid']),
-                                             args["github_token"],
-                                             data)
+        update_article = yield self.github_request(PUT,
+                                                   "repos/{0}/{1}/contents/{2}.json".format(user,
+                                                                                            collection_name,
+                                                                                            args['pmid']),
+                                                   args["github_token"],
+                                                   data)
 
         return response
 
@@ -483,10 +476,10 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         more_repos = True
 
         while more_repos:
-            repos_list = self.github_request(GET,
-                                             "user/repos?per_page=100&page={0}".format(page_number),
-                                             args["github_token"],
-                                             {"affiliation": "owner"})
+            repos_list = yield self.github_request(GET,
+                                                   "user/repos?per_page=100&page={0}".format(page_number),
+                                                   args["github_token"],
+                                                   {"affiliation": "owner"})
 
             if len(repos_list) == 0:
                 more_repos = False
@@ -496,7 +489,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                                 ] == "brainspell-neo-collection-":
                     brainspell_repos.append((repo["name"], repo["url"]))
                     if args["contributors"] != 0:
-                        contributors_req = self.github_request(
+                        contributors_req = yield self.github_request(
                             GET, repo["contributors_url"].replace(
                                 "https://api.github.com/", ""), args["github_token"])
                         contributors_info[repo["name"]] = [{
@@ -509,11 +502,11 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         user_collections = []
 
         for name, url in brainspell_repos:
-            repo_req = self.github_request(GET,
-                                           url.replace(
-                                               "https://api.github.com/",
-                                               "") + "/contents/metadata.json",
-                                           args["github_token"])
+            repo_req = yield self.github_request(GET,
+                                                 url.replace(
+                                                     "https://api.github.com/",
+                                                     "") + "/contents/metadata.json",
+                                                 args["github_token"])
             repo_meta = decode_from_github(repo_req["content"])
 
             # Convert PeeWee article object to dict
@@ -707,7 +700,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = self.github_request(
+        article_values = yield self.github_request(
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, collection_name, args['pmid']), args["github_token"])
 
@@ -754,7 +747,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
             "sha": sha}
         # Update the contents of the JSON file with new key value pairs
 
-        key_value_update = self.github_request(
+        key_value_update = yield self.github_request(
             PUT, "repos/{0}/{1}/contents/{2}.json" .format(
                 user, collection_name, args['pmid']), args["github_token"], data)
 
@@ -786,7 +779,7 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
-        collection_values = self.github_request(
+        collection_values = yield self.github_request(
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, collection_name, args["pmid"]), args["github_token"])
 
@@ -832,7 +825,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = self.github_request(
+        article_values = yield self.github_request(
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, collection_name, args['pmid']), args["github_token"])
         article_content = decode_from_github(article_values["content"])
@@ -858,12 +851,12 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
             "sha": sha}
 
         # Update the contents of the JSON file with new key value pairs
-        self.github_request(PUT,
-                            "repos/{0}/{1}/contents/{2}.json".format(user,
-                                                                     collection_name,
-                                                                     args['pmid']),
-                            args["github_token"],
-                            data)
+        yield self.github_request(PUT,
+                                  "repos/{0}/{1}/contents/{2}.json".format(user,
+                                                                           collection_name,
+                                                                           args['pmid']),
+                                  args["github_token"],
+                                  data)
 
         return response
 

@@ -367,6 +367,7 @@ class BaseHandler(tornado.web.RequestHandler):
         })
         raise OSError(msg)
 
+    @run_on_executor
     def github_request(self, f, route, token, data=None):
         """ Make a request to the GitHub API.
         Take in a function from requests, a route, GitHub token, data. """

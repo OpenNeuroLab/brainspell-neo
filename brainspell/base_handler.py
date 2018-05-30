@@ -359,6 +359,14 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
 
+    def abort(self, msg):
+        """ Abort an API request with the given error message. """
+        self.finish_async({
+            "success": 0,
+            "description": msg
+        })
+        raise OSError(msg)
+
     def github_request(self, f, route, token, data=None):
         """ Make a request to the GitHub API.
         Take in a function from requests, a route, GitHub token, data. """
@@ -374,12 +382,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 "Authorization": "token " + token
             })
         if result.status_code < 200 or result.status_code > 299:
-            msg = "Failure with GitHub request: {0}".format(route)
-            self.finish_async({
-                "success": 0,
-                "description": msg
-            })
-            raise OSError(msg)
+            self.abort("Failure with GitHub request: {0}".format(route))
         return result.json()
 
 

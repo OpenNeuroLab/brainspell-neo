@@ -574,73 +574,76 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         "pmid": {
             "type": int
         },
-        "edit_contents": {
+        "experiments": {
             "type": json.loads,
-            "description": "Data that should be changed in the user's collections and Brainspell's version."
+            "description": "A list of experiment dictionaries, in the same format that we send, only including global keys."
+        },
+        "subjects": {
+            "type": int,
+            "description": "The number of subjects for the entire article. Experiment specific values should be in the experiments argument."
         }
     }
 
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
+    def validate_experiments(self, exp_list):
+        """ Validate and fill in the blanks for the experiments dictionary. """
+        if not isinstance(exp_list, list):
+            self.abort("The experiments argument should be a list.")
+
+        default_exp = {
+            "caption": "",
+            "locations": [],
+            "descriptors": [],
+            "contrast": "",
+            "space": "",
+            "effect": ""
+        }
+
+        for exp in exp_list:
+            if "id" not in exp:
+                self.abort("All experiments must have IDs.")
+            for k in exp:
+                if k not in exp and k != "id":
+                    self.abort("Unexpected key in experiment: {0}".format(k))
+            for k in default_exp:
+                if k not in exp:
+                    exp[k] = default_exp[k]
+
     def process(self, response, args):
-        # See what fields are included in the edit_contents dictionary, and update each provided
-        # field in the appropriate place, whether on GitHub or otherwise.
-
-        # 1. Fetch the information from our own database and from GitHub
-
-        # 2. Split up Anisha's input so it's in the same format.
-        # (experiments, metadata, whatever user information)
-
-        # 3. Recursively iterate through the keys in Anisha's argument, check
-        # whether each is present in the dictionaries in part (1), and update
-        # if it is.
-
-        # 4. Push to our database.
-
-        global_editable_fields = {
-            "title",
-            "stereotaxic_space",
-            "number_of_subjects",
-            "descriptors",
-            "experiment_effect_type",
-            "experiment_contrast",
-            "experiment_title",
-            "experiment_caption",
-            "experiment_coordinates"}
-        local_editable_fields = {
-            "experiment_include",
-            "experiment_reason_for_inclusion"}
-
-        # Not in database = coordinate_space, effect_tyoe, contrast, key-value
+        # Update global information in our database.
+        # Not in database: coordinate_space, effect_type, contrast, key-value
         # pairs
 
-        # Begin database updates
-        article = list(get_article_object(args['pmid']))[0]
-        contents = args['edit_contents']
+        article = next(get_article_object(args["pmid"]))
+        experiments = self.validate_experiments(args["experiments"])
 
         metadata = json.loads(article.metadata)
         if metadata is None:
             # Gracefully handle null metadata.
             metadata = {}
-        metadata['nsubjects'] = contents.get('nsubjects', "")
-        # Ensure this is being sent
+
+        metadata["nsubjects"] = args["subjects"]
 
         experiments = json.loads(article.experiments)
         if experiments is None:
             # Gracefully handle null experiments.
             experiments = []
+
+        # Map from experiment ID to index.
         mapping = {}
         for i in range(len(experiments)):
-            mapping[experiments[i]['id']] = i
-        for exp in contents['experiments']:
-            index = mapping[exp['id']]
-            experiments[index]['caption'] = exp.get("caption", "")
-            experiments[index]['locations'] = exp.get("locations", [])
-            experiments[index]['tags'] = exp.get("descriptors", [])
-            experiments[index]['contrast'] = exp.get("contrast", "")
-            experiments[index]['space'] = exp.get("space", "")
-            experiments[index]['effect'] = exp.get("effect", "")
+            mapping[experiments[i]["id"]] = i
+
+        for exp in args["experiments"]:
+            if exp["id"] not in mapping:
+                experiments.append({})
+                mapping[exp["id"]] = len(experiments) - 1
+
+            idx = mapping[exp["id"]]
+            for k in exp:
+                experiment[idx][k] = exp[k]
 
         replace_experiments(args['pmid'], json.dumps(experiments))
         replace_metadata(args['pmid'], json.dumps(metadata))

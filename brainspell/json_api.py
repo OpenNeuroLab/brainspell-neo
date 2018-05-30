@@ -329,7 +329,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         return response
 
 
-class ExcludeFromCollectionEndpointHandler(BaseHandler):
+class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
     """ Exclude an experiment or all experiments for a PMID from the collection. """
 
     parameters = {
@@ -350,6 +350,9 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
         },
         "exclusion_criterion": {
             "type": str
+        },
+        "exclude": {
+            "type": int
         }
     }
 
@@ -371,16 +374,18 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         if args['experiment_id'] == -1:
             # excluding an entire PMID
-            collection_article['excluded_flag'] = True
-            collection_article['exclusion_reason'] = args['exclusion_criterion']
+            collection_article['excluded_flag'] = args['exclude']
+            if args['exclude']:
+                collection_article['exclusion_reason'] = args['exclusion_criterion']
 
         else:
             # Excluding an entire PMID
             if args['experiment_id'] not in collection_article['experiments']:
                 collection_article['experiments'][args['experiment_id']] = {}
             collection_article['experiments'][args['experiment_id']
-                                              ]['excluded_flag'] = True
-            collection_article['experiments'][args['experiment_id']
+                                              ]['excluded_flag'] = args['exclude']
+            if args['exclude']:
+                collection_article['experiments'][args['experiment_id']
                                               ]['exclusion_reason'] = args['exclusion_criterion']
 
         data = {
@@ -634,7 +639,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 article_content['experiments'][exp_id]['key_value_pairs'] = kv
                 # Key value pairs being added imply experiment is not excluded
                 # (@Katie)
-                article_content['experiments'][exp_id]['excluded_flag'] = False
+                article_content['experiments'][exp_id]['excluded_flag'] = 0
 
             else:
                 pass  # Key value pairs must be associated with an experiment
@@ -647,10 +652,10 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 if exp_id not in article_content['experiments']:
                     article_content['experiments'][exp_id] = {}
 
-                article_content['experiments'][exp_id]['excluded_flag'] = True
+                article_content['experiments'][exp_id]['excluded_flag'] = 1
 
             else:
-                article_content['excluded_flag'] = True
+                article_content['excluded_flag'] = 1
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),
@@ -754,7 +759,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
                                        ]['key_value_pairs'][args['k']] = args['v']
         # Key value pairs being added imply experiment is not excluded (@Katie)
         article_content['experiments'][args['experiment_id']
-                                       ]['excluded_flag'] = False
+                                       ]['excluded_flag'] = 0
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),

@@ -624,6 +624,9 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         # Ensure this is being sent
 
         experiments = json.loads(article.experiments)
+        if experiments is None:
+            # Gracefully handle null experiments.
+            experiments = []
         mapping = {}
         for i in range(len(experiments)):
             mapping[experiments[i]['id']] = i

@@ -453,9 +453,9 @@ def replace_experiments(pmid, experiments):
 
 
 def replace_metadata(pmid, metadata):
-    Articles.update(metadata=metadata).where(Articles.pmid == pmid).execute()
+    Articles.update(metadata=metadata).where(Articles.pmid == str(pmid)).execute()
 
 def check_existence(pmid):
     """Evaluates whether a PMID exists in our database """
-    return Articles.select(Articles.pmid).where(Articles.pmid == pmid).execute()
+    return Articles.select(Articles.pmid).where(Articles.pmid == str(pmid)).execute()
 

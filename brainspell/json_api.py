@@ -313,8 +313,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         # Create an empty file for each PMID, and add to the metadata file.
-        # TODO: Add PMIDs to the database if they're not already add_pmid_article_to_database
-        # present.
         if not self.validate(args["unmapped_pmids"]):
             response["success"] = 0
             response["description"] = "List of PMIDs is invalid."
@@ -587,23 +585,23 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
+    default_exp = {
+        "caption": "",
+        "locations": [],
+        "descriptors": [],
+        "contrast": "",
+        "space": "",
+        "effect": ""
+    }
+
+    valid_space = {
+        "mni", "talairach", "other", "unknown"
+    }
+
     def validate_experiments(self, exp_list):
         """ Validate and fill in the blanks for the experiments dictionary. """
         if not isinstance(exp_list, list):
             self.abort("The experiments argument should be a list.")
-
-        default_exp = {
-            "caption": "",
-            "locations": [],
-            "descriptors": [],
-            "contrast": "",
-            "space": "",
-            "effect": ""
-        }
-
-        valid_space = {
-            "mni", "talairach", "other", "unknown"
-        }
 
         for exp in exp_list:
             if "id" not in exp:
@@ -611,11 +609,11 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             for k in exp:
                 if k not in exp and k != "id":
                     self.abort("Unexpected key in experiment: {0}".format(k))
-            for k in default_exp:
+            for k in EditGlobalArticleEndpointHandler.default_exp:
                 if k not in exp:
-                    exp[k] = default_exp[k]
+                    exp[k] = EditGlobalArticleEndpointHandler.default_exp[k]
             s = exp["space"].lower()
-            if s not in default_exp:
+            if s not in EditGlobalArticleEndpointHandler.valid_space:
                 self.abort("Invalid value for space.")
             # Ensure lowercase.
             exp["space"] = s

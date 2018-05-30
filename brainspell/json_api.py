@@ -379,7 +379,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         return response
 
 
-class ExcludeFromCollectionEndpointHandler(BaseHandler):
+class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
     """ Exclude an experiment or all experiments for a PMID from the collection. """
 
     parameters = {
@@ -400,6 +400,9 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
         },
         "exclusion_criterion": {
             "type": str
+        },
+        "exclude": {
+            "type":bool
         }
     }
 
@@ -431,16 +434,18 @@ class ExcludeFromCollectionEndpointHandler(BaseHandler):
 
         if args['experiment_id'] == -1:
             # excluding an entire PMID
-            collection_article['excluded_flag'] = True
-            collection_article['exclusion_reason'] = args['exclusion_criterion']
+            collection_article['excluded_flag'] = args['exclude']
+            if args['exclude']:
+                collection_article['exclusion_reason'] = args['exclusion_criterion']
 
         else:
             # Excluding an entire PMID
             if args['experiment_id'] not in collection_article['experiments']:
                 collection_article['experiments'][args['experiment_id']] = {}
             collection_article['experiments'][args['experiment_id']
-                                              ]['excluded_flag'] = True
-            collection_article['experiments'][args['experiment_id']
+                                              ]['excluded_flag'] = args['exclude']
+            if args['exclude']:
+                collection_article['experiments'][args['experiment_id']
                                               ]['exclusion_reason'] = args['exclusion_criterion']
 
         data = {

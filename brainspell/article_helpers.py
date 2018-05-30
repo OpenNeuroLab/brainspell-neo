@@ -447,18 +447,23 @@ def update_table_vote(tag_name, direction, table_num, pmid, column, username):
 
 
 def replace_experiments(pmid, experiments):
+    """ Replace the experiments dict for a PMID. """
+
     Articles.update(
         experiments=experiments).where(
         Articles.pmid == pmid).execute()
 
 
 def replace_metadata(pmid, metadata):
+    """ Replace the metadata for a PMID. """
+
     Articles.update(metadata=metadata).where(
         Articles.pmid == str(pmid)).execute()
 
 
 def check_existence(pmid):
-    """Evaluates whether a PMID exists in our database """
+    """ Evaluates whether a PMID exists in our database. """
+
     return Articles.select(
         Articles.pmid).where(
         Articles.pmid == str(pmid)).execute()

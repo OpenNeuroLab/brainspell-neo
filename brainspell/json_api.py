@@ -620,7 +620,10 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         contents = args['edit_contents']
 
         metadata = json.loads(article.metadata)
-        metadata['nsubjects'] = contents.get('nsubjects')
+        if metadata is None:
+            # Gracefully handle null metadata.
+            metadata = {}
+        metadata['nsubjects'] = contents.get('nsubjects', "")
         # Ensure this is being sent
 
         experiments = json.loads(article.experiments)

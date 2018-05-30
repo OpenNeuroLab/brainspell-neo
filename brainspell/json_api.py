@@ -682,8 +682,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
 
         # Execute experiment specific key-value updates
         for exp_id, kv in args['key_value_pairs'].items():
-            exp_id = int(exp_id)
-            if exp_id > 0:
+            if int(exp_id) > 0:
 
                 if not article_content.get('experiments'):
                     article_content['experiments'] = {}
@@ -700,8 +699,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 pass  # Key value pairs must be associated with an experiment
 
         for exp_id, exclusion_criteria in args['exclusion_reasons'].items():
-            exp_id = int(exp_id)
-            if exp_id > 0:
+            if int(exp_id) > 0:
                 if not article_content.get("experiments"):
                     article_content['experiments'] = {}
 

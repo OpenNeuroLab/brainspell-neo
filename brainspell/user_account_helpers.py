@@ -10,7 +10,11 @@ import json
 
 def encode_for_github(d):
     """ Encode with base64 and utf-8. Take a dictionary. """
-    return b64encode(json.dumps(d).encode("utf-8")).decode("utf-8")
+    return b64encode(
+        json.dumps(
+            d,
+            indent=4,
+            sort_keys=True).encode("utf-8")).decode("utf-8")
 
 
 def decode_from_github(s):

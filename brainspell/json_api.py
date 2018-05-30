@@ -477,14 +477,14 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                     if "failed_to_fetch" not in response:
                         response["failed_to_fetch"] = []
                     response["failed_to_fetch"].append(p)
-
-            user_collections.append({
+            single_collection = {
                 "name": name[len("brainspell-neo-collection-"):],
                 "description": repo_meta["description"],
                 "contents": article_dicts
-            })
+            }
             if args["contributors"] != 0:
-                user_collections["contributors"] = contributors_info[name]
+                single_collection["contributors"] = contributors_info[name]
+            user_collections.append(single_collection)
 
         response["collections"] = user_collections
         return response

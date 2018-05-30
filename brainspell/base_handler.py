@@ -6,7 +6,8 @@ from enum import Enum
 
 import tornado
 import tornado.web
-from torngithub import json_decode
+import requests
+from tornado.concurrent import run_on_executor
 
 from user_account_helpers import *
 
@@ -104,6 +105,8 @@ class BaseHandler(tornado.web.RequestHandler):
     function finishes execution (MANDATORY). Then, any blocking code
     should be decorated with @run_on_executor.
 
+    from tornado.concurrent import run_on_executor
+
     asynchronous :: True | False
 
     @run_on_executor
@@ -193,7 +196,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # provide help documentation
         components = [x for x in self.request.path.split("/") if x]
-        if len(components) >= 3 and components[2] == "help":
+        if len(components) >= 3 and components[len(components) - 1] == "help":
             formatted_parameters = {}
             for p in self.parameters:
                 formatted_parameters[p] = {}
@@ -288,7 +291,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """
 
         try:
-            return json_decode(self.get_secure_cookie("user"))
+            return json.loads(self.get_secure_cookie("user"))
         except BaseException:
             return None
 
@@ -347,6 +350,29 @@ class BaseHandler(tornado.web.RequestHandler):
         if origin:
             self.set_header('Access-Control-Allow-Origin', origin)
         self.set_header('Access-Control-Allow-Credentials', 'true')
+
+    def github_request(self, f, route, token, data=None):
+        """ Make a request to the GitHub API.
+        Take in a function from requests, a route, GitHub token, data. """
+
+        if route[0] == "/":
+            route = route[1:]
+        if data:
+            data = json.dumps(data)
+        result = f(
+            "https://api.github.com/{0}".format(route),
+            data=data,
+            headers={
+                "Authorization": "token " + token
+            })
+        if result.status_code != 200 and result.status_code != 201:
+            msg = "Failure with GitHub request: {0}".format(route)
+            self.finish_async({
+                "success": 0,
+                "description": msg
+            })
+            raise OSError(msg)
+        return result.json()
 
 
 class AbstractEndpoint(metaclass=ABCMeta):

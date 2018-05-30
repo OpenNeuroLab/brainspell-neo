@@ -595,11 +595,8 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         contents = args['edit_contents']
 
         metadata = json.loads(article.metadata)
-        metadata['space'] = contents['space']
-        metadata['nsubjects'] = contents['nsubjects']
+        metadata['nsubjects'] = contents.get('nsubjects')
         # Ensure this is being sent
-        metadata['effect_type'] = contents['effect_type']
-        metadata['contrast'] = contents['contrast']
 
         experiments = json.loads(article.experiments)
         mapping = {}
@@ -669,6 +666,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
 
         # Execute experiment specific key-value updates
         for exp_id, kv in args['key_value_pairs'].items():
+            exp_id = int(exp_id)
             if exp_id > 0:
 
                 if not article_content.get('experiments'):
@@ -686,6 +684,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
                 pass  # Key value pairs must be associated with an experiment
 
         for exp_id, exclusion_criteria in args['exclusion_reasons'].items():
+            exp_id = int(exp_id)
             if exp_id > 0:
                 if not article_content.get("experiments"):
                     article_content['experiments'] = {}

@@ -315,7 +315,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
             response["success"] = 0
             response["description"] = "Dictionary mapping search strings to PMIDs is invalid."
             return response
-        failures = self.add_new_pmids(args['search_pmids'],args['unmapped_pmids'])
+        failures = self.add_new_pmids(args['search_to_pmids'],args['unmapped_pmids'])
         if len(failures) > 0:
             response['failures'] = json.dumps(failures)
 

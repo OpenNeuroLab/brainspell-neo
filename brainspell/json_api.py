@@ -386,7 +386,7 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
                                               ]['excluded_flag'] = args['exclude']
             if args['exclude']:
                 collection_article['experiments'][args['experiment_id']
-                                              ]['exclusion_reason'] = args['exclusion_criterion']
+                                                  ]['exclusion_reason'] = args['exclusion_criterion']
 
         data = {
             "message": "Update {0}.json".format(args['pmid']),

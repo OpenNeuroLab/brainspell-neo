@@ -253,6 +253,17 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "content": encode_for_github(
             {})}
 
+    def add_new_pmids(self,search_pmids,unmapped_pmids):
+        failures = []
+        all_pmids = list(search_pmids.values()) + unmapped_pmids
+        for pmid in all_pmids:
+            if check_existence(pmid).count == 0:
+                if not add_pmid_article_to_database(pmid):
+                    failures.append(pmid)
+        return failures
+
+
+
     def validate(self, pmids):
         if not isinstance(pmids, list):
             return False
@@ -294,7 +305,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
     def process(self, response, args):
         # Create an empty file for each PMID, and add to the metadata file.
-        # TODO: Add PMIDs to the database if they're not already
+        # TODO: Add PMIDs to the database if they're not already add_pmid_article_to_database
         # present.
         if not self.validate(args["unmapped_pmids"]):
             response["success"] = 0
@@ -304,6 +315,9 @@ class AddToCollectionEndpointHandler(BaseHandler):
             response["success"] = 0
             response["description"] = "Dictionary mapping search strings to PMIDs is invalid."
             return response
+        failures = self.add_new_pmids(args['search_pmids'],args['unmapped_pmids'])
+        if len(failures) > 0:
+            response['failures'] = json.dumps(failures)
 
         username = get_github_username_from_api_key(args["key"])
 
@@ -315,6 +329,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         collection_metadata = decode_from_github(
             get_metadata["content"])
+
+
 
         current_pmids = set(collection_metadata["unmapped_pmids"])
         for k in collection_metadata["search_to_pmids"]:

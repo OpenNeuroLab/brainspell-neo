@@ -189,7 +189,11 @@ def add_pmid_article_to_database(article_id):
     """
 
     pmid = str(article_id)
-    handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
+    try:
+        handle = efetch("pubmed", id=[pmid], rettype="medline", retmode="text")
+    except:
+        return False # Could not access correct pubmed ID
+
     records = list(Medline.parse(handle))
     records = records[0]
     article_info = {}
@@ -225,7 +229,7 @@ def add_pmid_article_to_database(article_id):
                     experiments=article_info["experiments"],
                     pmid=article_info["PMID"],
                     title=article_info["title"])
-    return article_info
+    return True
 
 
 def getDOI(lst):
@@ -450,3 +454,8 @@ def replace_experiments(pmid, experiments):
 
 def replace_metadata(pmid, metadata):
     Articles.update(metadata=metadata).where(Articles.pmid == pmid).execute()
+
+def check_existence(pmid):
+    """Evaluates whether a PMID exists in our database """
+    return Articles.select(Articles.pmid).where(Articles.pmid == pmid).execute()
+

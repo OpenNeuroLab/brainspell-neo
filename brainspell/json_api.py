@@ -610,6 +610,18 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             for k in default_exp:
                 if k not in exp:
                     exp[k] = default_exp[k]
+            # Gracefully handle non-integer values for experiment locations.
+            clean_locations = []
+            for l in exp["locations"]:
+                r = l.split(",")
+                clean_l = []
+                for v in r:
+                    try:
+                        clean_l.append(str(int(v)))
+                    except BaseException:
+                        clean_l.append("")
+                clean_locations.append(",".join(clean_l))
+            exp["locations"] = clean_locations
 
     def process(self, response, args):
         # Update global information in our database.

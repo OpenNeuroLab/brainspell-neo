@@ -175,6 +175,12 @@ class BaseHandler(tornado.web.RequestHandler):
                         "): " +
                         k
                     }
+        for k in arguments_dict:
+            if k not in self.parameters:
+                return {
+                    "success": 0,
+                    "description": "Unexpected parameter: " + k
+                }
 
         return {
             "success": 1,

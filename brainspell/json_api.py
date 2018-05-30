@@ -601,6 +601,10 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             "effect": ""
         }
 
+        valid_space = {
+            "mni", "talairach", "other", "unknown"
+        }
+
         for exp in exp_list:
             if "id" not in exp:
                 self.abort("All experiments must have IDs.")
@@ -610,6 +614,11 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             for k in default_exp:
                 if k not in exp:
                     exp[k] = default_exp[k]
+            s = exp["space"].lower()
+            if s not in default_exp:
+                self.abort("Invalid value for space.")
+            # Ensure lowercase.
+            exp["space"] = s
             # Gracefully handle non-integer values for experiment locations.
             clean_locations = []
             for l in exp["locations"]:
@@ -655,7 +664,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
             idx = mapping[exp["id"]]
             for k in exp:
-                experiment[idx][k] = exp[k]
+                experiments[idx][k] = exp[k]
 
         replace_experiments(args['pmid'], json.dumps(experiments))
         replace_metadata(args['pmid'], json.dumps(metadata))

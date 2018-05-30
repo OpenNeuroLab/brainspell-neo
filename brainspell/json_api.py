@@ -127,9 +127,6 @@ class CreateCollectionEndpointHandler(BaseHandler):
             "type": json.loads,
             "description": "JSON-serialized list of tags.",
             "default": "[]"},
-        "search_strings": {
-            "type": json.loads,
-            "default": "[]"},
         "github_token": {
             "type": str}}
 
@@ -151,16 +148,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
         v1 = self.validate(args["inclusion_criteria"])
         v2 = self.validate(args["exclusion_criteria"])
         v3 = self.validate(args["tags"])
-        v4 = self.validate(args["search_strings"])
-        if not v1:
-            print("Inclusion failed")
-        if not v2:
-            print("exclusion failed")
-        if not v3:
-            print("tags failed")
-        if not v4:
-            print("search strings")
-        if not (v1 and v2 and v3 and v4):
+        if not (v1 and v2 and v3):
             response["success"] = 0
             response["description"] = "One of the JSON inputs was invalid."
             return response
@@ -184,11 +172,11 @@ class CreateCollectionEndpointHandler(BaseHandler):
 
         collection_metadata = {
             "description": args["description"],
-            "pmids": [],
+            "unmapped_pmids": [],
             "exclusion_criteria": args["exclusion_criteria"],
             "inclusion_criteria": args["inclusion_criteria"],
             "tags": args["tags"],
-            "search_strings": args["search_strings"]
+            "search_to_pmids": {}
         }
 
         metadata_data = {"message": "Add metadata.json",
@@ -246,14 +234,24 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "github_token": {
             "type": str
         },
-        "pmids": {
+        "search_to_pmids": {
             "type": json.loads,
-            "description": "A JSON-serialized list of PMIDs to add to this collection."
+            "dscription": "A JSON-serialized dictionary mapping search strings to lists of PMIDs. Map[String, List[Integer]]",
+            "default": "{}"
+        },
+        "unmapped_pmids": {
+            "type": json.loads,
+            "description": "A JSON-serialized list of PMIDs to add to this collection, without specifying a search string.",
+            "default": "[]"
         }
     }
 
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
+    pmid_data = {
+        "message": "Add metadata.json",
+        "content": encode_for_github(
+            {})}
 
     def validate(self, pmids):
         if not isinstance(pmids, list):
@@ -266,65 +264,97 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 return False
         return True
 
+    def validate_search_dict(self, d):
+        for k in d:
+            if not isinstance(k, str):
+                return False
+            if not self.validate(d[k]):
+                return False
+        return True
+
+    def create_pmid_files(
+            self,
+            pmids,
+            username,
+            collection,
+            token,
+            already_created):
+        for p_raw in pmids:
+            p = int(p_raw)
+            if p not in already_created:
+                self.github_request(PUT,
+                                    "repos/{0}/{1}/contents/{2}.json".format(
+                                        username,
+                                        get_repo_name_from_collection(
+                                            collection),
+                                        p),
+                                    token,
+                                    self.pmid_data)
+                already_created.add(p)
+
     def process(self, response, args):
         # Create an empty file for each PMID, and add to the metadata file.
         # TODO: Add PMIDs to the database if they're not already
         # present.
-        if not self.validate(args["pmids"]):
+        if not self.validate(args["unmapped_pmids"]):
             response["success"] = 0
             response["description"] = "List of PMIDs is invalid."
+            return response
+        if not self.validate_search_dict(args["search_to_pmids"]):
+            response["success"] = 0
+            response["description"] = "Dictionary mapping search strings to PMIDs is invalid."
             return response
 
         username = get_github_username_from_api_key(args["key"])
 
         # Get PMIDs that are already added.
         get_metadata = self.github_request(
-            "repos/{0}/{1}/contents/metadata.json".format(
+            GET, "repos/{0}/{1}/contents/metadata.json".format(
                 username, get_repo_name_from_collection(
                     args["collection_name"])), args["github_token"])
 
         collection_metadata = decode_from_github(
             get_metadata["content"])
 
-        current_pmids = set(collection_metadata["pmids"])
+        current_pmids = set(collection_metadata["unmapped_pmids"])
+        for k in collection_metadata["search_to_pmids"]:
+            current_pmids.add(tuple(collection_metadata["search_to_pmids"][k]))
 
-        added_pmid = False
-        pmid_data = {
-            "message": "Add metadata.json",
-            "content": encode_for_github(
-                {})}
+        # Handle unmapped PMIDs.
+        self.create_pmid_files(
+            args["unmapped_pmids"],
+            username,
+            args["collection_name"],
+            args["github_token"],
+            current_pmids)
+        collection_metadata["unmapped_pmids"] = list(
+            set(collection_metadata["unmapped_pmids"]) | set(args["unmapped_pmids"]))
 
-        for p_raw in args["pmids"]:
-            p = int(p_raw)
-            if p not in current_pmids:
-                added_pmid = True
-                self.github_request(
-                    "repos/{0}/{1}/contents/{2}.json".format(
-                        username,
-                        get_repo_name_from_collection(
-                            args["collection_name"]),
-                        p),
-                    args["github_token"],
-                    pmid_data)
-                current_pmids.add(p)
-
-        if not added_pmid:
-            return response
-
-        collection_metadata["pmids"] = list(current_pmids)
+        # Handle other PMIDs.
+        for k in args["search_to_pmids"]:
+            self.create_pmid_files(
+                args["search_to_pmids"][k],
+                username,
+                args["collection_name"],
+                args["github_token"],
+                current_pmids)
+            if k not in collection_metadata["search_to_pmids"]:
+                collection_metadata["search_to_pmids"][k] = []
+            collection_metadata["search_to_pmids"][k] = list(
+                set(collection_metadata["search_to_pmids"][k]) | set(args["search_to_pmids"][k]))
 
         metadata_data = {
             "message": "Update metadata.json",
             "content": encode_for_github(collection_metadata),
-            "sha": get_metadata.json()["sha"]}
+            "sha": get_metadata["sha"]}
 
-        self.github_request(
-            "repos/{0}/{1}/contents/metadata.json".format(
-                username,
-                get_repo_name_from_collection(
-                    args["collection_name"])),
-            args["github_token"],
-            metadata_data)
+        self.github_request(PUT,
+                            "repos/{0}/{1}/contents/metadata.json".format(
+                                username,
+                                get_repo_name_from_collection(
+                                    args["collection_name"])),
+                            args["github_token"],
+                            metadata_data)
 
         return response
 
@@ -472,20 +502,34 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                     "pmid": article_object.pmid
                 }
 
-            article_dicts = []
+            unmapped_article_dicts = []
 
-            for p in repo_meta["pmids"]:
+            for p in repo_meta["unmapped_pmids"]:
                 try:
                     obj = next(get_article_object(p))
-                    article_dicts.append(parse_article_object(obj))
+                    unmapped_article_dicts.append(parse_article_object(obj))
                 except BaseException:
                     if "failed_to_fetch" not in response:
                         response["failed_to_fetch"] = []
                     response["failed_to_fetch"].append(p)
+
+            search_to_articles = {}
+            for k in repo_meta["search_to_pmids"]:
+                search_to_articles[k] = []
+                for p in repo_meta["search_to_pmids"][k]:
+                    try:
+                        obj = next(get_article_object(p))
+                        search_to_articles[k].append(parse_article_object(obj))
+                    except BaseException:
+                        if "failed_to_fetch" not in response:
+                            response["failed_to_fetch"] = []
+                        response["failed_to_fetch"].append(p)
+
             single_collection = {
                 "name": name[len("brainspell-neo-collection-"):],
                 "description": repo_meta["description"],
-                "contents": article_dicts
+                "unmapped_articles": article_dicts,
+                "search_to_articles": search_to_articles
             }
             if args["contributors"] != 0:
                 single_collection["contributors"] = contributors_info[name]
@@ -552,8 +596,6 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         metadata = json.loads(article.metadata)
         metadata['space'] = contents['space']
-        # TODO: nsubjects from args is an integer (note database may not
-        # correspond)
         metadata['nsubjects'] = contents['nsubjects']
         # Ensure this is being sent
         metadata['effect_type'] = contents['effect_type']
@@ -609,7 +651,6 @@ class EditLocalArticleEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PUSH_API
 
     def process(self, response, args):
-        # TODO: Make necessary GitHub requests.
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
         collection_name = get_repo_name_from_collection(

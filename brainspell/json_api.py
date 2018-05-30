@@ -528,7 +528,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
             single_collection = {
                 "name": name[len("brainspell-neo-collection-"):],
                 "description": repo_meta["description"],
-                "unmapped_articles": article_dicts,
+                "unmapped_articles": unmapped_article_dicts,
                 "search_to_articles": search_to_articles
             }
             if args["contributors"] != 0:

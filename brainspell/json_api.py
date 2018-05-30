@@ -554,7 +554,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
 
         # TODO: nsubjects from args is an integer (note database may not
         # correspond)
-        metadata['nsubjects'] = contents['nsubjects']
+        metadata['nsubjects'] = contents.get('nsubjects')
         # Ensure this is being sent
 
         experiments = json.loads(article.experiments)

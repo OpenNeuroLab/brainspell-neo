@@ -262,7 +262,9 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
     def add_new_pmids(self, search_pmids, unmapped_pmids):
         failures = []
-        all_pmids = itertools.chain(*search_pmids.values()) + unmapped_pmids
+        all_pmids = list(
+            itertools.chain(
+                *search_pmids.values())) + unmapped_pmids
         for pmid in all_pmids:
             if check_existence(pmid).count == 0:
                 check = add_pmid_article_to_database(pmid)

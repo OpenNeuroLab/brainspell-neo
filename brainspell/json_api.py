@@ -588,7 +588,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
     }
 
     valid_space = {
-        "mni", "talairach", "other", "unknown"
+        "mni", "talairach", "other", "unknown", ""
     }
 
     def validate_experiments(self, exp_list):
@@ -605,7 +605,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             for k in EditGlobalArticleEndpointHandler.default_exp:
                 if k not in exp:
                     exp[k] = EditGlobalArticleEndpointHandler.default_exp[k]
-            s = exp["space"].lower()
+            s = exp["space"].lower().strip()
             if s not in EditGlobalArticleEndpointHandler.valid_space:
                 self.abort("Invalid value for space.")
             # Ensure lowercase.

@@ -251,7 +251,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
         "message": "Add metadata.json",
         "content": encode_for_github(
             {})}
-    def flatten(self,lst):
+
+    def flatten(self, lst):
         output = []
         for item in lst:
             output.extend(item)

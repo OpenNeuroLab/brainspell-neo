@@ -248,10 +248,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
-    pmid_data = {
-        "message": "Add metadata.json",
-        "content": encode_for_github(
-            {})}
 
     def add_new_pmids(self, search_pmids, unmapped_pmids):
         failures = []
@@ -284,6 +280,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 return False
         return True
 
+    @tornado.gen.coroutine
     def create_pmid_files(
             self,
             pmids,
@@ -294,6 +291,10 @@ class AddToCollectionEndpointHandler(BaseHandler):
         for p_raw in pmids:
             p = int(p_raw)
             if p not in already_created:
+                pmid_data = {
+                    "message": "Add {0}.json".format(p),
+                    "content": encode_for_github(
+                        {})}
                 yield self.github_request(PUT,
                                           "repos/{0}/{1}/contents/{2}.json".format(
                                               username,
@@ -301,7 +302,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
                                                   collection),
                                               p),
                                           token,
-                                          self.pmid_data)
+                                          pmid_data)
                 already_created.add(p)
 
     def process(self, response, args):
@@ -330,13 +331,12 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         collection_metadata = decode_from_github(
             get_metadata["content"])
-
         current_pmids = set(collection_metadata["unmapped_pmids"])
         for k in collection_metadata["search_to_pmids"]:
-            current_pmids.add(tuple(collection_metadata["search_to_pmids"][k]))
+            current_pmids.update(collection_metadata["search_to_pmids"][k])
 
         # Handle unmapped PMIDs.
-        self.create_pmid_files(
+        yield self.create_pmid_files(
             args["unmapped_pmids"],
             username,
             args["collection_name"],
@@ -347,7 +347,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         # Handle other PMIDs.
         for k in args["search_to_pmids"]:
-            self.create_pmid_files(
+            yield self.create_pmid_files(
                 args["search_to_pmids"][k],
                 username,
                 args["collection_name"],
@@ -591,6 +591,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         "mni", "talairach", "other", "unknown", ""
     }
 
+    @tornado.gen.coroutine
     def validate_experiments(self, exp_list):
         """ Validate and fill in the blanks for the experiments dictionary. """
         if not isinstance(exp_list, list):
@@ -629,7 +630,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         # pairs
 
         article = next(get_article_object(args["pmid"]))
-        experiments = self.validate_experiments(args["experiments"])
+        yield self.validate_experiments(args["experiments"])
 
         metadata = json.loads(article.metadata)
         if metadata is None:

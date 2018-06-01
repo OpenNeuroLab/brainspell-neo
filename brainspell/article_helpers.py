@@ -202,27 +202,48 @@ def add_pmid_article_to_database(article_id):
     article_info["authors"] = ', '.join(records.get("AU"))
     article_info["abstract"] = records.get("AB")
     article_info["DOI"] = getDOI(records.get("AID"))
-    article_info["experiments"] = ""
+    article_info["experiments"] = []
     article_info["metadata"] = str({"meshHeadings": []})
     article_info["reference"] = None
     identity = ""
     try:
-        article_info["experiments"] = {
-            "locations": eval(
-                urllib.request.urlopen(
-                    "http://neurosynth.org/api/studies/peaks/" +
-                    str(pmid) +
-                    "/").read().decode())["data"]}
-        k = article_info["experiments"]["locations"]
-        for i in range(len(k)):
-            if len(k[i]) == 4:
-                identity = k[0]
-                k[i] = k[i][1:]
-            k[i] = ",".join([str(x) for x in (k[i])])
+        locations_list = eval(
+            urllib.request.urlopen(
+                "http://neurosynth.org/api/studies/peaks/" +
+                str(pmid) +
+                "/").read().decode())["data"]
+
+        id_map = {}
+        greatest_id = 89999
+        current_exp = None
+
+        for loc in locations_list:
+            current_loc_id = None
+            vals = loc
+            if len(loc) == 4:
+                current_loc_id = loc[0]
+                vals = vals[1:]
+            # vals is the x, y, z array; current_loc_id is the Neurosynth ID
+            if current_loc_id not in id_map:
+                greatest_id += 1
+                id_map[current_loc_id] = greatest_id
+                if current_exp is not None:
+                    # Add the current experiment if its not None
+                    article_info["experiments"].append(current_exp)
+                current_exp = {
+                    "caption": "",
+                    "locations": [],
+                    "descriptors": [],
+                    "contrast": "",
+                    "space": "",
+                    "effect": ""
+                }
+            current_exp["locations"].append(",".join([str(v) for v in vals]))
+        if current_exp is not None:
+            article_info["experiments"].append(current_exp)
     except BaseException:
         pass
-    article_info["id"] = identity
-    article_info["experiments"] = [article_info["experiments"]]
+
     Articles.create(abstract=article_info["abstract"],
                     authors=article_info["authors"],
                     doi=article_info["DOI"],

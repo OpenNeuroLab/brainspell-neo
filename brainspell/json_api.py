@@ -256,8 +256,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 *search_pmids.values())) + unmapped_pmids
         for pmid in all_pmids:
             if check_existence(pmid).count == 0:
-                check = add_pmid_article_to_database(pmid)
-                if not check:
+                if not add_pmid_article_to_database(pmid):
                     failures.append(pmid)
         return failures
 
@@ -601,7 +600,8 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
             if "id" not in exp:
                 self.abort("All experiments must have IDs.")
             for k in exp:
-                if k not in exp and k != "id":
+                # Don't throw an error for the ID or the vestigial title field.
+                if k not in exp and k != "id" and k != "title":
                     self.abort("Unexpected key in experiment: {0}".format(k))
             for k in EditGlobalArticleEndpointHandler.default_exp:
                 if k not in exp:

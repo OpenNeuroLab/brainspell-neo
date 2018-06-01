@@ -199,9 +199,9 @@ def add_pmid_article_to_database(article_id):
     article_info = {}
     article_info["title"] = records.get("TI")
     article_info["PMID"] = pmid
-    article_info["authors"] = ', '.join(records.get("AU"))
+    article_info["authors"] = ', '.join(records.get("AU", []))
     article_info["abstract"] = records.get("AB")
-    article_info["DOI"] = getDOI(records.get("AID"))
+    article_info["DOI"] = getDOI(records.get("AID", []))
     article_info["experiments"] = []
     article_info["metadata"] = str({"meshHeadings": []})
     article_info["reference"] = None
@@ -247,7 +247,7 @@ def add_pmid_article_to_database(article_id):
     Articles.create(abstract=article_info["abstract"],
                     authors=article_info["authors"],
                     doi=article_info["DOI"],
-                    experiments=article_info["experiments"],
+                    experiments=str(article_info["experiments"]),
                     pmid=article_info["PMID"],
                     title=article_info["title"])
     return True

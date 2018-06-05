@@ -24,6 +24,11 @@ if "COOKIE_SECRET" in os.environ:
     public_key = os.environ["COOKIE_SECRET"]
 assert public_key is not None, "The environment variable \"COOKIE_SECRET\" needs to be set."
 
+debug = True
+# Use multiple cores for production
+if "PRODUCTION_FLAG" in os.environ:
+    debug = False
+
 settings = {
     "cookie_secret": public_key,
     "login_url": "/" + github_collections.GithubLoginHandler.route,
@@ -80,7 +85,7 @@ def make_app():
                                'static')}),
         (r"/deploy", deploy.DeployHandler),
         (r"/api-socket", EndpointWebSocket),
-    ] + getJSONEndpoints() + getUserInterfaceHandlers(), debug=True, **settings)
+    ] + getJSONEndpoints() + getUserInterfaceHandlers(), debug=debug, **settings)
 
 
 def get_port_to_run():
@@ -110,6 +115,10 @@ if __name__ == "__main__":
 
     port_to_run = get_port_to_run()
 
-    http_server.listen(port_to_run)  # runs at localhost:5000 by default
+    if not debug:
+        http_server.bind(port_to_run)  # runs at localhost:5000 by default
+        http_server.start(0)
+    else:
+        http_server.listen(port_to_run)
     print("Running Brainspell at http://localhost:{0}...".format(port_to_run))
     tornado.ioloop.IOLoop.current().start()

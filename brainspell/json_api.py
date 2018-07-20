@@ -1020,6 +1020,8 @@ class ArticleEndpointHandler(BaseHandler):
             response["doi"] = article.doi
             response["experiments"] = article.experiments
             response["metadata"] = article.metadata
+            if article.metadata is None:
+                response["metadata"] = str({"meshHeadings": []})
             response["neurosynthid"] = article.neurosynthid
             response["pmid"] = article.pmid
             response["reference"] = article.reference

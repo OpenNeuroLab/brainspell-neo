@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/OpenNeuroLab/brainspell-neo.svg?branch=master)](https://travis-ci.org/OpenNeuroLab/brainspell-neo)
 
-Working on a new version on Brainspell.
+Working on a new version of Brainspell. This platform allows users to curate neuroimaging literature, and version-control their meta-analyses on GitHub. 
 
 Clients can make requests to the JSON API directly, or access Brainspell through the web interface. A running Heroku instance is available at https://brainspell.herokuapp.com/. 
 

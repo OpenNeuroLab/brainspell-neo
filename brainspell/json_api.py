@@ -458,6 +458,11 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
             "type": int,
             "default": 0,
             "description": "1 if you want contributors information for each repo, 0 otherwise."
+        },
+        "cache": {
+            "type": int,
+            "default": 1,
+            "description": "1 if you want to retrieve cached UserCollectionInformation from Brainspell's DB, 0 otherwise"
         }
     }
 
@@ -467,8 +472,10 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
     def process(self, response, args):
         # Get all repositories owned by this user, and return the names that start with
         # brainspell-neo-collection.
+        if args['cache']:
+            response["collections"] = get_brainspell_collections_from_api_key(args['key'])
+            return response
 
-        user = get_github_username_from_api_key(args['key'])
         brainspell_repos = []
         contributors_info = {}
         page_number = 1
@@ -551,6 +558,8 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
             user_collections.append(single_collection)
 
         response["collections"] = user_collections
+        # TODO: Potentially make db updates like these Async: peewee-async
+        cache_user_collections(args['key'],user_collections)
         return response
 
 

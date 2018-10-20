@@ -253,3 +253,13 @@ def remove_article_from_brainspell_database_collection(
             User.password == api_key)
         q.execute()
     return True
+
+
+def cache_user_collections(api_key, collections_obj):
+    """ Force overwrite the existing user collection field with
+    the passed collections_object data.  """
+    q = User.update(
+        collections=json.dumps(collections_obj)).where(
+            User.password == api_key)
+    q.execute()
+

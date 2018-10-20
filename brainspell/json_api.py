@@ -473,7 +473,8 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         # Get all repositories owned by this user, and return the names that start with
         # brainspell-neo-collection.
         if args['cache']:
-            response["collections"] = get_brainspell_collections_from_api_key(args['key'])
+            response["collections"] = get_brainspell_collections_from_api_key(
+                args['key'])
             return response
 
         brainspell_repos = []
@@ -559,7 +560,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
 
         response["collections"] = user_collections
         # TODO: Potentially make db updates like these Async: peewee-async
-        cache_user_collections(args['key'],user_collections)
+        cache_user_collections(args['key'], user_collections)
         return response
 
 

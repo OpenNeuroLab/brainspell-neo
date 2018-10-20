@@ -49,7 +49,7 @@ def parse_helper(query):
         columns.append(Articles.pmid)
     if tiab.search(query):
         columns.extend([Articles.title, Articles.abstract])
-    formatted_query = re.sub('\[.*\]', '', query).strip().replace(" ", "%")
+    formatted_query = re.sub(r'\[.*\]', '', query).strip().replace(" ", "%")
     if not columns:
         return (None, None, formatted_query)
     matches = [Match(col, formatted_query) for col in columns]

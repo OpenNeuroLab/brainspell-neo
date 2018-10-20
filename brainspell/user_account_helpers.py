@@ -262,4 +262,3 @@ def cache_user_collections(api_key, collections_obj):
         collections=json.dumps(collections_obj)).where(
             User.password == api_key)
     q.execute()
-

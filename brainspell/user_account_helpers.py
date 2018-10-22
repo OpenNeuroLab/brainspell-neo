@@ -8,6 +8,42 @@ from base64 import b64decode, b64encode
 import json
 
 
+def create_pmid(handler, user, repo_name, pmid, github_token):
+    """ Create a file for this PMID. """
+    p = int(pmid)
+    pmid_data = {
+        "message": "Add {0}.json".format(p),
+        "content": encode_for_github(
+            {})}
+    yield handler.github_request(PUT,
+                                 "repos/{0}/{1}/contents/{2}.json".format(
+                                     username,
+                                     repo_name,
+                                     p),
+                                 github_token,
+                                 pmid_data)
+    return True
+
+
+def get_or_create_pmid(handler, user, collection_name, pmid, github_token):
+    """ Get the contents of this PMID file, or create it if it doesn't
+    exist. """
+    p = int(pmid)
+    repo_name = get_repo_name_from_collection(collection_name)
+    try:
+        pmid_contents = yield handler.github_request(
+            GET, "repos/{0}/{1}/contents/{2}.json".format(
+                user, repo_name, p), github_token)
+        return pmid_contents
+    except Exception as e:
+        # The article didn't already exist
+        create_pmid(handler, user, repo_name, p, github_token)
+        pmid_contents = yield handler.github_request(
+            GET, "repos/{0}/{1}/contents/{2}.json".format(
+                user, repo_name, p), github_token)
+        return pmid_contents
+
+
 def encode_for_github(d):
     """ Encode with base64 and utf-8. Take a dictionary. """
     return b64encode(

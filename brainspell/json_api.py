@@ -302,7 +302,6 @@ class AddToCollectionEndpointHandler(BaseHandler):
         route = "repos/{0}/{1}/contents/metadata.json".format(
                 username, get_repo_name_from_collection(
                     args["collection_name"]))
-        print(route)
         get_metadata = yield self.github_request(
             GET, route, args["github_token"])
 

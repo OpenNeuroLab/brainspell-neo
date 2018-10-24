@@ -6,6 +6,7 @@ from models import *
 
 from base64 import b64decode, b64encode
 import json
+import requests
 
 
 def create_pmid(handler, user, repo_name, pmid, github_token):
@@ -15,7 +16,7 @@ def create_pmid(handler, user, repo_name, pmid, github_token):
         "message": "Add {0}.json".format(p),
         "content": encode_for_github(
             {})}
-    yield handler.github_request(PUT,
+    yield handler.github_request(requests.put,
                                  "repos/{0}/{1}/contents/{2}.json".format(
                                      username,
                                      repo_name,
@@ -39,7 +40,7 @@ def get_or_create_pmid(handler, user, collection_name, pmid, github_token):
         # The article didn't already exist
         create_pmid(handler, user, repo_name, p, github_token)
         pmid_contents = yield handler.github_request(
-            GET, "repos/{0}/{1}/contents/{2}.json".format(
+            requests.get, "repos/{0}/{1}/contents/{2}.json".format(
                 user, repo_name, p), github_token)
         return pmid_contents
 

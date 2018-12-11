@@ -9,7 +9,7 @@ psycopg2==2.7.3
 pycurl==7.43.0
 pytest-tornado==0.4.5
 pytest==3.0.3
-requests==2.18.4
+requests==2.20.0
 simplejson==3.10.0
 tornado==4.4.1
 torngithub==0.2.0

@@ -50,6 +50,17 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
         Receive a JSON formatted message, parse the arguments,
         and pass the resulting arguments dictionary to the processing
         function of the corresponding JSON API class. Return the response.
+
+        Corresponding Javascript calling structure:
+
+
+        params = {key: "b06852a5f3eeefd1117517046c9731c646c1d7a7", github_token: "9c117a84fd7381b437e00b7cdf3e72f31c64caf5", contributors: 0, cache: 0}
+        const ws = new WebSocket("ws://localhost:5000/api-socket")
+        ws.onmessage = (message) => console.log(message) // For testing
+        ws.send(JSON.stringify({"type":"v2/get-user-collections","payload": params}))
+
+
+
         """
         messageDict = json.loads(message)
         if messageDict["type"] not in endpoints:

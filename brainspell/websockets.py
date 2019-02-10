@@ -26,14 +26,24 @@ for endpoint in [f for f in dir(json_api) if "EndpointHandler" in f]:
         name = "v" + str(func.api_version) + "/" + name
     endpoints[name] = func
 
+def write_err(err):
+    with open("error.txt", "w+") as file:
+        file.write(str(err.value))
 
 class EndpointWebSocket(tornado.websocket.WebSocketHandler):
     """ Allow developers to access the JSON API via WebSockets.
     Only works for synchronous handlers. """
 
+    def check_origin(self, origin):
+        if not "PRODUCTION_FLAG" in os.environ:
+            return True
+        allowed_origins = ["https://brainspell.herokuapp.com", "https://metacurious.org"]
+        return any([origin.startswith(org) for org in allowed_origins])
+
     def open(self):
         # setup
         pass
+        print("HERE")
 
     def on_message(self, message):
         """
@@ -41,9 +51,7 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
         and pass the resulting arguments dictionary to the processing
         function of the corresponding JSON API class. Return the response.
         """
-
         messageDict = json.loads(message)
-
         if messageDict["type"] not in endpoints:
             self.write_message({
                 "success": 0,
@@ -54,8 +62,17 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
             payload = {}
             if "payload" in messageDict:
                 payload = messageDict["payload"]
+            api_result =  api_call(func, payload)
+            print("API RESULT IS: ",api_result)
+            print(type(api_result))
+            try:
+                api_result = next(api_result)[0]
+                self.write_message(api_result)
+                return api_result
+            except Exception as e:
+                self.write_message(json.dumps(e.value))
+                return e.value
 
-            self.write_message(json.dumps(api_call(func, payload)))
 
     def on_close(self):
         # cleanup

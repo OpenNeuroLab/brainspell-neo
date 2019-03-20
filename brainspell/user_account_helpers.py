@@ -7,7 +7,7 @@ from models import *
 from base64 import b64decode, b64encode
 import json
 import requests
-
+from search_helpers import get_article_object
 
 def create_pmid(handler, user, repo_name, pmid, github_token):
     """ Create a file for this PMID. """
@@ -299,3 +299,19 @@ def cache_user_collections(api_key, collections_obj):
         collections=json.dumps(collections_obj)).where(
             User.password == api_key)
     q.execute()
+
+def add_unmapped_article_to_cached_collections(api_key, pmid, collection_name):
+    query = list(User.select(User.collections).where(User.password == api_key).execute())[0]
+    collections = json.loads(query.collections)
+    relevant_article = list(get_article_object(pmid))[0]
+    target_collection = [x for x in collections if x['name'] == collection_name][0]
+    # Frontend should prevent duplicate additions in struct so no duplicate checks are performed here
+    target_collection['unmapped_articles'].append({
+        'title': relevant_article.title,
+        'pmid': relevant_article.pmid,
+        'authors': relevant_article.authors,
+        'reference': relevant_article.reference,
+    })
+
+    cache_user_collections(api_key, target_collection)
+

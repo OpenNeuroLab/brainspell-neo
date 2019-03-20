@@ -281,6 +281,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
         return True
 
     def process(self, response, args):
+        print(args)
+        print(response)
         # Create an empty file for each PMID, and add to the metadata file.
         if not self.validate(args["unmapped_pmids"]):
             response["success"] = 0
@@ -297,7 +299,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
             response['failures'] = json.dumps(failures)
 
         username = get_github_username_from_api_key(args["key"])
-
+        print("HERE")
         # Get PMIDs that are already added.
         route = "repos/{0}/{1}/contents/metadata.json".format(
                 username, get_repo_name_from_collection(
@@ -327,6 +329,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
             "content": encode_for_github(collection_metadata),
             "sha": get_metadata["sha"]}
 
+
+
         yield self.github_request(PUT,
                                   "repos/{0}/{1}/contents/metadata.json".format(
                                       username,
@@ -334,7 +338,9 @@ class AddToCollectionEndpointHandler(BaseHandler):
                                           args["collection_name"])),
                                   args["github_token"],
                                   metadata_data)
-
+        # For single article adds update the local cache for usability
+        if len(args['unmapped_pmids'] == 1):
+            add_unmapped_article_to_cached_collections(args['key'], args['unmapped_pmids'][0], args['collection_name'])
         return response
 
 

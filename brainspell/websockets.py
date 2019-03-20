@@ -43,7 +43,6 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         # setup
         pass
-        print("HERE")
 
     def on_message(self, message):
         """

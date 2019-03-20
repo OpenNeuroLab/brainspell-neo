@@ -12,6 +12,7 @@ import urllib.parse
 import os
 import hashlib
 from tornado.concurrent import run_on_executor
+import tornado.websocket
 
 import itertools
 
@@ -415,7 +416,7 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
         return response
 
 
-class GetUserCollectionsEndpointHandler(BaseHandler):
+class GetUserCollectionsEndpointHandler(BaseHandler, tornado.websocket.WebSocketHandler):
     """ Get the Brainspell collections owned by this user, including the PMIDs that are included. """
 
     parameters = {
@@ -437,6 +438,30 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
+    def check_origin(self, origin):
+        if not "PRODUCTION_FLAG" in os.environ:
+            return True
+        allowed_origins = ["https://brainspell.herokuapp.com", "https://metacurious.org"]
+        return any([origin.startswith(org) for org in allowed_origins])
+
+    def open(self):
+        # setup
+        print("HELLO I AM NOW OPEN")
+
+    def on_message(self, message):
+        """
+        Receive a JSON formatted message, parse the arguments,
+        and pass the resulting arguments dictionary to the processing
+        function of the corresponding JSON API class. Return the response.
+        """
+        print("I got this here message ", message)
+
+    def on_close(self):
+        # cleanup
+        print("#dead")
+        pass
+
+
     def process(self, response, args):
         # Get all repositories owned by this user, and return the names that start with
         # brainspell-neo-collection.
@@ -451,6 +476,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         more_repos = True
 
         while more_repos:
+            self.write("") # Status message to get around Heroku Router lImitations
             repos_list = yield self.github_request(GET,
                                                    "user/repos?per_page=100&page={0}".format(page_number),
                                                    args["github_token"],

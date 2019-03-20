@@ -262,7 +262,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 if "success" in response:
                     if response["success"] != 1:
                         self.set_status(422)  # unprocessable entity
-        self.write(json.dumps(response))
+        self.write(json.dumps(response, indent=2))
         self.finish()
 
     def render_with_user_info(self, url, params={}, logout_redir=None):

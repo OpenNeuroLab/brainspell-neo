@@ -56,6 +56,7 @@ def getJSONEndpoints():
         endpoints.append((r"/json/" + name + "/help", func))
         endpoints.append((r"/json/" + name + "/help/", func))
         base_handler.AbstractEndpoint.register(func)
+    print([k[0] for k in endpoints if "get-user" in k])
     return endpoints
 
 

@@ -1,8 +1,6 @@
 # the Tornado I/O loop
 
 import argparse
-import os
-import re
 
 import tornado.escape
 import tornado.httpclient
@@ -13,7 +11,6 @@ import tornado.web
 import base_handler
 import deploy
 import github_collections
-import json_api
 import user_interface
 from websockets import *
 

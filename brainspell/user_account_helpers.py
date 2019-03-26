@@ -7,18 +7,21 @@ from models import *
 from base64 import b64decode, b64encode
 import json
 import requests
+from search_helpers import get_article_object
+
+GET = requests.get
 
 
-def create_pmid(handler, user, repo_name, pmid, github_token):
+async def create_pmid(handler, user, repo_name, pmid, github_token):
     """ Create a file for this PMID. """
     p = int(pmid)
     pmid_data = {
         "message": "Add {0}.json".format(p),
         "content": encode_for_github(
             {})}
-    yield handler.github_request(requests.put,
+    await handler.github_request(requests.put,
                                  "repos/{0}/{1}/contents/{2}.json".format(
-                                     username,
+                                     user,
                                      repo_name,
                                      p),
                                  github_token,
@@ -26,20 +29,20 @@ def create_pmid(handler, user, repo_name, pmid, github_token):
     return True
 
 
-def get_or_create_pmid(handler, user, collection_name, pmid, github_token):
+async def get_or_create_pmid(handler, user, collection_name, pmid, github_token):
     """ Get the contents of this PMID file, or create it if it doesn't
     exist. """
     p = int(pmid)
     repo_name = get_repo_name_from_collection(collection_name)
     try:
-        pmid_contents = yield handler.github_request(
+        pmid_contents = await handler.github_request(
             GET, "repos/{0}/{1}/contents/{2}.json".format(
                 user, repo_name, p), github_token)
         return pmid_contents
-    except Exception as e:
+    except OSError as e:
         # The article didn't already exist
-        create_pmid(handler, user, repo_name, p, github_token)
-        pmid_contents = yield handler.github_request(
+        await create_pmid(handler, user, repo_name, p, github_token)
+        pmid_contents = await handler.github_request(
             requests.get, "repos/{0}/{1}/contents/{2}.json".format(
                 user, repo_name, p), github_token)
         return pmid_contents
@@ -299,3 +302,17 @@ def cache_user_collections(api_key, collections_obj):
         collections=json.dumps(collections_obj)).where(
             User.password == api_key)
     q.execute()
+
+
+def add_unmapped_article_to_cached_collections(api_key, pmid, collection_name):
+    query = list(User.select(User.collections).where(User.password == api_key).execute())[0]
+    collections = json.loads(query.collections)
+    relevant_article = list(get_article_object(pmid))[0]
+    target_collection = [x for x in collections if x['name'] == collection_name][0]
+    target_collection['unmapped_articles'].append({
+        'title': relevant_article.title,
+        'pmid': relevant_article.pmid,
+        'authors': relevant_article.authors,
+        'reference': relevant_article.reference,
+    })
+    cache_user_collections(api_key, collections)

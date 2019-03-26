@@ -305,10 +305,14 @@ def cache_user_collections(api_key, collections_obj):
 
 
 def add_unmapped_article_to_cached_collections(api_key, pmid, collection_name):
-    query = list(User.select(User.collections).where(User.password == api_key).execute())[0]
+    query = list(
+        User.select(
+            User.collections).where(
+            User.password == api_key).execute())[0]
     collections = json.loads(query.collections)
     relevant_article = list(get_article_object(pmid))[0]
-    target_collection = [x for x in collections if x['name'] == collection_name][0]
+    target_collection = [
+        x for x in collections if x['name'] == collection_name][0]
     target_collection['unmapped_articles'].append({
         'title': relevant_article.title,
         'pmid': relevant_article.pmid,

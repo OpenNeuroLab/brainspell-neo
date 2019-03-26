@@ -73,13 +73,11 @@ class GithubOauthProductionEndpointHandler(BaseHandler):
         }
 
         # TODO: Make asynchronous, since this is blocking.
-        # session = aiohttp.ClientSession()
         result = requests.post(
             "https://github.com:443/login/oauth/access_token",
             data
         )
         params = urllib.parse.parse_qs(result.text)
-
 
         try:
             response["github_token"] = params["access_token"][0]
@@ -338,7 +336,8 @@ class AddToCollectionEndpointHandler(BaseHandler):
 
         # Update the local cache on collections additions
         if len(args['unmapped_pmids']) == 1:
-            add_unmapped_article_to_cached_collections(args['key'], args['unmapped_pmids'][0], args['collection_name'])
+            add_unmapped_article_to_cached_collections(
+                args['key'], args['unmapped_pmids'][0], args['collection_name'])
 
         return response
 

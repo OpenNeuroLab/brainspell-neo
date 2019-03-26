@@ -375,7 +375,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 "Authorization": "token " + token
             })
         if result.status_code < 200 or result.status_code > 299:
-            self.abort("Failure with GitHub request: {0}. Status code: {1}".format(route, result.status_code))
+            self.abort(
+                "Failure with GitHub request: {0}. Status code: {1}".format(
+                    route, result.status_code))
         return result.json()
 
 

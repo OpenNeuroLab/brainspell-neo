@@ -148,11 +148,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
     api_version = 1
 
-    def initialize(self):
-        """ Add the coroutine decorator to all process functions. """
-        if self.process:
-            self.process = tornado.gen.coroutine(self.process)
-
     def get_safe_arguments(self, arguments_dict, accessor):
         """ Enforce type safety; do not verify API key. """
 
@@ -190,8 +185,7 @@ class BaseHandler(tornado.web.RequestHandler):
             "args": args
         }
 
-    @tornado.gen.coroutine
-    def get(self):
+    async def get(self):
         """
         Provide a guarantee for a valid API key on PUSH endpoints,
         documentation at /help, and type-checked arguments.
@@ -239,10 +233,10 @@ class BaseHandler(tornado.web.RequestHandler):
                         self.endpoint_type == Endpoint.PUSH_API and argsDict["args"]["key"] != ""):
                     response = {"success": 1}
                     if not self.handle_finishing:
-                        response = yield self.process(response, argsDict["args"])
+                        response = await self.process(response, argsDict["args"])
                         self.finish_async(response)
                     else:
-                        yield self.process(response, argsDict["args"])
+                        await self.process(response, argsDict["args"])
                 else:
                     self.set_status(401)  # unauthorized
                     self.finish_async(
@@ -263,7 +257,6 @@ class BaseHandler(tornado.web.RequestHandler):
                     if response["success"] != 1:
                         self.set_status(422)  # unprocessable entity
         self.write(json.dumps(response))
-        self.finish()
 
     def render_with_user_info(self, url, params={}, logout_redir=None):
         """
@@ -367,8 +360,7 @@ class BaseHandler(tornado.web.RequestHandler):
         })
         raise OSError(msg)
 
-    @run_on_executor
-    def github_request(self, f, route, token, data=None):
+    async def github_request(self, f, route, token, data=None):
         """ Make a request to the GitHub API.
         Take in a function from requests, a route, GitHub token, data. """
 
@@ -383,7 +375,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 "Authorization": "token " + token
             })
         if result.status_code < 200 or result.status_code > 299:
-            self.abort("Failure with GitHub request: {0}".format(route))
+            self.abort(
+                "Failure with GitHub request: {0}. Status code: {1}".format(
+                    route, result.status_code))
         return result.json()
 
 

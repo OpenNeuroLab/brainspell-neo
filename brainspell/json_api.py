@@ -11,7 +11,6 @@ import requests
 import urllib.parse
 import os
 import hashlib
-from tornado.concurrent import run_on_executor
 
 import itertools
 
@@ -38,7 +37,8 @@ class ListEndpointsEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
-    def process(self, response, args):
+    @staticmethod
+    async def process(response, args):
         endpoints = brainspell.getJSONEndpoints()
         response["endpoints"] = [name for name, cls in endpoints if name[len(
             name) - 1:] != "/" and name[len(name) - 4:] != "help"]
@@ -63,7 +63,7 @@ class GithubOauthProductionEndpointHandler(BaseHandler):
     client_id_key = "github_frontend_client_id"
     client_secret_key = "github_frontend_client_secret"
 
-    def process(self, response, args):
+    async def process(self, response, args):
         code = args["code"]
 
         data = {
@@ -77,12 +77,11 @@ class GithubOauthProductionEndpointHandler(BaseHandler):
             "https://github.com:443/login/oauth/access_token",
             data
         )
-
         params = urllib.parse.parse_qs(result.text)
 
         try:
             response["github_token"] = params["access_token"][0]
-            user = yield self.github_request(GET, "user", params["access_token"][0])
+            user = await self.github_request(GET, "user", params["access_token"][0])
             # idempotent operation to make sure GitHub user is in our
             # database
             register_github_user(user)
@@ -143,7 +142,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
                 return False
         return True
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Validate the JSON arguments.
         v1 = self.validate(args["inclusion_criteria"])
         v2 = self.validate(args["exclusion_criteria"])
@@ -160,7 +159,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
             "description": args["description"],
         }
 
-        yield self.github_request(
+        await self.github_request(
             POST,
             "user/repos",
             args["github_token"],
@@ -182,7 +181,7 @@ class CreateCollectionEndpointHandler(BaseHandler):
         metadata_data = {"message": "Add metadata.json",
                          "content": encode_for_github(collection_metadata)}
 
-        yield self.github_request(PUT,
+        await self.github_request(PUT,
                                   "repos/{0}/{1}/contents/metadata.json".format(username,
                                                                                 get_repo_name_from_collection(args["collection_name"])),
                                   args["github_token"],
@@ -207,13 +206,13 @@ class GetCollectionInfoEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Get the metadata file from the GitHub repository for this collection.
 
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
         user = get_github_username_from_api_key(args['key'])
-        collection_values = yield self.github_request(
+        collection_values = await self.github_request(
             GET, "repos/{0}/{1}/contents/metadata.json".format(
                 user, collection_name), args["github_token"])
 
@@ -280,7 +279,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
                 return False
         return True
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Create an empty file for each PMID, and add to the metadata file.
         if not self.validate(args["unmapped_pmids"]):
             response["success"] = 0
@@ -302,7 +301,7 @@ class AddToCollectionEndpointHandler(BaseHandler):
         route = "repos/{0}/{1}/contents/metadata.json".format(
                 username, get_repo_name_from_collection(
                     args["collection_name"]))
-        get_metadata = yield self.github_request(
+        get_metadata = await self.github_request(
             GET, route, args["github_token"])
 
         collection_metadata = decode_from_github(
@@ -327,13 +326,18 @@ class AddToCollectionEndpointHandler(BaseHandler):
             "content": encode_for_github(collection_metadata),
             "sha": get_metadata["sha"]}
 
-        yield self.github_request(PUT,
+        await self.github_request(PUT,
                                   "repos/{0}/{1}/contents/metadata.json".format(
                                       username,
                                       get_repo_name_from_collection(
                                           args["collection_name"])),
                                   args["github_token"],
                                   metadata_data)
+
+        # Update the local cache on collections additions
+        if len(args['unmapped_pmids']) == 1:
+            add_unmapped_article_to_cached_collections(
+                args['key'], args['unmapped_pmids'][0], args['collection_name'])
 
         return response
 
@@ -368,11 +372,11 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Add the excluded experiment to the file for this PMID.
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = get_or_create_pmid(
+        article_values = await get_or_create_pmid(
             self,
             user,
             args['collection_name'],
@@ -405,7 +409,7 @@ class ToggleExclusionFromCollectionEndpointHandler(BaseHandler):
         # Now set the content of the file to the updated collection_article
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
-        update_article = yield self.github_request(PUT,
+        update_article = await self.github_request(PUT,
                                                    "repos/{0}/{1}/contents/{2}.json".format(user,
                                                                                             collection_name,
                                                                                             args['pmid']),
@@ -437,7 +441,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Get all repositories owned by this user, and return the names that start with
         # brainspell-neo-collection.
         if args['cache']:
@@ -451,7 +455,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         more_repos = True
 
         while more_repos:
-            repos_list = yield self.github_request(GET,
+            repos_list = await self.github_request(GET,
                                                    "user/repos?per_page=100&page={0}".format(page_number),
                                                    args["github_token"],
                                                    {"affiliation": "owner"})
@@ -464,7 +468,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
                                 ] == "brainspell-neo-collection-":
                     brainspell_repos.append((repo["name"], repo["url"]))
                     if args["contributors"] != 0:
-                        contributors_req = yield self.github_request(
+                        contributors_req = await self.github_request(
                             GET, repo["contributors_url"].replace(
                                 "https://api.github.com/", ""), args["github_token"])
                         contributors_info[repo["name"]] = [{
@@ -477,7 +481,7 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         user_collections = []
 
         for name, url in brainspell_repos:
-            repo_req = yield self.github_request(GET,
+            repo_req = await self.github_request(GET,
                                                  url.replace(
                                                      "https://api.github.com/",
                                                      "") + "/contents/metadata.json",
@@ -548,7 +552,8 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         },
         "subjects": {
             "type": int,
-            "description": "The number of subjects for the entire article. Experiment specific values should be in the experiments argument."
+            "default": -1,
+            "description": "The number of subjects for the entire article. Experiment specific values should be in the experiments argument. Defaults to -1 if no argument is passed"
         }
     }
 
@@ -568,8 +573,7 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
         "mni", "talairach", "other", "unknown", ""
     }
 
-    @tornado.gen.coroutine
-    def validate_experiments(self, exp_list):
+    async def validate_experiments(self, exp_list):
         """ Validate and fill in the blanks for the experiments dictionary. """
         if not isinstance(exp_list, list):
             self.abort("The experiments argument should be a list.")
@@ -602,20 +606,22 @@ class EditGlobalArticleEndpointHandler(BaseHandler):
                 clean_locations.append(",".join(clean_l))
             exp["locations"] = clean_locations
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Update global information in our database.
         # Not in database: coordinate_space, effect_type, contrast, key-value
         # pairs
 
         article = next(get_article_object(args["pmid"]))
-        yield self.validate_experiments(args["experiments"])
+        await self.validate_experiments(args["experiments"])
 
         metadata = json.loads(article.metadata)
         if metadata is None:
             # Gracefully handle null metadata.
             metadata = {}
 
-        metadata["nsubjects"] = args["subjects"]
+        if args['subjects'] != -1:
+            # Update num subjects on non-null entry
+            metadata["nsubjects"] = args["subjects"]
 
         experiments = json.loads(article.experiments)
         if experiments is None:
@@ -672,12 +678,12 @@ class EditLocalArticleEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # See what fields are included in the edit_contents dictionary, and update each provided
         # field in the appropriate place, whether on GitHub or otherwise.
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = get_or_create_pmid(
+        article_values = await get_or_create_pmid(
             self,
             user,
             args["collection_name"],
@@ -729,7 +735,7 @@ class EditLocalArticleEndpointHandler(BaseHandler):
 
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
-        key_value_update = yield self.github_request(
+        key_value_update = await self.github_request(
             PUT, "repos/{0}/{1}/contents/{2}.json" .format(
                 user, collection_name, args['pmid']), args["github_token"], data)
 
@@ -755,11 +761,11 @@ class GetArticleFromCollectionEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Get the PMID file from the GitHub repository for this collection.
 
         user = get_github_username_from_api_key(args['key'])
-        collection_values = get_or_create_pmid(
+        collection_values = await get_or_create_pmid(
             self, user, args["collection_name"], args["pmid"], args["github_token"])
 
         response["article_info"] = decode_from_github(
@@ -798,11 +804,11 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
     api_version = 2
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # Edit the PMID file from the GitHub repository for this collection.
         user = get_github_username_from_api_key(args['key'])
 
-        article_values = get_or_create_pmid(
+        article_values = await get_or_create_pmid(
             self,
             user,
             args["collection_name"],
@@ -833,7 +839,7 @@ class AddKeyValuePairEndpointHandler(BaseHandler):
         # Update the contents of the JSON file with new key value pairs
         collection_name = get_repo_name_from_collection(
             args['collection_name'])
-        yield self.github_request(PUT,
+        await self.github_request(PUT,
                                   "repos/{0}/{1}/contents/{2}.json".format(user,
                                                                            collection_name,
                                                                            args['pmid']),
@@ -868,16 +874,16 @@ class QueryEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         database_dict = {}
         results = formatted_search(args["q"], args["start"], args["req"])
         output_list = []
         for article in results:
             try:
-                article_dict = {}
-                article_dict["id"] = article.pmid
-                article_dict["title"] = article.title
-                article_dict["authors"] = article.authors
+                article_dict = {
+                    "id": article.pmid,
+                    "title": article.title,
+                    "authors": article.authors}
                 output_list.append(article_dict)
             except BaseException:
                 pass
@@ -919,13 +925,11 @@ class CoordinatesEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
-    def process(self, response, args):
-        database_dict = {}
+    async def process(self, response, args):
         results = formatted_search(args["q"], args["start"], args["req"], True)
         output_list = []
         for article in results:
             try:
-                article_dict = {}
                 experiments = json.loads(article.experiments)
                 for c in experiments:  # get the coordinates from the experiments
                     output_list.extend(c["locations"])
@@ -942,16 +946,16 @@ class RandomQueryEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         database_dict = {}
         results = random_search()
         output_list = []
         for article in results:
             try:
-                article_dict = {}
-                article_dict["id"] = article.pmid
-                article_dict["title"] = article.title
-                article_dict["authors"] = article.authors
+                article_dict = {
+                    "id": article.pmid,
+                    "title": article.title,
+                    "authors": article.authors}
                 output_list.append(article_dict)
             except BaseException:
                 pass
@@ -970,7 +974,7 @@ class AddArticleFromPmidEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         add_pmid_article_to_database(args["new_pmid"])
         return response
 
@@ -992,7 +996,7 @@ class ArticleEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PULL_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         try:
             article = next(get_article_object(args["pmid"]))
             response["timestamp"] = article.timestamp
@@ -1023,7 +1027,7 @@ class BulkAddEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         # TODO: add better file parsing function
         try:
             file_body = self.request.files['articlesFile'][0]['body'].decode(
@@ -1057,7 +1061,7 @@ class SetArticleAuthorsEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         update_authors(args["pmid"], args["authors"])
         return response
 
@@ -1077,7 +1081,7 @@ class ToggleStereotaxicSpaceVoteEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         space = args["space"].lower()
         if space == "mni" or space == "talairach":
             vote_stereotaxic_space(
@@ -1106,7 +1110,7 @@ class NumberOfSubjectsVoteEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         vote_number_of_subjects(
             args["pmid"],
             args["subjects"],
@@ -1133,7 +1137,7 @@ class AddExperimentsTableViaTextEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         add_table_through_text_box(args["pmid"], args["values"])
         return response
 
@@ -1156,7 +1160,7 @@ class ToggleUserVoteEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         username = get_github_username_from_api_key(args["key"])
         toggle_vote(args["pmid"], args["topic"], username, args["direction"])
         return response
@@ -1179,7 +1183,7 @@ class ToggleUserTagOnArticleEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         pmid = args["pmid"]
         user_tag = args["tag_name"]
         username = get_github_username_from_api_key(args["key"])
@@ -1211,7 +1215,7 @@ class UpdateTableVoteEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         username = get_github_username_from_api_key(args["key"])
         c = args["column"]
         if c != "T" and c != "B" and c != "C":
@@ -1242,7 +1246,7 @@ class FlagTableEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         flag_table(args["pmid"], args["experiment"])
         return response
 
@@ -1268,7 +1272,7 @@ class EditTableTitleCaptionEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         edit_table_title_caption(
             args["pmid"],
             args["experiment"],
@@ -1294,7 +1298,7 @@ class DeleteRowEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         delete_row(args["pmid"], args["experiment"], args["row"])
         return response
 
@@ -1319,7 +1323,7 @@ class SplitTableEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         split_table(args["pmid"], args["experiment"], args["row"])
         return response
 
@@ -1345,7 +1349,7 @@ class UpdateRowEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         coords = args["coordinates"]
         if len(coords) == 3 or len(coords) == 4:
             update_coordinate_row(
@@ -1382,7 +1386,7 @@ class AddRowEndpointHandler(BaseHandler):
 
     endpoint_type = Endpoint.PUSH_API
 
-    def process(self, response, args):
+    async def process(self, response, args):
         coords = args["coordinates"]
         if len(coords) == 3 or len(coords) == 4:
             add_coordinate_row(
@@ -1408,12 +1412,11 @@ class GetOaPdfEndpointHandler(BaseHandler):
     endpoint_type = Endpoint.PULL_API
     handle_finishing = True
 
-    @run_on_executor
-    def get_pdf_bytes(self, url):
+    async def get_pdf_bytes(self, url):
         response = requests.get(url).content
         return response
 
-    def process(self, response, args):
+    async def process(self, response, args):
         doi = args['doi']
         unpaywallURL = 'https://api.unpaywall.org/v2/{doi}?email=keshavan@berkeley.edu'.format(
             doi=doi)
@@ -1423,7 +1426,7 @@ class GetOaPdfEndpointHandler(BaseHandler):
             try:
                 # get pdf
                 pdf_url = data['best_oa_location']['url_for_pdf']
-                pdf_bytes = yield self.get_pdf_bytes(pdf_url)
+                pdf_bytes = await self.get_pdf_bytes(pdf_url)
                 self.set_header("Content-Type", "application/pdf")
                 self.write(pdf_bytes)
                 self.finish()

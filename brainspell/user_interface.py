@@ -1,11 +1,5 @@
 # handlers for the user-facing website
-
-import hashlib
-import json
-import os
 import urllib.parse
-from base64 import b64encode
-
 import github_collections
 import json_api
 from article_helpers import *
@@ -149,6 +143,7 @@ class SwaggerHandler(BaseHandler):
         "schemes": ["https"],
         "basePath": "/json/"}
 
+    @staticmethod
     def parameter_object_to_swagger(name, p):
         """ Convert Brainspell parameters objects to Swagger. """
 

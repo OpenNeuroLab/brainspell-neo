@@ -368,7 +368,6 @@ class BaseHandler(tornado.web.RequestHandler):
             route = route[1:]
         if data:
             data = json.dumps(data)
-
         result = f(
             "https://api.github.com/{0}".format(route),
             data=data,

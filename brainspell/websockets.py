@@ -11,7 +11,8 @@ from user_account_helpers import *
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
-# Seconds between heartbeat messages for long running web-socket based computation
+# Seconds between heartbeat messages for long running web-socket based
+# computation
 HEARTBEAT_INTERVAL = 15
 
 
@@ -37,13 +38,14 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
 
     def open(self):
         # setup
-        print("OPENED CONNECTION")
         pass
 
     def check_origin(self, origin):
-        if not "PRODUCTION_FLAG" in os.environ:
+        if "PRODUCTION_FLAG" not in os.environ:
             return True
-        allowed_origins = {"https://brainspell.herokuapp.com", "https://metacurious.org"}
+        allowed_origins = {
+            "https://brainspell.herokuapp.com",
+            "https://metacurious.org"}
         return any([origin.startswith(org) for org in allowed_origins])
 
     def issue_periodic_write(self, f_stop):
@@ -51,7 +53,10 @@ class EndpointWebSocket(tornado.websocket.WebSocketHandler):
             self.write_message(
                 json.dumps({"loading": 1})
             )
-            threading.Timer(HEARTBEAT_INTERVAL, self.issue_periodic_write, [f_stop]).start()
+            threading.Timer(
+                HEARTBEAT_INTERVAL,
+                self.issue_periodic_write,
+                [f_stop]).start()
 
     async def on_message(self, message):
         """

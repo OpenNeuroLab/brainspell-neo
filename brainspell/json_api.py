@@ -455,10 +455,10 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         more_repos = True
 
         while more_repos:
-            repos_list = await self.github_request(GET,
-                                                   "user/repos?per_page=100&page={0}".format(page_number),
-                                                   args["github_token"],
-                                                   {"affiliation": "owner"})
+            repos_list = await BaseHandler.github_request(self, f=GET,
+                                                          route="user/repos?per_page=100&page={0}".format(page_number),
+                                                          token=args["github_token"],
+                                                          data={"affiliation": "owner"})
 
             if len(repos_list) == 0:
                 more_repos = False
@@ -481,11 +481,11 @@ class GetUserCollectionsEndpointHandler(BaseHandler):
         user_collections = []
 
         for name, url in brainspell_repos:
-            repo_req = await self.github_request(GET,
-                                                 url.replace(
-                                                     "https://api.github.com/",
-                                                     "") + "/contents/metadata.json",
-                                                 args["github_token"])
+            repo_req = await BaseHandler.github_request(self, GET,
+                                                        url.replace(
+                                                            "https://api.github.com/",
+                                                            "") + "/contents/metadata.json",
+                                                        args["github_token"])
             repo_meta = decode_from_github(repo_req["content"])
 
             # Convert PeeWee article object to dict
